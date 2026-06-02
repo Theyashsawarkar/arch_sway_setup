@@ -1,0 +1,194 @@
+{
+  /*
+   * ==========================================================================
+   * EDITOR CORE & VIM BEHAVIOR
+   * ==========================================================================
+   */
+  "edit_predictions": {
+    "provider": "zed",
+  },
+  "agent_servers": {
+    "your_agent": {
+      "type": "custom",
+      "command": "path_to_executable",
+    },
+  },
+  "cli_default_open_behavior": "existing_window",
+  "outline_panel": {
+    "dock": "left",
+  },
+  "collaboration_panel": {
+    "dock": "left",
+  },
+  "git_panel": {
+    "dock": "left",
+  },
+  "vim_mode": true,
+  "relative_line_numbers": "enabled",
+  "cursor_blink": false,
+  "tab_size": 2,
+  "extend_comment_on_newline": false,
+  "vertical_scroll_margin": 1,
+  "when_closing_with_no_tabs": "keep_window_open",
+  "close_on_file_delete": true,
+  "autosave": "on_focus_change",
+  "auto_indent": "syntax_aware",
+  "format_on_save": "on",
+  "ensure_final_newline_on_save": true,
+  "remove_trailing_whitespace_on_save": true,
+
+  /*
+   * ==========================================================================
+   * AI & AGENT CONFIGURATION (GEMINI PRO)
+   * ==========================================================================
+   */
+  "disable_ai": false,
+  "agent": {
+    "sidebar_side": "right",
+    "dock": "right",
+    "button": false,
+    "default_model": {
+      "enable_thinking": true,
+      "provider": "google",
+      "model": "gemini-2.5-pro",
+    },
+  },
+
+  /*
+   * ==========================================================================
+   * SYSTEM PERFORMANCE & NODE.JS TOOLING
+   * ==========================================================================
+   */
+  "file_scan_exclusions": [
+    "**/.git",
+    "**/node_modules",
+    "**/dist",
+    "**/build",
+    "**/coverage",
+    "**/.next",
+  ],
+  "formatter": "prettier",
+  "lsp": {
+    "vtsls": {
+      "settings": {
+        "typescript": {
+          "updateImportsOnFileMove": {
+            "enabled": "always",
+          },
+        },
+        "javascript": {
+          "updateImportsOnFileMove": {
+            "enabled": "always",
+          },
+        },
+      },
+      "enable_lsp_tasks": true,
+    },
+    "eslint": {
+      "settings": {
+        "codeActionOnSave": {
+          "rules": ["ext:js,jsx,ts,tsx"],
+        },
+      },
+    },
+  },
+
+  /*
+   * ==========================================================================
+   * TYPOGRAPHY & FONTS
+   * ==========================================================================
+   */
+  "ui_font_size": 15.0,
+  "buffer_font_size": 15.0,
+  "terminal": {
+    "dock": "bottom",
+    "font_size": 15.0,
+  },
+
+  /*
+   * ==========================================================================
+   * VISUAL THEME & UI SURFACES
+   * ==========================================================================
+   */
+  "theme": {
+    "mode": "dark",
+    "light": "Ayu Light",
+    "dark": "Catppuccin Espresso (Blur) [Heavy]",
+  },
+  "icon_theme": "Warm Charmed Icons",
+  "scrollbar": {
+    "show": "never",
+  },
+  "title_bar": {
+    "show_onboarding_banner": false,
+  },
+  "tab_bar": {
+    "show_tab_bar_buttons": false,
+  },
+  "toolbar": {
+    "quick_actions": false,
+    "breadcrumbs": true,
+  },
+  "gutter": {
+    "min_line_number_digits": 4,
+  },
+  "diagnostics": {
+    "inline": {
+      "enabled": true,
+    },
+  },
+
+  /*
+   * ==========================================================================
+   * PROJECT PANEL & NAVIGATION
+   * ==========================================================================
+   */
+  "project_panel": {
+    "dock": "left",
+    "hide_gitignore": false,
+    "hide_hidden": true,
+    "auto_fold_dirs": false,
+    "starts_open": false,
+    "scrollbar": {
+      "show": "never",
+    },
+  },
+  "file_finder": {
+    "modal_max_width": "small",
+    "include_ignored": "indexed",
+  },
+
+  /*
+   * ==========================================================================
+   * THEME OVERRIDES (AURA DARK)
+   * ==========================================================================
+   */
+  "theme_overrides": {
+    "Catppuccin Espresso (Blur) [Heavy]": {
+      "tab.active_background": "#2a283e99",
+
+      "editor.line_number": "#585273",
+      "editor.active_line_number": "#A277FF",
+
+      "vim.normal.background": "#A277FF",
+      "vim.normal.foreground": "#15141C",
+
+      "vim.insert.background": "#00E599",
+      "vim.insert.foreground": "#15141C",
+
+      "vim.visual.background": "#FFB86C",
+      "vim.visual.foreground": "#15141C",
+
+      "vim.replace.background": "#FF5555",
+      "vim.replace.foreground": "#15141C",
+
+      "vim.visual_line.background": "#7199FF",
+      "vim.visual_line.foreground": "#15141C",
+
+      "syntax": {
+        "comment": { "font_style": "italic" },
+        "comment.doc": { "font_style": "italic" },
+      },
+    },
+  },
+}

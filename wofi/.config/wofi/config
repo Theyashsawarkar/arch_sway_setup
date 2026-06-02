@@ -1,0 +1,14 @@
+# ~/.config/wofi/config
+show=drun,run
+width=600
+height=400
+prompt=Search Apps and Commands...
+allow_markup=true
+allow_images=true
+image_size=24
+term=kitty
+
+# Performance and visuals
+normal_window=false
+insensitive=true
+no_actions=true

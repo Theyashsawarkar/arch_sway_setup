@@ -1,0 +1,59 @@
+/* ~/.config/wofi/style.css */
+
+window {
+    margin: 0px;
+    /* Royal Mauve - The color of kingsmanship, wisdom, and sophistication */
+    border: 2px solid #CBA6F7; 
+    /* Deep Midnight base - grounds the UI and reduces visual fatigue */
+    background-color: rgba(17, 17, 27, 0.95); 
+    border-radius: 16px; /* Generous, smooth curves for a fluid feel */
+    font-family: "ZedMono Nerd Font";
+    font-size: 16px;
+}
+
+#input {
+    margin: 15px;
+    padding: 12px;
+    border: none;
+    /* Soft, elevated background for the search bar */
+    background-color: rgba(49, 50, 68, 0.5); 
+    color: #CBA6F7; /* Active typing glows in the royal accent */
+    border-radius: 10px; /* Curves matching the outer shell */
+    font-weight: bold;
+}
+
+#inner-box {
+    margin: 0px 15px 15px 15px;
+    background-color: transparent;
+}
+
+#outer-box {
+    background-color: transparent;
+}
+
+#scroll {
+    margin: 0px;
+    border: none;
+}
+
+#entry {
+    padding: 8px 12px; /* Added breathing room for text */
+    border-radius: 8px; /* Soft highlights */
+    background-color: transparent;
+}
+
+#text {
+    margin: 2px;
+    color: #A6ADC8; /* Muted silver text for unselected items (calming) */
+}
+
+/* The Selection Highlight */
+#entry:selected {
+    /* A soft, translucent wash of the royal color rather than a harsh block */
+    background-color: rgba(203, 166, 247, 0.15); 
+}
+
+#entry:selected #text {
+    color: #CBA6F7; /* Selected text pops to guide the eye */
+    font-weight: bold;
+}

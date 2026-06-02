@@ -1,0 +1,189 @@
+[
+  {
+    "context": "ProjectPanel",
+    "bindings": {
+      // --- Toggles (Your existing ones) ---
+      "space h": "project_panel::ToggleHideHidden",
+      "space i": "project_panel::ToggleHideGitIgnore",
+      "space e": "workspace::ToggleLeftDock",
+
+      "space g": "git_panel::Toggle",
+
+      // --- LazyVim Inspired CRUD ---
+      "space a": "project_panel::NewFile",
+      "space r": "project_panel::Rename",
+      "space d": "project_panel::Trash",
+      "space D": "project_panel::Delete", // Permanent delete (bypass trash)
+
+      // --- Clipboard & Manipulation ---
+      "space y": "project_panel::Copy",
+      "space x": "project_panel::Cut",
+      "space p": "project_panel::Paste",
+      "space c": "workspace::CopyRelativePath",
+      "space C": "workspace::CopyPath",
+    },
+  },
+
+  /*
+   * ==========================================================================
+   * GLOBAL / WORKSPACE LEVEL
+   * ==========================================================================
+   */
+  {
+    "context": "EmptyPane || SharedScreen",
+    "bindings": {
+      "space f": "file_finder::Toggle",
+      "space e": "project_panel::ToggleFocus",
+      "space g": "git_panel::Toggle",
+      "space d u": "debug_panel::ToggleFocus",
+    },
+  },
+
+  {
+    "context": "EmptyPane || vim_mode == normal  ",
+    "bindings": {
+      "space p r": "projects::OpenRecent", // "Project Recent"
+      "space p o": "workspace::Open",
+      "space f o": "workspace::OpenFiles",
+      "space f n": "workspace::NewFile",
+      "space t n": "workspace::NewCenterTerminal",
+    },
+  },
+
+  /*
+   * ==========================================================================
+   * DOCK TOGGLES (BULLETPROOF OVERRIDES)
+   * ==========================================================================
+   */
+  {
+    "context": " Workspace || Editor || Terminal || AssistantPanel",
+    "bindings": {
+      "alt-h": "workspace::ToggleLeftDock",
+      "alt-j": "workspace::ToggleBottomDock",
+      "alt-l": "workspace::ToggleRightDock",
+    },
+  },
+
+  /*
+   * ==========================================================================
+   * VIM NORMAL & VISUAL MODE
+   * ==========================================================================
+   */
+  {
+    "context": "VimControl && !menu",
+    "bindings": {
+      "space space": "workspace::Save",
+
+      // ---------- AI & Predictions ----------
+      "space t p": "editor::ToggleEditPrediction",
+
+      // ---------- LSP / Code Actions ----------
+      "shift-k": "editor::Hover",
+      "space c f": "editor::Format",
+      "space c r": "editor::Rename",
+      "space b o": "outline::Toggle",
+      "space c a": "editor::ToggleCodeActions",
+
+      // ---------- Navigation & UI ----------
+      "space f f": "file_finder::Toggle",
+      "space e": "project_panel::ToggleFocus",
+
+      "space g": "git_panel::Toggle",
+
+      // ---------- SEARCH ----------
+      "space s g": "pane::DeploySearch",
+      "space s b": "buffer_search::Deploy",
+
+      // --------- Buffers / Tabs Navigation ---------
+      "space f b": "tab_switcher::Toggle",
+      "shift-h": "pane::ActivatePreviousItem", // Tab Left
+      "shift-l": "pane::ActivateNextItem", // Tab Right
+      "space b b": "pane::AlternateFile",
+      "space b d": "pane::CloseActiveItem",
+      "space b x": "pane::CloseAllItems",
+      "space b l": "pane::ReopenClosedItem",
+      "space b L": "pane::CloseItemsToTheLeft",
+      "space b R": "pane::CloseItemsToTheRight",
+
+      // --------- DIAGNOSTICS (Optimized) ---------
+      "space n d": "editor::GoToDiagnostic",
+      "space p d": "editor::GoToPreviousDiagnostic",
+      "space x": "diagnostics::Deploy",
+
+      // ---------- Pane Management ----------
+      "space h": "pane::SplitHorizontal",
+      "space v": "pane::SplitVertical",
+      "space w d": "pane::CloseAllItems",
+
+      // ---------- Pane Traversal ----------
+      "ctrl-h": "workspace::ActivatePaneLeft",
+      "ctrl-l": "workspace::ActivatePaneRight",
+      "ctrl-k": "workspace::ActivatePaneUp",
+      "ctrl-j": "workspace::ActivatePaneDown",
+
+      // ---------- Pane Resizing ----------
+      "ctrl-shift-h": "vim::ResizePaneLeft",
+      "ctrl-shift-l": "vim::ResizePaneRight",
+      "ctrl-shift-j": "vim::ResizePaneDown",
+      "ctrl-shift-k": "vim::ResizePaneUp",
+
+      // ---------- Debugger (DAP) ----------
+      "space d s": "debugger::Start",
+      "space d c": "debugger::Continue",
+      "space d C": "debugger::RunToCursor",
+      "space d B": "debugger::StepBack",
+      "space d r": "debugger::Rerun",
+      "space d b": "editor::ToggleBreakpoint",
+      "space d l": "editor::EditLogBreakpoint",
+      "space d n": "debugger::StepOver",
+      "space d i": "debugger::StepInto",
+      "space d o": "debugger::StepOut",
+      "space d x": "debugger::Stop",
+      "space d u": "debug_panel::ToggleFocus",
+      "space d e": "debugger::EvaluateSelectedText",
+      "space d a": "debugger::ClearAllBreakpoints",
+      "space d k": "debugger::StepBack",
+      "space d t": "debugger::FocusTerminal",
+
+      // ---------- Move Line Up or Down ----------
+      "alt-shift-k": "editor::MoveLineUp",
+      "alt-shift-j": "editor::MoveLineDown",
+    },
+  },
+
+  /*
+   * ==========================================================================
+   * VIM INSERT MODE
+   * ==========================================================================
+   */
+  {
+    "context": "vim_mode == insert",
+    "bindings": {
+      "j k": "vim::NormalBefore",
+    },
+  },
+
+  /*
+   * ==========================================================================
+   * DOCKS & TERMINALS
+   * ==========================================================================
+   */
+  {
+    "context": "Dock && !menu",
+    "bindings": {
+      "space d u": "debug_panel::ToggleFocus",
+
+      // ---------- Pane Traversal ----------
+      "ctrl-h": "workspace::ActivatePaneLeft",
+      "ctrl-l": "workspace::ActivatePaneRight",
+      "ctrl-k": "workspace::ActivatePaneUp",
+      "ctrl-j": "workspace::ActivatePaneDown",
+
+      // ---------- Pane Resizing ----------
+      "ctrl-shift-h": "vim::ResizePaneLeft",
+      "ctrl-shift-l": "vim::ResizePaneRight",
+      "ctrl-shift-j": "vim::ResizePaneDown",
+      "ctrl-shift-k": "vim::ResizePaneUp",
+    },
+  },
+]
