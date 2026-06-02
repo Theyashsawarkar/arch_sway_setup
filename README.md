@@ -1,82 +1,191 @@
-# ⚙️ System Configurations & Dotfiles
+# 🏔️ Arch Sway Setup
 
-A structured, reproducible dotfiles repository managed with [GNU Stow](https://www.gnu.org/software/stow/). 
+A minimal, keyboard-driven Arch Linux desktop built around Wayland, Sway, and modern terminal-based development tools.
 
-This repository serves as the single source of truth for my local development environment. The setup optimizes for maintainability, clarity, and separation of concerns—treating system configuration as a structured architecture rather than a collection of ad-hoc scripts.
+This repository contains the complete configuration for my daily development environment, managed with GNU Stow for reproducible setup and easy maintenance.
 
-## 🏗️ Architecture & Stack
+---
 
-The environment is built around a lightweight Wayland stack and high-performance, keyboard-driven developer tools.
+## ✨ Features
 
-### Core Components
-* **Window Manager:** [Sway](https://swaywm.org/) (Wayland)
-* **Status Bar:** [Waybar](https://github.com/Alexays/Waybar)
-* **Launcher:** [Wofi](https://hg.sr.ht/~scoopta/wofi)
-* **Notifications:** [Mako](https://wayland.emersion.fr/mako/)
+* ⚡ Lightweight Wayland desktop
+* ⌨️ Keyboard-first workflow
+* 🖥️ Sway window manager
+* 📊 Waybar status bar
+* 🚀 Wofi application launcher
+* 🔔 Mako notifications
+* 🐱 Kitty terminal
+* 📝 Neovim development environment
+* 🔀 Tmux session management
+* 🧠 Zed editor
+* 🔗 GNU Stow-powered dotfile management
 
-### Terminal & Developer Environment
-* **Terminal Emulator:** [Kitty](https://sw.kovidgoyal.net/kitty/)
-* **Multiplexer:** [Tmux](https://github.com/tmux/tmux)
-* **Editors:** 
-  * [Neovim](https://neovim.io/) (Primary terminal editor)
-  * [Zed](https://zed.dev/) (High-performance GUI editor)
+---
+
+## 🖼️ Desktop Stack
+
+### Wayland Environment
+
+| Component            | Software |
+| -------------------- | -------- |
+| Window Manager       | Sway     |
+| Status Bar           | Waybar   |
+| Application Launcher | Wofi     |
+| Notifications        | Mako     |
+| Lock Screen          | swaylock |
+| Wallpaper            | swaybg   |
+
+### Development Environment
+
+| Component       | Software |
+| --------------- | -------- |
+| Terminal        | Kitty    |
+| Multiplexer     | Tmux     |
+| Terminal Editor | Neovim   |
+| GUI Editor      | Zed      |
+| Shell           | Zsh      |
+
+---
 
 ## 📂 Repository Structure
 
-Configs are isolated into independent packages. The internal structure of each package strictly mirrors the home directory tree, allowing Stow to map symlinks precisely where they belong without manual intervention.
+Each directory represents an independent package managed by GNU Stow.
 
 ```text
 .
 ├── kitty/
-│   └── .config/kitty/
 ├── mako/
-│   └── .config/mako/
 ├── nvim/
-│   └── .config/nvim/
 ├── sway/
-│   └── .config/sway/
 ├── tmux/
-│   └── .config/tmux/
 ├── waybar/
-│   └── .config/waybar/
 ├── wofi/
-│   └── .config/wofi/
 └── zed/
-    └── .config/zed/
-🚀 Installation & Bootstrapping
-To reproduce this environment on a new machine, ensure git and stow are installed, then clone and link the packages.
+```
 
-1. Clone the repository:
+The internal structure mirrors the target layout inside `$HOME`, allowing Stow to create symlinks automatically.
 
-Bash
-git clone [https://github.com/](https://github.com/)<your-username>/dotfiles.git ~/dotfiles
+---
+
+## 📦 Prerequisites
+
+Install the required packages before bootstrapping the configuration.
+
+```bash
+sudo pacman -S git stow
+```
+
+---
+
+## 🚀 Installation
+
+### Clone the Repository
+
+```bash
+git clone https://github.com/Theyashsawarkar/arch_sway_setup.git ~/dotfiles
 cd ~/dotfiles
-2. Stow the packages:
-Run stow followed by the package names you want to link.
+```
 
-Bash
-# Stow core developer tools
-stow nvim zed kitty tmux
+### Stow Packages
 
-# Stow Wayland environment
+Install individual packages:
+
+```bash
+stow kitty tmux nvim zed
 stow sway waybar mako wofi
+```
 
-# Alternatively, stow everything at once
+Or install everything:
+
+```bash
 stow */
-Note: If Stow throws a conflict warning, ensure the target directory (e.g., ~/.config/tmux) does not already exist as a physical file or directory on the host machine.
+```
 
-🔧 Managing Packages
-Adding a new configuration
-Create the package directory and its nested structure: mkdir -p newpkg/.config/newpkg
+---
 
-Move the actual config into the repository: mv ~/.config/newpkg/* newpkg/.config/newpkg/
+## 🔧 Managing Configurations
 
-Link it back: stow newpkg
+### Add a New Package
 
-Removing a configuration
-To safely remove the symlinks from your system without deleting the configurations from this repository:
+Create a package:
 
-Bash
-stow -D <package_name>
-🔒 Local Overrides (Ignored Files)
-Sensitive information, API tokens, and machine-specific paths should never be committed. Create .local files (e.g., ~/.zshrc.local) and source them at the end of your main configs. These are explicitly ignored via .gitignore.
+```bash
+mkdir -p newpkg/.config/newpkg
+```
+
+Move the configuration:
+
+```bash
+mv ~/.config/newpkg/* newpkg/.config/newpkg/
+```
+
+Create symlinks:
+
+```bash
+stow newpkg
+```
+
+### Remove a Package
+
+```bash
+stow -D <package-name>
+```
+
+Example:
+
+```bash
+stow -D nvim
+```
+
+---
+
+## 🔒 Local Configuration
+
+Machine-specific settings, secrets, API tokens, and private paths should never be committed.
+
+Create local override files and source them from the main configuration.
+
+Examples:
+
+```text
+~/.zshrc.local
+~/.gitconfig.local
+~/.config/nvim/lua/local.lua
+```
+
+Add these files to `.gitignore`.
+
+---
+
+## 🎯 Goals
+
+This setup prioritizes:
+
+* Simplicity
+* Performance
+* Reproducibility
+* Maintainability
+* Keyboard-centric workflows
+
+---
+
+## 📸 Screenshots
+
+Add screenshots here to showcase the desktop environment.
+
+```markdown
+![Desktop](./assets/desktop.png)
+![Neovim](./assets/nvim.png)
+```
+
+---
+
+## 🤝 Contributing
+
+This repository is primarily maintained for personal use, but ideas, suggestions, and improvements are always welcome.
+
+---
+
+## 📄 License
+
+MIT License
