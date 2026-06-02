@@ -1,0 +1,36 @@
+# ~/.config/mako/config
+
+# --- Geometry & Positioning ---
+# Anchors alerts to the top right corner, perfectly clear of the Waybar pills
+anchor=top-right
+margin=10,20,0,0
+width=350
+height=150
+border-size=2
+border-radius=12
+padding=15
+
+# --- Typography ---
+font=ZedMono Nerd Font 10
+markup=1
+format=<b>%s</b>\n%b
+
+# --- Elegant Colors ---
+# Deep Midnight background with smooth translucency
+background-color=#11111Bfa
+# Clean silver text for easy readability
+text-color=#CDD6F4
+# Royal Mauve border outline for standard notifications
+border-color=#CBA6F7
+# Subtle tracking background for progress bars (like volume adjustments)
+progress-color=over #313244
+
+# --- Behavior ---
+default-timeout=5000
+ignore-timeout=0
+
+# --- High Urgency Alerts ---
+# Overrides the border to a warm peach tone if a system-critical event occurs
+[urgency=high]
+border-color=#FAB387
+default-timeout=0

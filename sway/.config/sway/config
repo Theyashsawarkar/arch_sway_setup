@@ -1,0 +1,252 @@
+# ==============================================================================
+# SWAY CONFIGURATION - WAYLAND MINIMALIST ARCHITECTURE
+# ==============================================================================
+
+### Variables
+#
+# Logo key. Use Mod1 for Alt.
+set $mod Mod4
+
+# Home row direction keys, like vim
+set $left h
+set $down j
+set $up k
+set $right l
+
+# Preferred Applications
+set $term kitty
+
+# application opener
+set $menu wofi --show drun,run
+
+# calculator
+set $calc ~/.local/bin/wofi-calc.sh
+
+# clipboard history
+bindsym $mod+m exec cliphist list | wofi --dmenu | cliphist decode | wl-copy
+
+# Launch Wofi Emoji Picker
+bindsym $mod+period exec wofi-emoji
+
+### Window Look & Feel (Classy Minimalist)
+# Core border style for windows
+default_border pixel 2
+default_floating_border pixel 2
+font pango:ZedMono Nerd Font 10
+
+# --- Window Geometry (Margins / Gaps) ---
+# Inner gaps separate adjacent windows from each other
+gaps inner 8
+# Outer gaps separate windows from the screen edges and Waybar
+gaps outer 6
+# Keeps gaps active even when there is only one window open
+smart_gaps off
+
+# --- SwayFX Aesthetics (Rounded Corners & Shadows) ---
+# Smooth corners that match the curvature of your Waybar pills
+corner_radius 12
+# Subtle drop-shadows to give windows separation from the wallpaper
+shadows on
+shadow_blur_radius 20
+shadow_color #0000007F
+
+# --- Theme Window Borders ---
+# Color configuration for window frames
+# class                 border  bground text    indicator child_border
+client.focused          #CBA6F7 #11111B #CDD6F4 #CBA6F7   #CBA6F7
+client.focused_inactive #45475A #1E1E2E #A6ADC8 #45475A   #45475A
+client.unfocused        #313244 #1E1E2E #6C7086 #313244   #313244
+
+
+### Wallpaper configuration
+output * bg /home/yash/Pictures/Wallpapers/current.jpg fill
+exec_always --no-startup-id /home/yash/scripts/fetch-bing.sh
+
+### Input configuration
+input type:touchpad {
+	tap enabled
+		natural_scroll enabled
+}
+
+### Key bindings
+#
+# Basics:
+#
+# Start a terminal
+bindsym $mod+Return exec $term
+
+# Start your combined app/command launcher
+bindsym $mod+d exec $menu
+
+# Start your math/currency calculator
+bindsym $mod+c exec $calc
+
+# Kill focused window
+bindsym $mod+Shift+q kill
+
+# Drag floating windows by holding down $mod and left mouse button.
+# Resize them with right mouse button + $mod.
+floating_modifier $mod normal
+
+# Reload the configuration file
+bindsym $mod+Shift+c reload
+
+# Exit sway (logs you out of your Wayland session)
+bindsym $mod+Shift+e exec swaynag -t warning -m 'You pressed the exit shortcut. Do you really want to exit sway? This will end your Wayland session.' -B 'Yes, exit sway' 'swaymsg exit'
+
+#
+# Moving around:
+#
+# Move your focus around
+bindsym $mod+$left focus left
+bindsym $mod+$down focus down
+bindsym $mod+$up focus up
+bindsym $mod+$right focus right
+# Or use $mod+[up|down|left|right]
+bindsym $mod+Left focus left
+bindsym $mod+Down focus down
+bindsym $mod+Up focus up
+bindsym $mod+Right focus right
+
+# Move the focused window with the same, but add Shift
+bindsym $mod+Shift+$left move left
+bindsym $mod+Shift+$down move down
+bindsym $mod+Shift+$up move up
+bindsym $mod+Shift+$right move right
+# Ditto, with arrow keys
+bindsym $mod+Shift+Left move left
+bindsym $mod+Shift+Down move down
+bindsym $mod+Shift+Up move up
+bindsym $mod+Shift+Right move right
+
+#
+# Workspaces:
+#
+# Switch to workspace
+bindsym $mod+1 workspace number 1
+bindsym $mod+2 workspace number 2
+bindsym $mod+3 workspace number 3
+bindsym $mod+4 workspace number 4
+bindsym $mod+5 workspace number 5
+bindsym $mod+6 workspace number 6
+bindsym $mod+7 workspace number 7
+bindsym $mod+8 workspace number 8
+bindsym $mod+9 workspace number 9
+bindsym $mod+0 workspace number 10
+
+# Move focused container to workspace
+bindsym $mod+Shift+1 move container to workspace number 1
+bindsym $mod+Shift+2 move container to workspace number 2
+bindsym $mod+Shift+3 move container to workspace number 3
+bindsym $mod+Shift+4 move container to workspace number 4
+bindsym $mod+Shift+5 move container to workspace number 5
+bindsym $mod+Shift+6 move container to workspace number 6
+bindsym $mod+Shift+7 move container to workspace number 7
+bindsym $mod+Shift+8 move container to workspace number 8
+bindsym $mod+Shift+9 move container to workspace number 9
+bindsym $mod+Shift+0 move container to workspace number 10
+
+#
+# Layout stuff:
+#
+# You can "split" the current object of your focus with
+# $mod+b or $mod+v, for horizontal and vertical splits
+bindsym $mod+b splith
+bindsym $mod+v splitv
+
+# Switch the current container between different layout styles
+bindsym $mod+s layout stacking
+
+# Toggle the current container between split and tabbed layouts
+bindsym $mod+w layout toggle split tabbed
+bindsym $mod+e layout toggle split
+
+# Make the current focus fullscreen
+bindsym $mod+f fullscreen
+
+# Toggle the current focus between tiling and floating mode
+bindsym $mod+Shift+space floating toggle
+
+# Swap focus between the tiling area and the floating area
+bindsym $mod+space focus mode_toggle
+
+# Move focus to the parent container
+bindsym $mod+a focus parent
+
+#
+# Scratchpad:
+#
+# Move the currently focused window to the scratchpad
+bindsym $mod+Shift+minus move scratchpad
+
+# Show the next scratchpad window or hide the focused scratchpad window.
+bindsym $mod+minus scratchpad show
+
+#
+# Resizing containers:
+#
+mode "resize" {
+	bindsym $left resize shrink width 10px
+		bindsym $down resize grow height 10px
+		bindsym $up resize shrink height 10px
+		bindsym $right resize grow width 10px
+
+# Ditto, with arrow keys
+		bindsym Left resize shrink width 10px
+		bindsym Down resize grow height 10px
+		bindsym Up resize shrink height 10px
+		bindsym Right resize grow width 10px
+
+# Return to default mode
+		bindsym Return mode "default"
+		bindsym Escape mode "default"
+}
+bindsym $mod+r mode "resize"
+
+#
+# Utilities:
+#
+# Special keys to adjust volume via custom OSD scripts
+bindsym --locked XF86AudioMute exec pactl set-sink-mute @DEFAULT_SINK@ toggle && notify-send -h string:x-canonical-private-synchronous:sys-notify -u low "Audio Mute Toggled"
+bindsym --locked XF86AudioLowerVolume exec ~/.config/sway/scripts/volume_osd.sh -5%
+bindsym --locked XF86AudioRaiseVolume exec ~/.config/sway/scripts/volume_osd.sh +5%
+
+# Special keys to control media via playerctl
+bindsym --locked XF86AudioPlay exec playerctl play-pause
+bindsym --locked XF86AudioPause exec playerctl play-pause
+bindsym --locked XF86AudioPrev exec playerctl previous
+bindsym --locked XF86AudioNext exec playerctl next
+bindsym --locked XF86AudioStop exec playerctl stop
+
+# Special keys to adjust brightness via custom OSD scripts
+bindsym --locked XF86MonBrightnessDown exec ~/.config/sway/scripts/brightness_osd.sh 5%-
+bindsym --locked XF86MonBrightnessUp exec ~/.config/sway/scripts/brightness_osd.sh +5%
+
+# Special key to take a screenshot with custom script
+bindsym Print exec ~/.config/sway/scripts/screenshot.sh
+
+# Manual lock trigger
+bindsym Mod1+Shift+semicolon exec swaylock -C ~/.config/sway/lockconfig
+
+### User Executions & Environment Settings
+exec waybar 
+exec mako
+
+# Start the idle manager automatically
+exec swayidle -w -C ~/.config/sway/idle/config
+
+# System State Daemons (Notifications & Applets)
+exec nm-applet --indicator
+exec blueman-applet
+
+# Battery Daemon: Warns at 20%, Critical at 10%, Forces Suspend at 5%
+exec batsignal -w 20 -c 10 -d 5 -f
+
+# Clipboard history management
+exec --no-startup-id cliphist store
+exec --no-startup-id wl-paste --type text --watch cliphist store
+exec --no-startup-id wl-paste --type image --watch cliphist store
+
+include /etc/sway/config.d/*
+
+

@@ -1,0 +1,93 @@
+{
+	"layer": "top",
+	"position": "top",
+	"height": 32,
+	"spacing": 5,
+
+	"modules-center": ["clock"],
+	"modules-left": ["sway/workspaces", "keyboard-state"],
+
+	"modules-right": [
+		"custom/docker",
+		"network", 
+		"bluetooth",
+		"backlight",
+		"pulseaudio",
+		"battery"
+	],
+
+	"sway/workspaces": {
+		"disable-scroll": true,
+		"all-outputs": true,
+		"format": "{name}",
+		"persistent-workspaces": {
+			"1": [],
+			"2": [],
+			"3": []
+		}
+	},
+
+	"backlight": {
+		"format": "🔆 {percent}%",
+		"tooltip": false,
+		"on-scroll-up": "brightnessctl set +5%",
+		"on-scroll-down": "brightnessctl set 5%-"
+	},
+
+	"keyboard-state": {
+		"capslock": true,
+		"numlock": true,
+		"format": "{name} {icon} ",
+		"format-icons": {
+			"locked": "",
+			"unlocked": ""
+		}
+	},
+
+	"clock": {
+	// Formats as: June 01  02:11 PM
+	"format": "{:%B %d   %I:%M %p}",
+	"tooltip-format": "<tt><small>{calendar}</small></tt>"
+	},
+
+	"custom/docker": {
+		"exec": "docker ps -q | wc -l",
+		"interval": 5,
+		"format": "🐳 {}",
+		"tooltip": false
+	},
+
+	"network": {
+		"format-wifi": "🛜 {essid}   ⬇️ {bandwidthDownBytes}  ⬆️ {bandwidthUpBytes}",
+		"format-ethernet": "🌐 {ipaddr}   ⬇️ {bandwidthDownBytes}  ⬆️ {bandwidthUpBytes}",
+		"format-disconnected": "🛑 Offline",
+		"interval": 2,
+		"max-length": 50
+	},
+
+	"bluetooth": {
+		"format-off": "",
+		"format-on": "",
+		"format-connected": "🎧 {device_alias}",
+		"format-connected-battery": "🎧 {device_alias} 🔋{device_battery_percentage}%",
+		"tooltip-format": "Bluetooth Status: {status}",
+		"on-click": "blueman-manager",
+		"max-length": 25
+	},
+
+	"battery": {
+		"states": {
+			"warning": 30,
+			"critical": 15
+		},
+		"format": "🔋 {capacity}%",
+		"format-charging": "⚡ {capacity}%",
+		"format-plugged": "🔌 {capacity}%"
+	},
+
+	"pulseaudio": {
+		"format": "🔊 {volume}%",
+		"format-muted": "🔇 Muted",
+		"on-click": "pavucontrol"
+	}
+}

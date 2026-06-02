@@ -1,0 +1,105 @@
+* {
+    font-family: "ZedMono Nerd Font", "JetBrainsMono Nerd Font", "Noto Color Emoji", "sans-serif";
+    font-size: 15px;
+    font-weight: bold;
+    min-height: 0;
+    border: none;
+    box-shadow: none;
+}
+
+/* 1. Make the main bar completely transparent */
+window#waybar {
+    background-color: transparent;
+}
+
+/* 
+   2. THE FLOATING PILLS
+   Apply the Midnight background, Mauve borders, and margins to drop them down
+*/
+#workspaces, 
+#clock, 
+#custom-docker, 
+#keyboard-state,
+#network, 
+#backlight,
+#bluetooth, 
+#pulseaudio, 
+#battery {
+    background-color: rgba(17, 17, 27, 0.95); /* Deep Midnight */
+    color: #CDD6F4; /* Clean Silver text */
+    border-radius: 12px;
+    padding: 2px 12px;
+    margin-top: 2px; /* Drops the pills down from the top edge */
+    margin-bottom: 2px;
+    margin-left: 4px;
+    margin-right: 4px;
+    border: 1px solid rgba(203, 166, 247, 0.2); /* Subtle Royal Mauve border */
+}
+
+/* Unified padding for the exact modules we are using */
+#clock, #keyboard-state, #custom-docker, #network, #bluetooth, #backlight, #pulseaudio, #battery {
+    padding: 0 10px;
+}
+
+/* KEYBOARD STATE INDICATORS */
+#keyboard-state label {
+    padding: 0 4px;
+}
+
+#keyboard-state label.unlocked {
+    color: #6C7086; /* Dim and unobtrusive when off */
+}
+
+#keyboard-state label.locked {
+    background-color: #CBA6F7; /* Active workspace pops in solid Mauve */
+    color: #11111B; /* Dark text for contrast */
+    border-radius: 8px;
+    margin-left: 2px ;
+}
+
+/* 3. WORKSPACES STYLING */
+#workspaces {
+    padding: 2px 4px; 
+}
+
+#workspaces button {
+    padding: 0 8px;
+    color: #6C7086; /* Dim inactive workspaces */
+    border-radius: 8px;
+    margin: 2px;
+    transition: all 0.2s ease;
+}
+
+#workspaces button:hover {
+    background-color: rgba(203, 166, 247, 0.1);
+    color: #CBA6F7;
+}
+
+#workspaces button.focused {
+    background-color: #CBA6F7; /* Active workspace pops in solid Mauve */
+    color: #11111B; /* Dark text for contrast */
+}
+
+/* 4. BLUETOOTH STATES */
+/* Dimmed out when off */
+#bluetooth.disabled, #bluetooth.off {
+    color: #6C7086; 
+    border-color: transparent;
+}
+
+/* Pops in pastel green when connected to your headphones */
+#bluetooth.connected {
+    color: #A6E3A1; 
+    border-color: rgba(166, 227, 161, 0.4);
+}
+
+/* 5. BATTERY STATES */
+#battery.warning {
+    color: #FAB387; /* Peach/Orange */
+    border-color: rgba(250, 179, 135, 0.4);
+}
+
+#battery.critical {
+    color: #F38BA8; /* Red */
+    border-color: rgba(243, 139, 168, 0.4);
+}

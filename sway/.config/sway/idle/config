@@ -1,0 +1,11 @@
+# Lock the screen after 5 minutes with the Zoro background
+timeout 300 'swaylock -C ~/.config/sway/lockconfig --image ~/Downloads/roronoa-zoro-one-5120x2926-10523.png'
+
+# Turn off the screen after 10 minutes (Power saving)
+timeout 600 'swaymsg "output * dpms off"' resume 'swaymsg "output * dpms on"'
+
+# Suspend the system after 30 minutes
+timeout 1800 'systemctl suspend'
+
+# Security: Lock the screen immediately before the system enters sleep/suspend
+before-sleep 'swaylock -C ~/.config/sway/lockconfig --image ~/Downloads/roronoa-zoro-one-5120x2926-10523.png'
