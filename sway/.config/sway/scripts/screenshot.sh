@@ -1,16 +1,28 @@
 #!/bin/bash
+# Usage:
+#   screenshot.sh        → full screen (default, keeps Print key working)
+#   screenshot.sh region → select area with slurp
 
-# Ensure the directory exists
-mkdir -p ~/Pictures/Screenshots
+MODE="${1:-full}"
+DIR="$HOME/Pictures/Screenshots"
+FILE="$DIR/$(date +'%Y-%m-%d_%H-%M-%S_screenshot.png')"
 
-# Define the filename with a timestamp
-FILE="$HOME/Pictures/Screenshots/$(date +'%Y-%m-%d_%H-%M-%S_screenshot.png')"
+mkdir -p "$DIR"
 
-# Capture the entire screen
-grim "$FILE"
+if [[ "$MODE" == "region" ]]; then
+  GEOMETRY=$(slurp 2>/dev/null)
+  if [[ -z "$GEOMETRY" ]]; then
+    notify-send -u low "Screenshot cancelled"
+    exit 0
+  fi
+  grim -g "$GEOMETRY" "$FILE"
+else
+  grim "$FILE"
+fi
 
-# Copy the image data to the clipboard
-wl-copy < "$FILE"
-
-# Send the notification, using the newly captured image as the icon
-notify-send -h string:x-canonical-private-synchronous:sys-notify -i "$FILE" "Screenshot Captured" "Copied to clipboard and saved."
+wl-copy <"$FILE"
+notify-send \
+  -h string:x-canonical-private-synchronous:sys-notify \
+  -i "$FILE" \
+  "Screenshot captured" \
+  "Saved and copied to clipboard."

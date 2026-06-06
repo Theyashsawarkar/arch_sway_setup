@@ -228,8 +228,11 @@ bindsym --locked XF86AudioStop exec playerctl stop
 bindsym --locked XF86MonBrightnessDown exec ~/.config/sway/scripts/brightness_osd.sh 5%-
 bindsym --locked XF86MonBrightnessUp exec ~/.config/sway/scripts/brightness_osd.sh +5%
 
-# Special key to take a screenshot with custom script (works on lockscreen)
-bindsym --locked Print exec ~/.config/sway/scripts/screenshot.sh
+# Full screen (existing)
+bindsym Print exec ~/.config/sway/scripts/screenshot.sh
+
+# Region select
+bindsym $mod+Print exec ~/.config/sway/scripts/screenshot.sh region
 
 # Manual lock trigger
 bindsym Mod1+Shift+semicolon exec swaylock -C ~/.config/sway/lockconfig
