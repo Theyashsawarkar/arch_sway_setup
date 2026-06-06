@@ -1,57 +1,67 @@
 # ------------------------------------------------------------------------------
-# swaylock-effects configuration
+# swaylock-effects — big left circle, works on any wallpaper
 # ------------------------------------------------------------------------------
 
 # --- Core ---
 ignore-empty-password
 disable-caps-lock-text
 
-# Stable symlink → ~/Pictures/lockscreen/zoro.png
-# Create once: ln -sf ~/Downloads/roronoa-zoro-one-5120x2926-10523.png \
-#                       ~/Pictures/lockscreen/zoro.png
 image=/home/yash/Pictures/Wallpapers/current.jpg
 scaling=fill
 
 indicator
 clock
 
-# --- Time & Date ---
+# --- Font ---
 font="JetBrainsMono Nerd Font"
-font-size=100
+font-size=80
+
+# --- Time & Date ---
 timestr=%I:%M %p
-datestr=%b %d %A
+datestr=%b %d  %A
 
-# --- Positioning ---
+# --- Indicator: big, pinned to the left ---
+# x=400 keeps the circle center in the left third of most screens
+# y=540 vertically centers it on 1080p (adjust to 720 for 1440p)
 indicator-x-position=400
-indicator-y-position=550
-indicator-radius=300
+indicator-y-position=540
+indicator-radius=280
+indicator-thickness=4
 
-# --- Colors ---
-inside-color=00000000
-inside-clear-color=00000000
-inside-caps-lock-color=00000000
-inside-ver-color=00000000
-inside-wrong-color=00000000
+# --- Inside: semi-dark frosted backdrop ---
+# This is what makes it readable against ANY wallpaper.
+# A dark translucent fill means the clock is always legible
+# whether the photo behind is bright sky or dark mountains.
+inside-color=1E1E2Ecc
+inside-clear-color=1E1E2Ecc
+inside-caps-lock-color=1E1E2Ecc
+inside-ver-color=1E1E2Ecc
+inside-wrong-color=1E1E2Ecc
 
-ring-color=4A6C7555
-ring-clear-color=4A6C7555
-ring-caps-lock-color=4A6C7555
-ring-ver-color=4A6C7555
-ring-wrong-color=4A6C7555
+# --- Ring: solid Catppuccin purple, full opacity ---
+# ff = fully opaque so the ring has real presence
+ring-color=CBA6F7ff
+ring-clear-color=A6E3A1ff
+ring-caps-lock-color=FAB387ff
+ring-ver-color=89B4FAff
+ring-wrong-color=F38BA8ff
 
+# --- Line: hidden ---
 line-color=00000000
 line-clear-color=00000000
 line-caps-lock-color=00000000
 line-ver-color=00000000
 line-wrong-color=00000000
 
-text-color=cba6f7
-text-clear-color=2f7b09D9
-text-ver-color=a07404ff
-text-wrong-color=e82020cf
-text-caps-lock-color=009ddc55
+# --- Text: always white/light so it reads on the dark inside ---
+text-color=CDD6F4ff
+text-clear-color=A6E3A1ff
+text-ver-color=89B4FAff
+text-wrong-color=F38BA8ff
+text-caps-lock-color=FAB387ff
 
-key-hl-color=AE5E4595
-bs-hl-color=2f7b0995
-caps-lock-key-hl-color=ffd20455
-caps-lock-bs-hl-color=dedede55
+# --- Key highlights ---
+key-hl-color=CBA6F7ff
+bs-hl-color=F38BA8ff
+caps-lock-key-hl-color=FAB387ff
+caps-lock-bs-hl-color=F38BA8ff
