@@ -39,7 +39,7 @@
 
   /*
    * ==========================================================================
-   * AI & AGENT CONFIGURATION (GEMINI PRO)
+   * AI & AGENT CONFIGURATION
    * ==========================================================================
    */
   "disable_ai": false,
@@ -48,9 +48,8 @@
     "dock": "right",
     "button": false,
     "default_model": {
-      "enable_thinking": true,
-      "provider": "google",
-      "model": "gemini-2.5-pro",
+      "provider": "anthropic",
+      "model": "claude-sonnet-4-20250514",
     },
   },
 
@@ -98,10 +97,13 @@
    * TYPOGRAPHY & FONTS
    * ==========================================================================
    */
+  "ui_font_family": "ZedMono Nerd Font",
   "ui_font_size": 15.0,
+  "buffer_font_family": "ZedMono Nerd Font",
   "buffer_font_size": 15.0,
   "terminal": {
     "dock": "bottom",
+    "font_family": "ZedMono Nerd Font",
     "font_size": 15.0,
   },
 
