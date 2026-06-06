@@ -4,15 +4,6 @@
    * EDITOR CORE & VIM BEHAVIOR
    * ==========================================================================
    */
-  "edit_predictions": {
-    "provider": "zed",
-  },
-  "agent_servers": {
-    "your_agent": {
-      "type": "custom",
-      "command": "path_to_executable",
-    },
-  },
   "cli_default_open_behavior": "existing_window",
   "outline_panel": {
     "dock": "left",
@@ -48,8 +39,9 @@
     "dock": "right",
     "button": false,
     "default_model": {
+      "enable_thinking": true,
       "provider": "anthropic",
-      "model": "claude-sonnet-4-20250514",
+      "model": "claude-haiku-4-5-20251001",
     },
   },
 
