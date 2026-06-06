@@ -1,55 +1,56 @@
-# --- Core Settings ---
+# ------------------------------------------------------------------------------
+# swaylock-effects configuration
+# ------------------------------------------------------------------------------
+
+# --- Core ---
 ignore-empty-password
 disable-caps-lock-text
-image=/home/yash/Pictures/lockscreen/background.jpg
-font="JetBrainsMono Nerd Font"
+
+# Stable symlink → ~/Pictures/lockscreen/zoro.png
+# Create once: ln -sf ~/Downloads/roronoa-zoro-one-5120x2926-10523.png \
+#                       ~/Pictures/lockscreen/zoro.png
+image=/home/yash/Pictures/Wallpapers/current.jpg
 scaling=fill
+
 indicator
 clock
 
 # --- Time & Date ---
-# %I = 12-hour clock, %M = minutes, %p = AM/PM
+font="JetBrainsMono Nerd Font"
+font-size=100
 timestr=%I:%M %p
 datestr=%b %d %A
-# Reduced font size for better fit
-font-size=100
 
 # --- Positioning ---
 indicator-x-position=400
 indicator-y-position=550
-# Increased radius for a larger circle
 indicator-radius=300
 
-# --- Color Palette (Transparent/Solid Mix) ---
-# Inside colors (Transparent)
+# --- Colors ---
 inside-color=00000000
 inside-clear-color=00000000
 inside-caps-lock-color=00000000
 inside-ver-color=00000000
 inside-wrong-color=00000000
 
-# Ring colors
 ring-color=4A6C7555
 ring-clear-color=4A6C7555
 ring-caps-lock-color=4A6C7555
 ring-ver-color=4A6C7555
 ring-wrong-color=4A6C7555
 
-# Line colors
 line-color=00000000
 line-clear-color=00000000
 line-caps-lock-color=00000000
 line-ver-color=00000000
 line-wrong-color=00000000
 
-# Text colors
 text-color=cba6f7
 text-clear-color=2f7b09D9
 text-ver-color=a07404ff
 text-wrong-color=e82020cf
 text-caps-lock-color=009ddc55
 
-# Highlights
 key-hl-color=AE5E4595
 bs-hl-color=2f7b0995
 caps-lock-key-hl-color=ffd20455
