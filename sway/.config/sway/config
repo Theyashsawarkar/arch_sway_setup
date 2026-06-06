@@ -201,7 +201,13 @@ mode "resize" {
 		bindsym Return mode "default"
 		bindsym Escape mode "default"
 }
-bindsym $mod+r mode "resize"
+
+# Resize mode (moved from $mod+r)
+bindsym $mod+Ctrl+r mode "resize"
+
+# Screen recording
+bindsym $mod+r       exec ~/.local/bin/wf-recorder-toggle.sh full
+bindsym $mod+Shift+r exec ~/.local/bin/wf-recorder-toggle.sh region
 
 #
 # Utilities:
