@@ -256,6 +256,9 @@ exec --no-startup-id cliphist store
 exec --no-startup-id wl-paste --type text --watch cliphist store
 exec --no-startup-id wl-paste --type image --watch cliphist store
 
+
+exec dbus-update-activation-environment --all
+
 include /etc/sway/config.d/*
 
 
