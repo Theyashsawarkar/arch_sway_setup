@@ -40,8 +40,8 @@
     "button": false,
     "default_model": {
       "enable_thinking": true,
-      "provider": "anthropic",
-      "model": "claude-haiku-4-5-20251001",
+      "provider": "google",
+      "model": "gemini-2.5-flash",
     },
   },
 
@@ -140,7 +140,7 @@
   "project_panel": {
     "dock": "left",
     "hide_gitignore": false,
-    "hide_hidden": true,
+    "hide_hidden": false,
     "auto_fold_dirs": false,
     "starts_open": false,
     "scrollbar": {
