@@ -241,9 +241,6 @@ bindsym Mod1+Shift+semicolon exec swaylock -C ~/.config/sway/lockconfig
 exec waybar 
 exec mako
 
-# Start the idle manager automatically
-exec swayidle -w -C ~/.config/sway/idle/config
-
 # System State Daemons (Notifications & Applets)
 exec nm-applet --indicator
 exec blueman-applet
