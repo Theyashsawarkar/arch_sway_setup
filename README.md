@@ -28,6 +28,10 @@ plugins.
 Secrets (API keys, tokens) are never in this repo — see
 [Local Configuration](#-local-configuration) below for where those go after a fresh install.
 
+📖 **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** explains how the stow packages map
+to `$HOME`, what `install.sh` does step by step, and what's deliberately excluded.
+**[CHANGELOG.md](CHANGELOG.md)** is the detailed log of what changed and why.
+
 ---
 
 ## ✨ Features
@@ -79,6 +83,7 @@ Each directory represents an independent package managed by GNU Stow.
 .
 ├── install.sh       # one-command bootstrap, see Quick Start above
 ├── packages/        # pacman.txt + aur.txt manifests (not a stow package)
+├── gtk/             # GTK 3/4 settings.ini (Catppuccin Mocha theme)
 ├── kitty/
 ├── mako/
 ├── nvim/
@@ -88,6 +93,7 @@ Each directory represents an independent package managed by GNU Stow.
 ├── tmux/
 ├── waybar/
 ├── wofi/
+├── xdg/             # mimeapps.list (default app associations)
 ├── zed/
 └── zsh/
 ```
@@ -129,14 +135,14 @@ yay -S --needed - < packages/aur.txt
 Install individual packages:
 
 ```bash
-stow kitty tmux nvim zed zsh scripts systemd
+stow kitty tmux nvim zed zsh scripts systemd gtk xdg
 stow sway waybar mako wofi
 ```
 
-Or install everything (`packages/` holds manifests, not a stow package, so it's excluded):
+Or install everything (`packages/` and `docs/` aren't stow packages, so they're excluded):
 
 ```bash
-stow $(find . -maxdepth 1 -mindepth 1 -type d ! -name packages ! -name '.*' -printf '%f\n')
+stow $(find . -maxdepth 1 -mindepth 1 -type d ! -name packages ! -name docs ! -name '.*' -printf '%f\n')
 ```
 
 ### Tmux Setup

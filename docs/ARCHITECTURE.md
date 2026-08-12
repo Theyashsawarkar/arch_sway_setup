@@ -1,0 +1,119 @@
+# How this repo works
+
+## The model
+
+One repo, managed with [GNU Stow](https://www.gnu.org/software/stow/). Every top-level
+directory except `packages/` and `docs/` is a **stow package**: its internal path
+structure mirrors where it belongs under `$HOME`, and `stow <package>` symlinks it into
+place. `tmux/.config/tmux/tmux.conf` becomes `~/.config/tmux/tmux.conf -> ../dotfiles/tmux/.config/tmux/tmux.conf`.
+Nothing here is copied onto the live system — it's all symlinks, so editing
+`~/.config/tmux/tmux.conf` and editing the file in this repo are the same action.
+
+`packages/pacman.txt` and `packages/aur.txt` are the exception: plain package-name
+manifests, not something stow ever touches.
+
+## Package map
+
+| Package    | Where it lands                         | What it's for |
+| ---------- | --------------------------------------- | ------------- |
+| `sway`     | `~/.config/sway/`                       | Window manager, keybindings, lock/idle config |
+| `waybar`   | `~/.config/waybar/`                     | Top status bar |
+| `wofi`     | `~/.config/wofi/`                       | App launcher / dmenu-style prompts |
+| `mako`     | `~/.config/mako/`                       | Notifications |
+| `kitty`    | `~/.config/kitty/`                      | Terminal, incl. the Nerd Font setting everything else depends on |
+| `tmux`     | `~/.config/tmux/`, `~/.tmux/scripts/`   | Multiplexer config + the docker status-bar script |
+| `nvim`     | `~/.config/nvim/`                       | Editor |
+| `zed`      | `~/.config/zed/`                        | GUI editor |
+| `zsh`      | `~/.zshrc`, `~/.p10k.zsh`                | Shell + prompt (oh-my-zsh and its plugins are bootstrapped by `install.sh`, not vendored — see below) |
+| `scripts`  | `~/.local/bin/`                         | Utility scripts wired into sway keybindings and the wallpaper timer |
+| `systemd`  | `~/.config/systemd/user/`               | User units: daily wallpaper fetch, optional detached tmux session |
+| `gtk`      | `~/.config/gtk-{3,4}.0/`                | GTK theme selection (Catppuccin Mocha) |
+| `xdg`      | `~/.config/mimeapps.list`               | Default app associations (browser, image viewer, etc.) |
+
+## Why some things *aren't* here
+
+Not everything under `~/.config` is vendored. Deliberately excluded:
+
+- **Auth/session state**: `gh`, `github-copilot`, `.claude*`, `.gemini`, browser
+  profiles (`BraveSoftware`, `chromium`, `google-chrome`, `mozilla`, `zen`). These
+  contain credentials or get regenerated the first time you log into each tool — they
+  don't belong in a public repo and `install.sh` doesn't try to restore them.
+- **Caches/generated state**: `dconf` (mostly — see below), `go`, `yarn`, `npm`,
+  `pgcli`/`btop`/`lazygit` app state, `xfce4` (only contained Thunar's stock example
+  custom action, not real configuration).
+- **Secrets**: never committed, ever. See "Secrets" below.
+
+If you add a new tool and aren't sure which bucket it falls into: does deleting it
+lose your login, or just some cache/history you don't mind rebuilding? If the former,
+leave it out.
+
+## Secrets
+
+Convention (already the one in the README before this was written up): anything
+machine-specific or sensitive goes in a `*local` file that isn't part of any stow
+package and is gitignored (`?*.local` in `.gitignore` — note the `?*`, not `*`; a bare
+`*.local` glob would also match a directory literally named `.local`, which is exactly
+what `scripts/.local/bin/` needs to exist as).
+
+Example already in use: `zsh/.zshrc` ends with
+```sh
+[ -f ~/.zshrc.local ] && source ~/.zshrc.local
+```
+and `~/.zshrc.local` (not in the repo) holds `export GEMINI_API_KEY=...`. Follow the
+same pattern for anything else that needs a real secret.
+
+## `install.sh`, step by step
+
+Entry point for a from-scratch machine (see README's Quick Start). Runs as your normal
+user, `sudo` where it needs root:
+
+1. Install `git`, `stow`, `base-devel`.
+2. Clone this repo to `~/dotfiles` (or `git pull --ff-only` if it's already there —
+   the whole script is meant to be re-run safely).
+3. Build the package list dynamically: every top-level directory except `packages/`
+   and dotfiles (`.git`, ...). This is why adding a new stow package to this repo
+   needs no change to `install.sh` itself.
+4. Install every package in `packages/pacman.txt`, then bootstrap `yay` if missing and
+   install `packages/aur.txt`. Both use `xargs -a file command` rather than piping a
+   package list on stdin — deliberate, see the changelog for why.
+5. Dry-run `stow -n` against every package first, to catch anything real (not a
+   symlink) already sitting at a target path — a fresh Arch install's skeleton
+   `.bashrc` etc. would otherwise make the real `stow` call abort. Anything real gets
+   moved to `~/.dotfiles-backup/` before the real `stow` runs.
+6. `stow` everything for real.
+7. `chsh` to zsh if it isn't already the shell.
+8. Bootstrap oh-my-zsh (official installer, `RUNZSH=no CHSH=no KEEP_ZSHRC=yes` so it
+   doesn't launch a shell or clobber the `.zshrc` stow just placed), then clone
+   Powerlevel10k + the two zsh plugins referenced in `.zshrc`'s `plugins=(...)` list.
+9. Clone TPM (tmux's plugin manager) if missing.
+10. Download the ZedMono Nerd Font straight from its own upstream release (the URL is
+    documented inside the font's own bundled `README.md` — this repo doesn't vendor
+    the ~700MB of font files, since none of the standard Arch/AUR packages ship this
+    particular one).
+11. Bootstrap Homebrew if missing, then `brew install gh pnpm`.
+12. Enable + start the services this machine actually runs (`NetworkManager`, `iwd`,
+    `bluetooth`, `docker`, `power-profiles-daemon`, `ufw`); `sddm` is *enabled* but not
+    started immediately, since starting a display manager mid-script would hijack the
+    console you're running the script from — it takes over on the reboot the script's
+    final message tells you to do anyway.
+13. Add yourself to the `docker` group.
+14. Enable the `wallpaper.timer` user unit.
+15. Apply the GTK theme via `dconf write` — the `gtk/` package's `settings.ini` sets
+    the theme *name*, but GNOME-aware apps actually read the active theme/color-scheme
+    from dconf, so both need to happen for the theme to actually show up.
+
+It has been syntax-checked and had its trickier pieces (the stow conflict-detection
+parser, the `.gitignore` glob) verified in an isolated sandbox, but it has not been run
+end-to-end on a real fresh install — this machine already has everything it does in
+place, so a live run here would just be a very expensive no-op.
+
+## The tmux status bar's dependency chain
+
+Worth calling out on its own, since it broke in layers (see changelog): the rounded
+separators and the session/docker icons are Nerd Font Private-Use-Area glyphs. They
+need *both* the exact right codepoint in `tmux.conf`/`docker_status.sh` *and* a Nerd
+Font actually installed and selected in your terminal (`kitty.conf`'s `font_family`).
+Missing either one renders as a blank box, and the two failure modes look identical —
+if a fresh machine shows boxes, check the font first (`fc-query -f '%{charset}' <font
+file>`, and confirm the codepoint tmux is using is actually in there) before assuming
+the config is wrong.
