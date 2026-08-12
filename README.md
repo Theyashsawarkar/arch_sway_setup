@@ -6,6 +6,30 @@ This repository contains the complete configuration for my daily development env
 
 ---
 
+## ⚡ Quick Start (fresh Arch install)
+
+After `archinstall` finishes, reboot, log in on the TTY as your normal user, make
+sure networking is up (`iwctl` if it's Wi-Fi), and run:
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/Theyashsawarkar/arch_sway_setup/main/install.sh)
+```
+
+This installs every package (`packages/pacman.txt` + `packages/aur.txt`, bootstrapping
+`yay` if needed), stows every config in this repo, sets up zsh (oh-my-zsh, Powerlevel10k,
+plugins), tmux (TPM), the Nerd Font the status bars need, Homebrew (`gh`, `pnpm`), and
+enables the required services. It backs up any pre-existing conflicting dotfiles to
+`~/.dotfiles-backup` before stowing, and is safe to re-run.
+
+When it finishes: reboot, log into the SDDM greeter, pick the **Sway** session, and
+inside a tmux pane press `prefix + I` (`Ctrl-a` then `Shift-i`) once to fetch the tmux
+plugins.
+
+Secrets (API keys, tokens) are never in this repo — see
+[Local Configuration](#-local-configuration) below for where those go after a fresh install.
+
+---
+
 ## ✨ Features
 
 * ⚡ Lightweight Wayland desktop
@@ -53,14 +77,19 @@ Each directory represents an independent package managed by GNU Stow.
 
 ```text
 .
+├── install.sh       # one-command bootstrap, see Quick Start above
+├── packages/        # pacman.txt + aur.txt manifests (not a stow package)
 ├── kitty/
 ├── mako/
 ├── nvim/
+├── scripts/         # ~/.local/bin utilities used by sway keybindings
 ├── sway/
+├── systemd/         # ~/.config/systemd/user units (wallpaper timer, tmux)
 ├── tmux/
 ├── waybar/
 ├── wofi/
-└── zed/
+├── zed/
+└── zsh/
 ```
 
 The internal structure mirrors the target layout inside `$HOME`, allowing Stow to create symlinks automatically.
@@ -86,19 +115,28 @@ git clone https://github.com/Theyashsawarkar/arch_sway_setup.git ~/dotfiles
 cd ~/dotfiles
 ```
 
+### Install Packages Manually (optional)
+
+If you'd rather install packages yourself instead of running `install.sh`:
+
+```bash
+sudo pacman -S --needed - < packages/pacman.txt
+yay -S --needed - < packages/aur.txt
+```
+
 ### Stow Packages
 
 Install individual packages:
 
 ```bash
-stow kitty tmux nvim zed
+stow kitty tmux nvim zed zsh scripts systemd
 stow sway waybar mako wofi
 ```
 
-Or install everything:
+Or install everything (`packages/` holds manifests, not a stow package, so it's excluded):
 
 ```bash
-stow */
+stow $(find . -maxdepth 1 -mindepth 1 -type d ! -name packages ! -name '.*' -printf '%f\n')
 ```
 
 ### Tmux Setup
