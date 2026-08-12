@@ -1,0 +1,11 @@
+[Unit]
+Description=Run daily wallpaper fetcher
+
+[Timer]
+# Run once a day at midnight
+OnCalendar=daily
+# If the laptop was off at midnight, run it immediately on boot
+Persistent=true
+
+[Install]
+WantedBy=timers.target

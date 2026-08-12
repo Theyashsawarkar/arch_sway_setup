@@ -1,0 +1,7 @@
+[Unit]
+Description=Fetch and set daily wallpaper
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/fetch_wallpaper.sh
