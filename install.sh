@@ -32,8 +32,8 @@ else
 fi
 cd "$DOTFILES_DIR"
 
-# Every top-level dir except packages/ (manifests only, not a stow package)
-mapfile -t PKGS < <(find . -maxdepth 1 -mindepth 1 -type d ! -name packages ! -name '.*' -printf '%f\n')
+# Every top-level dir except packages/ and docs/ (not stow packages)
+mapfile -t PKGS < <(find . -maxdepth 1 -mindepth 1 -type d ! -name packages ! -name docs ! -name '.*' -printf '%f\n')
 
 log "Installing official repo packages (packages/pacman.txt)"
 xargs -a packages/pacman.txt sudo pacman -S --needed --noconfirm
@@ -124,6 +124,12 @@ sudo usermod -aG docker "$USER"
 log "Enabling user services"
 systemctl --user daemon-reload
 systemctl --user enable --now wallpaper.timer
+
+log "Applying GTK/dconf theme (gtk-3.0/gtk-4.0 settings.ini already stowed)"
+if command -v dconf >/dev/null 2>&1; then
+  dconf write /org/gnome/desktop/interface/gtk-theme "'catppuccin-mocha-mauve-standard+default'"
+  dconf write /org/gnome/desktop/interface/color-scheme "'prefer-dark'"
+fi
 
 log "Done."
 echo "Reboot, log in through the SDDM greeter, and pick the Sway session."
