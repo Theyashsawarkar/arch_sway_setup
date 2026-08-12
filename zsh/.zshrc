@@ -127,6 +127,9 @@ source $ZSH/oh-my-zsh.sh
 #     exec sway
 # fi
 
+# Machine-local secrets (gitignored; see README > Local Configuration)
+[ -f ~/.zshrc.local ] && source ~/.zshrc.local
+
 alias cat="bat"
 alias ls="eza --icons"
 alias ll="eza -l --icons"
@@ -136,3 +139,5 @@ eval "$(zoxide init zsh --cmd cd)"
 
 
 eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv zsh)"
+
+export PATH="/home/yash/.local/bin:$PATH"
