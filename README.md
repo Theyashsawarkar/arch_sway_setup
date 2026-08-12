@@ -101,6 +101,21 @@ Or install everything:
 stow */
 ```
 
+### Tmux Setup
+
+The tmux config needs one thing Stow can't set up for you, and one plugin manager bootstrap:
+
+* **Nerd Font** — the status bar's rounded separators and icons (session, docker) are
+  Nerd Font glyphs. Install one (e.g. `ZedMono Nerd Font`, `JetBrainsMono Nerd Font`) and
+  set it as your terminal's font. Without it, those glyphs render as blank boxes.
+* **TPM (Tmux Plugin Manager)** — installs `tmux-resurrect` and `tmux-continuum`:
+
+  ```bash
+  git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+  ```
+
+  Then inside a tmux session, press `prefix + I` (`Ctrl-a` then `Shift-i`) to install the plugins.
+
 ---
 
 ## 🔧 Managing Configurations
