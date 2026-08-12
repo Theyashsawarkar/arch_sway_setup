@@ -1,0 +1,131 @@
+#!/usr/bin/env bash
+# Bootstraps this entire Arch + Sway desktop from a bare Arch install.
+#
+# Run from a TTY right after `archinstall` + first boot + login as your
+# normal (sudo-capable) user, with networking already up:
+#
+#   bash <(curl -fsSL https://raw.githubusercontent.com/Theyashsawarkar/arch_sway_setup/main/install.sh)
+#
+# Idempotent: safe to re-run (e.g. after adding a package to packages/*.txt).
+
+set -euo pipefail
+
+DOTFILES_DIR="$HOME/dotfiles"
+REPO_URL="https://github.com/Theyashsawarkar/arch_sway_setup.git"
+BACKUP_DIR="$HOME/.dotfiles-backup"
+
+log() { printf '\n\033[1;34m==>\033[0m %s\n' "$1"; }
+
+if [ "$(id -u)" -eq 0 ]; then
+  echo "Run this as your normal user, not root (it calls sudo where needed)." >&2
+  exit 1
+fi
+
+log "Installing prerequisites (git, stow, base-devel)"
+sudo pacman -Sy --needed --noconfirm git stow base-devel
+
+log "Cloning dotfiles repo"
+if [ -d "$DOTFILES_DIR/.git" ]; then
+  git -C "$DOTFILES_DIR" pull --ff-only
+else
+  git clone "$REPO_URL" "$DOTFILES_DIR"
+fi
+cd "$DOTFILES_DIR"
+
+# Every top-level dir except packages/ (manifests only, not a stow package)
+mapfile -t PKGS < <(find . -maxdepth 1 -mindepth 1 -type d ! -name packages ! -name '.*' -printf '%f\n')
+
+log "Installing official repo packages (packages/pacman.txt)"
+xargs -a packages/pacman.txt sudo pacman -S --needed --noconfirm
+
+if ! command -v yay >/dev/null 2>&1; then
+  log "Bootstrapping yay (AUR helper)"
+  tmp=$(mktemp -d)
+  git clone https://aur.archlinux.org/yay.git "$tmp/yay"
+  (cd "$tmp/yay" && makepkg -si --noconfirm)
+  rm -rf "$tmp"
+fi
+
+log "Installing AUR packages (packages/aur.txt)"
+xargs -a packages/aur.txt yay -S --needed --noconfirm
+
+log "Backing up any pre-existing files that would conflict with stow"
+mkdir -p "$BACKUP_DIR"
+for pkg in "${PKGS[@]}"; do
+  conflicts=$(stow -n -v -t "$HOME" "$pkg" 2>&1 || true)
+  echo "$conflicts" | { grep -oE 'existing target \S+' || true; } | awk '{print $3}' | while read -r f; do
+    target="$HOME/$f"
+    if [ -e "$target" ] && [ ! -L "$target" ]; then
+      mkdir -p "$BACKUP_DIR/$(dirname "$f")"
+      mv "$target" "$BACKUP_DIR/$f"
+      echo "  backed up ~/$f -> $BACKUP_DIR/$f"
+    fi
+  done
+done
+
+log "Stowing all packages"
+stow -d "$DOTFILES_DIR" -t "$HOME" "${PKGS[@]}"
+
+log "Setting zsh as the default shell"
+if [ "$SHELL" != "$(command -v zsh)" ]; then
+  chsh -s "$(command -v zsh)"
+fi
+
+log "Installing oh-my-zsh + plugins/theme"
+if [ ! -d "$HOME/.oh-my-zsh" ]; then
+  RUNZSH=no CHSH=no KEEP_ZSHRC=yes sh -c \
+    "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+fi
+ZSH_CUSTOM="$HOME/.oh-my-zsh/custom"
+clone_if_missing() { [ -d "$2" ] || git clone --depth=1 "$1" "$2"; }
+clone_if_missing https://github.com/romkatv/powerlevel10k.git "$ZSH_CUSTOM/themes/powerlevel10k"
+clone_if_missing https://github.com/zsh-users/zsh-autosuggestions "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
+clone_if_missing https://github.com/zsh-users/zsh-syntax-highlighting.git "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
+
+log "Installing TPM (tmux plugin manager)"
+clone_if_missing https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm"
+
+log "Installing ZedMono Nerd Font"
+if [ ! -d "$HOME/.local/share/fonts/ZedMono" ]; then
+  tmp=$(mktemp -d)
+  curl -fsSL -o "$tmp/ZedMono.tar.xz" \
+    https://github.com/ryanoasis/nerd-fonts/releases/latest/download/ZedMono.tar.xz
+  mkdir -p "$HOME/.local/share/fonts/ZedMono"
+  tar -xJf "$tmp/ZedMono.tar.xz" -C "$HOME/.local/share/fonts/ZedMono"
+  rm -rf "$tmp"
+  fc-cache -f >/dev/null
+fi
+
+if ! command -v brew >/dev/null 2>&1 && [ ! -x /home/linuxbrew/.linuxbrew/bin/brew ]; then
+  log "Installing Homebrew (for gh, pnpm)"
+  NONINTERACTIVE=1 /bin/bash -c \
+    "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+fi
+if [ -x /home/linuxbrew/.linuxbrew/bin/brew ]; then
+  eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv bash)"
+  brew install gh pnpm
+fi
+
+log "Enabling system services"
+sudo systemctl enable --now \
+  NetworkManager iwd bluetooth docker power-profiles-daemon
+# ufw's default policy is deny-incoming/allow-outgoing once enabled; fine for
+# a physical-console machine, but add any rules you need (e.g. `ufw allow ssh`)
+# before enabling it if you plan to reach this box over the network.
+sudo systemctl enable --now ufw
+# sddm is enabled but not started now -- starting it mid-script would hijack
+# this TTY session before the rest of the script finishes; it'll take over
+# on the reboot the final instructions ask for.
+sudo systemctl enable sddm
+
+log "Adding $USER to the docker group"
+sudo usermod -aG docker "$USER"
+
+log "Enabling user services"
+systemctl --user daemon-reload
+systemctl --user enable --now wallpaper.timer
+
+log "Done."
+echo "Reboot, log in through the SDDM greeter, and pick the Sway session."
+echo "Inside a tmux session, press prefix + I (Ctrl-a then Shift-i) to fetch tmux plugins."
+echo "Docker-group membership needs a fresh login (or 'newgrp docker') to take effect."
