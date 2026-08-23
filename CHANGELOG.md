@@ -3,6 +3,24 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-23 (Docker + UFW writeup, kitty cleanup)
+
+- **`docs/DOCKER_SECURITY.md`** (new): the full explanation of why Docker bypasses UFW
+  (it inserts its own `iptables` rules in `DOCKER`/`DOCKER-ISOLATION-STAGE-*`, ahead of
+  where UFW's rules apply), exactly what was checked on this machine (`docker ps` —
+  nothing running, nothing published, no live exposure), and a concrete fix in two
+  layers: bind future publishes to `127.0.0.1` (zero config), or run the new
+  `docs/harden-docker.sh` for an actual `DOCKER-USER`-chain-based restriction (allow
+  loopback + RFC1918 ranges, drop everything else), with `docs/docker-user-rules.service`
+  to make it survive `docker.service` restarts (which reset `DOCKER-USER` to empty).
+  Neither script runs automatically anywhere — this couldn't be tested against a real
+  container without `sudo`, so it's opt-in with explicit testing steps in the doc
+  rather than something applied silently.
+- `kitty.conf`: dropped `hide_tab_bar_if_only_one_tab` and `startup_mode` — confirmed
+  via `man kitty.conf` that neither exists in kitty 0.48.2 at all (not deprecated
+  aliases, just gone). The tab-bar behavior they wanted is kitty's default now
+  (`tab_bar_min_tabs 2`); `startup_mode` never mapped to a real directive.
+
 ## 2026-08-23 (kitty remote control)
 
 Enabled `allow_remote_control yes` + `listen_on unix:/tmp/kitty-{kitty_pid}` in

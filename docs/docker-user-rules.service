@@ -1,0 +1,15 @@
+[Unit]
+Description=Re-apply DOCKER-USER firewall hardening after docker starts
+# DOCKER-USER is reset to empty every time dockerd (re)starts, so this
+# must run again after every docker.service start -- see
+# docs/DOCKER_SECURITY.md for why and how to test this.
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/bash /home/yash/dotfiles/docs/harden-docker.sh
+
+[Install]
+WantedBy=multi-user.target

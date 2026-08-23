@@ -184,16 +184,12 @@ fix or silently skipping them:
   sudo pacman -R greetd greetd-tuigreet ly
   ```
 - **Docker can bypass UFW.** Docker manipulates `iptables` directly for published
-  container ports (`-p`), which UFW's rules don't see — a container publish can be
-  reachable from the network even if UFW would otherwise block that port. Checked
-  `docker ps` and confirmed no containers are currently running and no ports are
-  currently published, so there's no live exposure today, and no `iptables`/`ufw` rule
-  has been written here since it couldn't be tested against this system without
-  `sudo` — a wrong firewall rule is worse than a correctly-scoped known gap. Safe
-  default going forward: bind published ports explicitly to localhost unless you
-  actually want them reachable from the network —
-  `docker run -p 127.0.0.1:8080:80 ...` instead of `-p 8080:80` (which binds
-  `0.0.0.0`). If you do need to expose a port and want UFW to actually govern it,
-  Docker's own docs cover the `DOCKER-USER` iptables chain it creates specifically for
-  this — that's the sanctioned insertion point, not editing Docker's own generated
-  rules.
+  container ports (`-p`), which UFW's rules don't see. See
+  **[docs/DOCKER_SECURITY.md](DOCKER_SECURITY.md)** for the full mechanism, what was
+  actually checked on this machine (no live exposure as of the last check — nothing
+  published), and a concrete two-layer fix: a zero-config habit (bind to `127.0.0.1`)
+  plus `docs/harden-docker.sh` + `docs/docker-user-rules.service`, a `DOCKER-USER`-chain
+  script for when you do need to publish something. Neither script is auto-run by
+  `install.sh` or wired into any stow package — deliberately opt-in, since it changes
+  network-filtering behavior and hasn't been tested against this system (no `sudo` in
+  this session).
