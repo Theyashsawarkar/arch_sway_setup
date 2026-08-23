@@ -3,6 +3,46 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-23 (bluetooth fix, caffeine mode)
+
+### Waybar bluetooth module: fixed, same class of bug as before
+
+Root cause of "I don't see bluetooth on the status bar": `format-off` and `format-on`
+in the bluetooth module were both **literally empty strings** — same failure mode as
+the tmux separators/docker icon a few sessions back (lost glyphs, not a font problem).
+Separately, `format-connected` used ``, which is the *speaker* icon
+(`nf-fa-volume-down`), not bluetooth — a copy-paste mistake, unrelated to the font
+migration. Verified `U+F293` (`nf-fa-bluetooth`) is actually in `JetBrainsMono Nerd
+Font`'s charset before using it for all four states; the existing CSS already handles
+dimming it when off/disabled and coloring it green when connected, so only the icon
+itself needed fixing.
+
+### New: caffeine mode (`custom/caffeine` waybar module)
+
+Added a toggle to keep the screen from dimming/locking/suspending — click the coffee
+cup icon in the bar (or run `caffeine-toggle.sh`) to stop it, click again to restore
+normal behavior.
+
+Refactored `swayidle` from a raw `exec` line in `sway/config` into a proper systemd
+user service (`systemd/.config/systemd/user/swayidle.service`) specifically to support
+this cleanly: caffeine-on is just `systemctl --user stop swayidle.service`, caffeine-off
+is `systemctl --user start swayidle.service` — no PID tracking, no state file, systemd
+already knows whether it's running. `caffeine-status.sh` (polled by waybar every 5s)
+reports that same state as the module's icon color (dim gray off, peach glow on).
+
+Deliberately stops swayidle **entirely** rather than using `systemd-inhibit` to just
+block suspend: an inhibitor lock wouldn't touch `timeout 600 swaymsg output * dpms
+off` at all, since that's swayidle talking to sway directly, never going through
+logind. Stopping the whole service is the only thing that keeps the screen itself on
+too, which is what "keep it alive" actually means here.
+
+Tried a raw `pkill`/`setsid ... & disown` version first and hit a real, reproducible
+hang — the backgrounded `swayidle` process ended up stuck as a direct child of the
+toggle script's own bash process (confirmed via `pstree` and `/proc/<pid>/wchan`
+showing `do_wait`), which doesn't happen with well-behaved job control but did happen
+here reliably enough to not trust it. The systemd version has no such fragility: no
+job-control edge cases, and `Restart=on-failure` for free.
+
 ## 2026-08-23 (install.sh end-to-end verification — found a real install-breaking bug)
 
 Went back to close out the one item left unverified: `install.sh` had only ever been

@@ -116,6 +116,27 @@ uninterrupted run against an actual blank machine — this machine already has
 everything it does in place, so a live run here would be a no-op, and that one gap
 genuinely needs a spare VM or drive to close.
 
+## Idle management: swayidle as a systemd user service, plus caffeine mode
+
+`swayidle` (screen dimming, lock, suspend timeouts — `sway/.config/sway/idle/config`)
+runs as a systemd user service, `systemd/.config/systemd/user/swayidle.service`, not a
+raw `exec` line. `sway/config` starts it with `exec systemctl --user restart
+swayidle.service` rather than launching the process directly.
+
+This exists specifically so caffeine mode — the coffee-cup icon in waybar,
+`custom/caffeine` — can be trivial and reliable: on is `systemctl --user stop
+swayidle.service`, off is `systemctl --user start swayidle.service`. No PID files, no
+state tracking; systemd's own active/inactive state *is* the caffeine state, which
+`caffeine-status.sh` just reads back for the waybar icon. Stopping the whole service
+(rather than e.g. a `systemd-inhibit` suspend lock) is deliberate — an inhibitor
+wouldn't stop swayidle's own `timeout 600 swaymsg output * dpms off` line, since that
+never goes through logind at all. Only actually stopping swayidle keeps the screen on.
+
+An earlier version managed this with raw `pkill`/background-and-`disown` instead of
+systemd, and hit a real hang: the backgrounded process ended up stuck as a direct
+child of the toggle script (visible via `pstree` and `/proc/<pid>/wchan` = `do_wait`).
+Systemd unit start/stop doesn't have that failure mode.
+
 ## The wallpaper pipeline, and why it can't crash sway anymore
 
 `systemd/.config/systemd/user/wallpaper.timer` fires `wallpaper.service` once a day,
