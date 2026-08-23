@@ -3,6 +3,19 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-23 (kitty remote control)
+
+Enabled `allow_remote_control yes` + `listen_on unix:/tmp/kitty-{kitty_pid}` in
+`kitty.conf` — `kitty @ ...` / kittens couldn't control the running instance at all
+before this (`{"ok": false, "error": "Remote control is disabled"}`), which blocks
+live config/font reloads without a full restart. Not force-restarting the running
+kitty instance to apply it — this session's remote shell very likely runs *through*
+that same kitty window, and killing it would cut the connection. Needs a manual full
+quit/reopen of kitty (not just `ctrl+shift+f5`, since `listen_on` sets up a socket at
+startup) to actually take effect. Also re-audited the whole live system (not just this
+repo) for stray `ZedMono` references post-migration — none found; the font is
+consistent across every app that renders it.
+
 ## 2026-08-23 (optimization pass)
 
 Went looking for what could be optimized/improved system-wide and fixed what could
