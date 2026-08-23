@@ -3,6 +3,77 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-23 (same nwg-bar treatment for volume/wifi/bluetooth/docker -- found the tilde bug again)
+
+Extended the power-menu pattern to four more waybar modules, reusing `nwg-bar` +
+the same `style.css` (same glass-card look) rather than inventing a new mechanism per
+module:
+
+- `custom/docker` -> **Stats** (`kitty -e docker stats`), **Stop All** (a new wrapper
+  script, `scripts/.local/bin/docker-stop-all.sh` -- `$(docker ps -q)` needs a real
+  shell, which nwg-bar's `exec` never provides, so this couldn't be inlined in the
+  JSON the way Stats could)
+- `network` -> **Wi-Fi On/Off** (`nmcli radio wifi on|off`), **Settings**
+  (`nm-connection-editor`)
+- `bluetooth` -> **BT On/Off** (`bluetoothctl power on|off`), **Manager**
+  (`blueman-manager`)
+- `pulseaudio` -> **Mute**, **Vol -/+** (`pactl ...`), **Mixer** (`pavucontrol`)
+
+Icons: none of these had bundled SVGs the way the power actions did, but `nwg-bar`'s
+`createPixbuf()` (checked the source again) falls back to the system icon theme by
+name when the icon string isn't an absolute path -- used standard freedesktop
+`-symbolic` names (`audio-volume-high-symbolic`, `network-wireless-symbolic`,
+`bluetooth-symbolic`, etc.), all confirmed present in the installed Adwaita theme
+before using them, same discipline as verifying Nerd Font glyphs elsewhere. No new
+icon assets bundled in this repo.
+
+**Found the exact same class of bug again, in a new place**: waybar's `on-click`
+strings used `~/.config/nwg-bar/wifi.json` for the `-t`/`-s` flags. Tested it the same
+way as the Lock bug (no-shell invocation via `env`) before trusting it, and found
+`nwg-bar`'s own flag parsing doesn't expand `~` either -- worse, it doesn't even
+detect it isn't an absolute path the way it does for the `icon` field, so it
+concatenated it onto its default config directory and produced a nonsensical path
+that failed outright (`open .../nwg-bar/~/.config/nwg-bar/volume.json: no such file or
+directory`). Fixed by using absolute paths in all four `on-click` strings, same as
+the earlier Lock fix. Re-tested all four (`env nwg-bar -t /home/yash/... -s
+/home/yash/...`) and confirmed each loads its correct item count with no errors.
+
+## 2026-08-23 (nwg-bar robustness audit: found and fixed a real "Lock silently does the wrong thing" bug)
+
+Asked to make sure the power button is robust and has no surprises, now that `nwg-bar`
+is actually installed. Tested it for real rather than just checking it launches:
+
+- **The Lock button would have shown a bare, unstyled swaylock screen instead of the
+  configured one, with no error to explain why.** Read `nwg-bar`'s own Go source
+  (`launch()` in `tools.go`): it calls `exec.Command()` directly on the split command
+  string, with no shell involved at all -- so `~` in `swaylock -C
+  ~/.config/sway/lockconfig` is never expanded, unlike every other place this exact
+  command appears in this setup (sway's own `exec` keybinding, `swayidle`'s config),
+  which all go through an actual shell. Verified this precisely, not just from reading
+  the source: ran `swaylock -C '~/.config/sway/lockconfig'` (literal tilde, no shell,
+  the exact byte string `nwg-bar` would pass) and watched it log `Found config at
+  ~/.config/sway/lockconfig` immediately followed by `Failed to read config. Running
+  without it.` -- swaylock treats the unexpanded tilde as a literal filename, fails
+  silently, and falls back to a plain lock screen with none of the configured
+  wallpaper/clock/Catppuccin colors. Fixed by using the absolute path
+  (`/home/yash/.config/sway/lockconfig`) instead, and confirmed the fix with the same
+  test: full config now parses line by line, wallpaper and all.
+
+  (Incidentally locked this machine's real session for a few seconds running that
+  first test, since it's genuine `swaylock` with PAM auth, not a mock -- unlocked it
+  immediately afterward, no harm done, but worth knowing this class of test isn't
+  fully inert.)
+
+- Confirmed all other `exec` commands (`swaymsg exit`, `systemctl suspend/reboot/poweroff`)
+  have no path/tilde dependencies, so they're not affected by the same no-shell
+  behavior.
+- Tested double-launching `nwg-bar` (simulating an accidental double-click on the
+  waybar button): only one instance ends up running, no overlapping bars or errors.
+- Swept the whole repo for leftover cruft from the wlogout/wofi iterations: no
+  dangling references anywhere, `packages/*.txt` clean, and every script in the
+  `scripts/` package is confirmed actually referenced from somewhere (sway config,
+  waybar config, or a systemd unit) -- nothing orphaned.
+
 ## 2026-08-23 (power menu: switched tools -- wofi's dmenu mode wasn't built for this)
 
 User feedback: alignment still off, no pointer cursor, click-outside still not
