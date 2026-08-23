@@ -7,6 +7,6 @@
   {
     "label": "Stop All",
     "exec": "/home/yash/.local/bin/docker-stop-all.sh",
-    "icon": "system-shutdown-symbolic"
+    "icon": "process-stop-symbolic"
   }
 ]
