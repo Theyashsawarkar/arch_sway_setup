@@ -85,16 +85,9 @@ clone_if_missing https://github.com/zsh-users/zsh-syntax-highlighting.git "$ZSH_
 log "Installing TPM (tmux plugin manager)"
 clone_if_missing https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm"
 
-log "Installing ZedMono Nerd Font"
-if [ ! -d "$HOME/.local/share/fonts/ZedMono" ]; then
-  tmp=$(mktemp -d)
-  curl -fsSL -o "$tmp/ZedMono.tar.xz" \
-    https://github.com/ryanoasis/nerd-fonts/releases/latest/download/ZedMono.tar.xz
-  mkdir -p "$HOME/.local/share/fonts/ZedMono"
-  tar -xJf "$tmp/ZedMono.tar.xz" -C "$HOME/.local/share/fonts/ZedMono"
-  rm -rf "$tmp"
-  fc-cache -f >/dev/null
-fi
+# Nerd Font: ttf-jetbrains-mono-nerd is already in packages/pacman.txt, no
+# manual download needed -- every config (kitty, tmux, sway, mako, wofi, zed,
+# waybar) uses "JetBrainsMono Nerd Font" for exactly this reason.
 
 if ! command -v brew >/dev/null 2>&1 && [ ! -x /home/linuxbrew/.linuxbrew/bin/brew ]; then
   log "Installing Homebrew (for gh, pnpm)"
