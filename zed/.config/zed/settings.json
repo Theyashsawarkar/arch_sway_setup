@@ -89,13 +89,13 @@
    * TYPOGRAPHY & FONTS
    * ==========================================================================
    */
-  "ui_font_family": "ZedMono Nerd Font",
+  "ui_font_family": "JetBrainsMono Nerd Font",
   "ui_font_size": 15.0,
-  "buffer_font_family": "ZedMono Nerd Font",
+  "buffer_font_family": "JetBrainsMono Nerd Font",
   "buffer_font_size": 15.0,
   "terminal": {
     "dock": "bottom",
-    "font_family": "ZedMono Nerd Font",
+    "font_family": "JetBrainsMono Nerd Font",
     "font_size": 15.0,
   },
 

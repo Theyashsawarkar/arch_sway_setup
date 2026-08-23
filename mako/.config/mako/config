@@ -11,7 +11,7 @@ border-radius=12
 padding=15
 
 # --- Typography ---
-font=ZedMono Nerd Font 10
+font=JetBrainsMono Nerd Font 10
 markup=1
 format=<b>%s</b>\n%b
 

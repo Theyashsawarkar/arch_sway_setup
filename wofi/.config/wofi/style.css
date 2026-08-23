@@ -7,7 +7,7 @@ window {
     /* Deep Midnight base - grounds the UI and reduces visual fatigue */
     background-color: rgba(17, 17, 27, 0.95); 
     border-radius: 16px; /* Generous, smooth curves for a fluid feel */
-    font-family: "ZedMono Nerd Font";
+    font-family: "JetBrainsMono Nerd Font";
     font-size: 16px;
 }
 
