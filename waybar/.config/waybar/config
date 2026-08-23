@@ -11,6 +11,7 @@
 		"network", 
 		"network#speed",
 		"bluetooth",
+		"custom/caffeine",
 		"backlight",
 		"pulseaudio",
 		"battery"
@@ -72,13 +73,20 @@
 	},
 
 	"bluetooth": {
-		"format-off": "",
-		"format-on": "",
-		"format-connected": "  {device_alias}",
-		"format-connected-battery": "  {device_alias}  {device_battery_percentage}%",
+		"format-off": "",
+		"format-on": "",
+		"format-connected": "  {device_alias}",
+		"format-connected-battery": "  {device_alias}  {device_battery_percentage}%",
 		"tooltip-format": "Bluetooth Status: {status}",
 		"on-click": "blueman-manager",
 		"max-length": 25
+	},
+
+	"custom/caffeine": {
+		"exec": "~/.local/bin/caffeine-status.sh",
+		"on-click": "~/.local/bin/caffeine-toggle.sh",
+		"interval": 5,
+		"return-type": "json"
 	},
 
 	"battery": {
