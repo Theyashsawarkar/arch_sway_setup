@@ -100,8 +100,13 @@ if [ -x /home/linuxbrew/.linuxbrew/bin/brew ]; then
 fi
 
 log "Enabling system services"
+# NetworkManager's actual wifi backend is wpa_supplicant (D-Bus-activated
+# on demand, not enabled here directly) -- iwd is intentionally NOT enabled
+# alongside it. Running both is redundant (two daemons that can each try to
+# manage the wireless radio) and iwd would just sit there unused. See
+# docs/ARCHITECTURE.md for how this was found on the original machine.
 sudo systemctl enable --now \
-  NetworkManager iwd bluetooth docker power-profiles-daemon
+  NetworkManager bluetooth docker power-profiles-daemon
 # ufw's default policy is deny-incoming/allow-outgoing once enabled; fine for
 # a physical-console machine, but add any rules you need (e.g. `ufw allow ssh`)
 # before enabling it if you plan to reach this box over the network.
