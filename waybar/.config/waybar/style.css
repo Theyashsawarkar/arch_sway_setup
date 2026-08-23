@@ -47,13 +47,16 @@ window#waybar {
 
 /* Icon-only (no accompanying text/number like docker's count or
    bluetooth's device name), so the default 12px reads as cramped —
-   a bit more horizontal room. No min-width here on purpose: it forced
-   the box wider than the glyph needed, and since the label content
-   isn't centered within extra forced width, that read as uneven
-   (more gap on one side) rather than as breathing room. Plain
-   symmetric padding sizes the pill to the content evenly instead. */
+   a bit more horizontal room. The left/right split here is NOT a typo:
+   measured it directly (grim screenshot + a temporary red background
+   marker + a small pure-Python PNG decoder, since no image tool was
+   available to inspect it any other way) and the U+F0F4 coffee-cup
+   glyph itself has ~10px more empty space baked into its left side
+   bearing than its right in this font -- symmetric CSS padding was
+   never going to look symmetric on screen with this specific glyph.
+   9px left / 19px right measured out to an 11px/12px visual gap. */
 #custom-caffeine {
-    padding: 0 14px;
+    padding: 0 19px 0 9px;
 }
 
 /* One consistent accent (Mauve) for "you're pointing at something
