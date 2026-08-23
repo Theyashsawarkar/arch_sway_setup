@@ -3,6 +3,42 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-23 (power menu: waybar button + wlogout modal)
+
+Added a power button to the far right of the waybar bar (`custom/power`, after
+`battery`) that opens `wlogout` — a proper centered floating modal with five large
+icon buttons (Lock, Logout, Suspend, Reboot, Shutdown), not a text dmenu list, since
+that's what was actually asked for ("very aesthetic... floating... modal").
+
+- New `wlogout` stow package: `layout` (5 buttons, each action wired to what's already
+  used elsewhere in this setup -- `swaylock -C ~/.config/sway/lockconfig` for lock,
+  matching the manual lock keybind and idle-lock config exactly) and `style.css`
+  (Catppuccin Mocha, matching the rest of the desktop: Deep Midnight translucent
+  backdrop, floating cards with the same hairline Mauve border as the waybar pills,
+  large Nerd Font glyphs standing in for icons instead of bundled image assets --
+  consistent with how every other module in this setup does icons).
+- Each button gets a distinct hover accent, deliberately breaking from "one consistent
+  accent everywhere" (the rule stated for every other waybar module): Mauve for lock,
+  Lavender for logout, Teal for suspend, Peach for reboot, Red for shutdown. A power
+  menu is the one place where distinguishing "gentle" from "final" by color is real
+  feedback, not decoration -- same reasoning already used for workspace hover states.
+- Verified every icon glyph (lock, logout, suspend, reboot, shutdown, and the waybar
+  trigger's power-off icon) actually exists in JetBrainsMono Nerd Font's charset
+  before using it, same discipline as every other icon added this session. Hit the
+  raw-character-gets-silently-stripped issue (documented earlier for the tmux
+  separators) twice more while building this -- inconsistently this time, sometimes a
+  raw pasted glyph survived and sometimes it didn't with no clear pattern -- so
+  switched fully to writing `\uXXXX` escapes in Python source and verifying the
+  landed codepoints after every single write, rather than trusting either approach
+  blindly.
+- Added `wlogout` to `packages/aur.txt`. **Not yet installed on this machine** -- AUR
+  package installation needs `sudo`, which this session doesn't have:
+  ```bash
+  yay -S wlogout
+  ```
+  The waybar button and config are ready; the button will just do nothing until the
+  package above is installed.
+
 ## 2026-08-23 (audio/video/brightness robustness audit — found a battery safety gap)
 
 Asked to make sure audio, display, and brightness are all robust and won't

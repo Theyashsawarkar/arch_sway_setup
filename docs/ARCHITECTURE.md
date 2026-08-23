@@ -29,6 +29,7 @@ manifests, not something stow ever touches.
 | `systemd`  | `~/.config/systemd/user/`               | User units: daily wallpaper fetch, optional detached tmux session |
 | `gtk`      | `~/.config/gtk-{3,4}.0/`                | GTK theme selection (Catppuccin Mocha) |
 | `xdg`      | `~/.config/mimeapps.list`               | Default app associations (browser, image viewer, etc.) |
+| `wlogout`  | `~/.config/wlogout/`                    | Power menu modal (lock/logout/suspend/reboot/shutdown), triggered from waybar's power button |
 
 ## Why some things *aren't* here
 
