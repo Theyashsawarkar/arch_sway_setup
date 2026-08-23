@@ -20,8 +20,16 @@ ICON_SHUTDOWN=$''
 
 choice=$(printf '%s\n%s\n%s\n%s\n%s\n' \
     "$ICON_LOCK" "$ICON_LOGOUT" "$ICON_SUSPEND" "$ICON_REBOOT" "$ICON_SHUTDOWN" \
-    | wofi --dmenu --prompt "Power" --width 220 --height 320 --columns 2 \
+    | wofi --dmenu --prompt "Power" --width 360 --height 280 --columns 2 \
+        -D close_on_focus_loss=true \
         --style ~/.config/wofi/power-style.css)
+# NOT --hide-search: it's buggy in this wofi build (v1.5.3) and breaks
+# entry rendering entirely when combined with --dmenu (confirmed by
+# testing side by side -- the grid rendered empty with --hide-search,
+# fine without it). The search box is hidden visually via CSS instead
+# (#input collapsed to 0 height in power-style.css), which keeps it
+# functionally present so wofi doesn't hit whatever internal path
+# --hide-search breaks.
 
 case "$choice" in
     "$ICON_LOCK")     swaylock -C ~/.config/sway/lockconfig ;;

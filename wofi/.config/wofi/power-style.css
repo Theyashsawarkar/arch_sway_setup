@@ -1,8 +1,10 @@
 /* Power menu -- same look as the main wofi style.css, but at kitty's
    0.85 background_opacity instead of the app-launcher's 0.95 (reads as
-   the same "glass" material as the terminal), and laid out as a grid
-   (--columns 3 on the wofi invocation) with each entry styled as its
-   own tile instead of a plain list row. */
+   the same "glass" material as the terminal), laid out as a 2-column
+   grid (--columns 2 on the wofi invocation -- this wofi build caps at 2
+   for --dmenu mode, see CHANGELOG.md) with the search bar hidden
+   (--hide-search) since this is a fixed set of 5 options, not something
+   to type-filter. */
 
 window {
     margin: 0px;
@@ -13,18 +15,20 @@ window {
     font-size: 16px;
 }
 
+/* Visually collapsed rather than using wofi's own --hide-search flag,
+   which is buggy in this build and breaks entry rendering entirely when
+   combined with --dmenu (confirmed by testing side by side). Keeping the
+   widget functionally present avoids whatever code path that flag hits. */
 #input {
-    margin: 10px;
-    padding: 10px;
+    min-height: 0px;
+    padding: 0px;
+    margin: 0px;
     border: none;
-    background-color: rgba(49, 50, 68, 0.5);
-    color: #CBA6F7;
-    border-radius: 10px;
-    font-weight: bold;
+    opacity: 0;
 }
 
 #inner-box {
-    margin: 0px 10px 10px 10px;
+    margin: 14px;
     background-color: transparent;
 }
 
@@ -37,15 +41,12 @@ window {
     border: none;
 }
 
-/* Each grid cell is its own tile -- a faint border/fill so it reads as
-   a button, not just a positioned label. Centered text since a grid of
-   icons (unlike a vertical list) has no natural left edge to align to. */
-/* Square-ish icon-only tiles now (no text label) -- equal padding on
-   all sides so each cell reads as a real grid button, not a text row. */
+/* Each grid cell is its own square tile -- a faint fill/border so it
+   reads as a button, not just a positioned icon. */
 #entry {
-    padding: 16px;
-    margin: 5px;
-    border-radius: 12px;
+    padding: 26px;
+    margin: 8px;
+    border-radius: 14px;
     background-color: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(203, 166, 247, 0.18);
 }
@@ -53,7 +54,7 @@ window {
 #text {
     margin: 0px;
     color: #A6ADC8;
-    font-size: 30px;
+    font-size: 44px;
 }
 
 #entry:selected {
