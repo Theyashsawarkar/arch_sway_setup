@@ -1,0 +1,16 @@
+[Unit]
+Description=Inhibit idle/lock while audio is playing
+# Crashed once connecting to PulseAudio/pipewire-pulse too early at login
+# (segfault in Pulse::connect, before the audio stack was fully up) --
+# wait for pipewire-pulse explicitly, and let Restart=on-failure recover
+# on its own instead of needing a full session logout/login.
+After=pipewire-pulse.socket pipewire-pulse.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/sway-audio-idle-inhibit
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=default.target
