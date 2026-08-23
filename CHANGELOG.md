@@ -3,6 +3,32 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-23 (boot follow-up: confirmed 4x win, oomd, waybar height fix)
+
+The `iwd`/`systemd-networkd` fix from the previous entry got applied: boot went from
+**2min 26s to 36.5s**, confirmed with a fresh `systemd-analyze` run. Went looking for
+more, both boot-time and general snappiness:
+
+- Remaining boot-time items (`NetworkManager-wait-online` 5.8s, `docker.service`
+  1.7s, `systemd-tpm2-setup{,-early}` ~3.1s combined) are either doing real work
+  (actual network readiness, the container runtime) or would need real research before
+  touching safely (there's no disk encryption here, so the TPM setup services aren't
+  protecting anything critical, but I don't know precisely what else depends on them
+  without more digging, and ~3s isn't worth guessing wrong on). Left alone.
+- **Enabled `systemd-oomd`** (was disabled). Confirmed the kernel actually supports
+  what it needs first (`/proc/pressure/memory` has real PSI data). This is the
+  userspace OOM killer that acts *before* a memory-pressure spiral turns into a full
+  swap-thrashing freeze — with a browser that can climb into multiple GB of RSS
+  against only 4GB of zram swap, this is a real "why did my desktop just freeze for 20
+  seconds" prevention, not just a boot-time thing. Added to `install.sh`'s
+  service-enable line too.
+- **Fixed waybar's height mismatch**: config said `"height": 32`, but every module's
+  actual padding (added over this session's redesigns) needs 41px, so waybar was
+  silently overriding it and logging a warning on literally every single restart this
+  whole session. Just set it to the real value, 41 — no functional change, just an
+  honest config that matches what's actually rendered instead of relying on waybar's
+  auto-correction and a noisy log.
+
 ## 2026-08-23 (found the actual boot-time problem: 2 minutes wasted on a redundant network stack)
 
 Ran a real optimization sweep instead of another cosmetic pass: `zsh -i -c exit` timing

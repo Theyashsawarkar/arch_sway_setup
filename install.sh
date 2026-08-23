@@ -106,7 +106,7 @@ log "Enabling system services"
 # manage the wireless radio) and iwd would just sit there unused. See
 # docs/ARCHITECTURE.md for how this was found on the original machine.
 sudo systemctl enable --now \
-  NetworkManager bluetooth docker power-profiles-daemon
+  NetworkManager bluetooth docker power-profiles-daemon systemd-oomd
 # ufw's default policy is deny-incoming/allow-outgoing once enabled; fine for
 # a physical-console machine, but add any rules you need (e.g. `ufw allow ssh`)
 # before enabling it if you plan to reach this box over the network.
