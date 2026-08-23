@@ -38,9 +38,19 @@ font pango:JetBrainsMono Nerd Font 10
 # Inner gaps separate adjacent windows from each other
 gaps inner 8
 # Outer gaps separate windows from the screen edges and Waybar
-gaps outer 6
-# Keeps gaps active even when there is only one window open
-smart_gaps off
+gaps outer 9
+# inverse_outer (not plain "on"): outer (screen-edge) gaps show
+# specifically when a workspace has exactly one window -- the common
+# case -- so there's always a visible margin to the screen edge then.
+# With multiple tiled windows, outer gaps hide (inner gaps between the
+# windows still apply) so tiling doesn't waste edge space. Free either
+# way: same gap calculation sway already does every frame.
+smart_gaps inverse_outer
+
+# Pressing the key for the workspace you're already on jumps back to
+# whichever workspace you were on before -- like alt-tab for
+# workspaces. Also free: pure behavior config, no extra process/timer.
+workspace_auto_back_and_forth yes
 
 # --- SwayFX Aesthetics (Rounded Corners & Shadows) ---
 # Smooth corners that match the curvature of your Waybar pills
@@ -59,8 +69,10 @@ client.unfocused        #313244 #1E1E2E #6C7086 #313244   #313244
 
 
 ### Wallpaper configuration
+# Daily rotation is handled by systemd/.config/systemd/user/wallpaper.timer
+# (fetch_wallpaper.sh) -- once a day, not on every reload. This just sets
+# the background at sway startup/reload from whatever current.jpg already is.
 output * bg /home/yash/Pictures/Wallpapers/current.jpg fill
-exec_always --no-startup-id /home/yash/scripts/fetch-bing.sh
 
 ### Input configuration
 input type:touchpad {
