@@ -102,10 +102,19 @@ user, `sudo` where it needs root:
     the theme *name*, but GNOME-aware apps actually read the active theme/color-scheme
     from dconf, so both need to happen for the theme to actually show up.
 
-It has been syntax-checked and had its trickier pieces (the stow conflict-detection
-parser, the `.gitignore` glob) verified in an isolated sandbox, but it has not been run
-end-to-end on a real fresh install — this machine already has everything it does in
-place, so a live run here would just be a very expensive no-op.
+It has been syntax-checked, had its trickier logic (the stow conflict-detection
+parser, the `.gitignore` glob, a full 13-package stow simulation against realistic
+`/etc/skel` files) verified in isolated sandboxes, every package name in
+`packages/*.txt` confirmed to actually resolve (`pacman -Si`/`yay -Si`), every external
+URL confirmed reachable, and every systemd service name it enables confirmed to exist.
+That verification pass found and fixed a real install-breaking bug: `pacman.txt` had
+15 AUR-only packages duplicated into it (from how the manifests were first generated —
+see the changelog), and `pacman -S` aborts its *entire* transaction if even one target
+doesn't exist in the official repos, so the original file would have failed to install
+anything at all on a truly fresh machine. What's still missing is a single, real,
+uninterrupted run against an actual blank machine — this machine already has
+everything it does in place, so a live run here would be a no-op, and that one gap
+genuinely needs a spare VM or drive to close.
 
 ## The wallpaper pipeline, and why it can't crash sway anymore
 

@@ -3,6 +3,45 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-23 (install.sh end-to-end verification — found a real install-breaking bug)
+
+Went back to close out the one item left unverified: `install.sh` had only ever been
+checked piece-by-piece in sandboxes, never proven against the actual current package
+manifests. Ran every check that's possible without a spare VM and without `sudo`:
+
+- **Every `packages/pacman.txt` and `packages/aur.txt` entry, checked against the real
+  repos** (`pacman -Si` / `yay -Si`, read-only, no root needed). Found a real bug:
+  15 packages in `pacman.txt` were actually AUR-only (`brave-bin`, `google-chrome`,
+  `swayfx`, `zen-browser-bin`, etc.) — duplicated from `aur.txt`, left over from how
+  the manifests were originally generated (`pacman -Qqe` returns *every* explicitly
+  installed package regardless of which repo it came from, official or AUR, and that
+  got dumped into `pacman.txt` wholesale without subtracting the AUR ones). Separately,
+  6 entries in `aur.txt` were `-debug` packages (`bruno-bin-debug`, `swayfx-debug`,
+  etc.) — these are auto-generated side effects of building their parent package, not
+  real independently-fetchable AUR targets, so `yay -S` would fail trying to fetch them.
+  **This mattered because `pacman -S` aborts its entire transaction if even one target
+  package name is invalid** — as written, `install.sh` would have failed to install
+  *any* of the 104 packages on a truly fresh machine, not just skip the bad ones.
+  Removed all 21 bogus entries; every remaining entry in both files now verified to
+  resolve.
+- **Every external URL the script touches** (9 total: the repo clone, TPM,
+  Powerlevel10k, the two zsh plugins, the AUR helper bootstrap, oh-my-zsh's installer,
+  Homebrew's installer) — checked with `git ls-remote` for git URLs and a real HTTP
+  request for the two raw-file URLs. All resolve.
+- **Every systemd service name it enables** (`NetworkManager`, `iwd`, `bluetooth`,
+  `docker`, `power-profiles-daemon`, `ufw`, `sddm`, plus the user-level
+  `wallpaper.timer`) — confirmed each is a real unit on this system.
+- **A full stow simulation with all 13 current packages at once** (the earlier sandbox
+  test only used 2 toy packages) against a fake `$HOME` seeded with the actual
+  `/etc/skel` files a fresh Arch account would have (`.bashrc`, `.bash_profile`,
+  `.bash_logout`) — succeeded cleanly, no false-positive conflicts, every symlink
+  (including executable scripts under `.local/bin`) landed correctly.
+
+Still not run as a real, single, uninterrupted execution against an actual blank
+machine — that's the one thing that genuinely requires a spare VM or drive. But every
+individual piece of it is now verified against reality rather than assumed, and the
+one bug that actually would have broken it outright is fixed.
+
 ## 2026-08-23 (Docker + UFW writeup, kitty cleanup)
 
 - **`docs/DOCKER_SECURITY.md`** (new): the full explanation of why Docker bypasses UFW
