@@ -3,6 +3,26 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-23 (power menu: single row via orientation=horizontal, click-outside dropped for good)
+
+Two things: confirmed in real use (not a synthetic test this time) that the popup was
+closing whenever the pointer moved toward *any* window, not just on an actual click --
+exactly the `focus_follows_mouse` interaction flagged two entries back, which my
+`swaymsg`-based test hadn't actually reproduced (it forced a focus change directly,
+which isn't the same as merely hovering causing one). And a request to switch from the
+2-column grid to a single row with centered icons, shorter overall.
+
+- Removed `close_on_focus_loss` for good this time. There's no way to get "click
+  elsewhere closes it, hover elsewhere doesn't" out of this option while
+  `focus_follows_mouse` is `yes` (sway's default, and global-only per `sway.5` -- no
+  per-window override), so the honest fix here is to not use it. Dismissing is Escape
+  or picking an option, matching every other wofi popup in this setup.
+- Switched from `--columns 2` to `-D orientation=horizontal`: a different wofi layout
+  mechanism, not subject to the 2-per-row cap `--columns` hit repeatedly in earlier
+  entries. Puts all 5 icons in one row directly. Width 560->650, height 460->150 (one
+  row needs far less vertical space than a 3-row grid). Verified: 649x149px against a
+  requested 650x150, with all 5 tiles visible in a single centered row.
+
 ## 2026-08-23 (power menu: fit all tiles, no scrollbar, re-verified click-outside)
 
 More feedback: not all 5 tiles were visible without scrolling, wanted the scrollbar
