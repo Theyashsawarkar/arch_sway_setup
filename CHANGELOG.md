@@ -3,6 +3,31 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-23 (power menu: actual grid layout, not a vertical list)
+
+Follow-up feedback: wanted the buttons in a real grid, and the popup ("too small but
+kind of quite correct") nudged slightly bigger to fit one. wofi supports this
+natively via `columns=`/`--columns` -- not something requiring a different tool this
+time.
+
+- Switched entries from "icon + text label" to icon-only. With text labels, columns
+  rendered at uneven widths (a "Suspend" entry is wider than "Lock"), which is what
+  broke the grid look initially.
+- Requested `--columns 3` first. Tested it at three different popup widths (300, 400,
+  700px), via both the CLI flag and an explicit `--conf` file, and it rendered as
+  **exactly 2 columns every single time** -- confirmed this is a real cap in this
+  wofi build (v1.5.3) for `--dmenu` mode specifically, not a sizing mistake, by also
+  confirming `--columns 1` correctly renders a single column (so the setting isn't
+  ignored outright, just capped above 2 here).
+- Settled on `--columns 2`: 5 icons give a clean 2+2+1 grid. Verified the final
+  popup's actual dimensions by screenshotting it and searching for the Mauve border
+  color: 219×319px against a requested 220×320, and confirmed visually (rendered as
+  an ASCII brightness map) that it's a real 2-column, 3-row grid, not another uneven
+  wrap.
+- Restyled `#entry` in `wofi/.config/wofi/power-style.css` for square-ish icon tiles
+  (equal padding, larger icon font) now that there's no text label taking up
+  horizontal space.
+
 ## 2026-08-23 (replaced wlogout with a compact wofi power menu)
 
 User feedback on the fixed wlogout modal: wanted it transparent like kitty's terminal
