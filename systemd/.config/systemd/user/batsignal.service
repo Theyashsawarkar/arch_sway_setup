@@ -1,0 +1,11 @@
+[Unit]
+Description=Battery warning/critical/danger notifications, force-suspend at danger level
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/batsignal -w 20 -c 10 -d 5 -D "systemctl suspend"
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=default.target

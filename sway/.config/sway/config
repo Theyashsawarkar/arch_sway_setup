@@ -280,8 +280,15 @@ for_window [app_id=".*"] inhibit_idle fullscreen
 exec nm-applet --indicator
 exec blueman-applet
 
-# Battery Daemon: Warns at 20%, Critical at 10%, Forces Suspend at 5%
-exec batsignal -w 20 -c 10 -d 5 -f
+# Battery Daemon: Warns at 20%, Critical at 10%, Forces Suspend at 5%.
+# Systemd user service (systemd/.config/systemd/user/batsignal.service) rather
+# than a raw exec: this had actually been silently broken this whole time --
+# '-f LEVEL' is "battery FULL notification", not "force a command", and
+# needed an argument it never got, so batsignal exited immediately on every
+# launch. The real flag for "run a command at a level" is '-D COMMAND'.
+# Restart=on-failure now too, so a future crash doesn't silently remove your
+# only protection against an uncontrolled shutdown from battery depletion.
+exec systemctl --user restart batsignal.service
 
 # Clipboard history management
 exec --no-startup-id cliphist store
