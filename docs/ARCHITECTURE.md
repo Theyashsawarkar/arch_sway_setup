@@ -137,6 +137,15 @@ systemd, and hit a real hang: the backgrounded process ended up stuck as a direc
 child of the toggle script (visible via `pstree` and `/proc/<pid>/wchan` = `do_wait`).
 Systemd unit start/stop doesn't have that failure mode.
 
+## The wallpaper pipeline is the ONLY wallpaper pipeline
+
+There used to be a second, untracked script (`~/scripts/fetch-bing.sh`) firing on
+every sway reload via `exec_always`, independent of the `wallpaper.timer`-driven one
+below. It's gone now (see the 2026-08-23 changelog entry for the full story) --
+`fetch_wallpaper.sh` via the daily timer is the only thing that changes the wallpaper.
+If you ever see wallpaper-related `exec`/`exec_always` lines back in `sway/config` in
+the future, that's a regression, not a feature.
+
 ## The wallpaper pipeline, and why it can't crash sway anymore
 
 `systemd/.config/systemd/user/wallpaper.timer` fires `wallpaper.service` once a day,

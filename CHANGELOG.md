@@ -3,6 +3,57 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-23 (removed a duplicate wallpaper system, window margins)
+
+### Found and removed a second, untracked, more wasteful wallpaper fetcher
+
+While reloading sway to test an unrelated config change, noticed a real network
+fetch happen that had nothing to do with the change. Traced it to
+`exec_always --no-startup-id /home/yash/scripts/fetch-bing.sh` in `sway/config` --
+a second wallpaper-fetching script, never tracked in this repo, running on
+**every sway reload** (not once a day like `wallpaper.timer`). Its own log
+(`/tmp/sway_wallpaper.log`) confirmed two runs in the same session just from normal
+`swaymsg reload` calls. 50 of the 61 files in `Archive/` turned out to have come
+from this script, not the tracked one.
+
+It was actually well-written in places (talked to Bing's real `HPImageArchive` API
+directly instead of a third-party proxy, market/index shuffling for variety, archive
+pruning) -- but firing on every reload instead of daily directly worked against
+"don't add CPU/network load," and it wasn't reproducible since it lived outside the
+dotfiles entirely. Its own `fallback.jpg` last-resort file didn't even exist, so its
+own fallback path was broken too.
+
+Removed `~/scripts/fetch-bing.sh` and the `exec_always` line entirely. Standardized
+on the one already-hardened, tracked, timer-based script
+(`fetch_wallpaper.sh`/`wallpaper.timer`, once a day). Ported over the one genuinely
+good idea from the removed script -- archive pruning (keep newest 60, prune oldest by
+mtime) -- since the tracked script's `Archive/` had no cap and would have grown
+unbounded. Verified the prune logic fires correctly with a synthetic over-threshold
+test (created 10 dummy files, confirmed the oldest 6 got removed by actual
+modification time) before trusting it.
+
+### Window margins + workspace switching feel
+
+- `gaps outer 6` → `9`, and `smart_gaps on` → `smart_gaps inverse_outer`: outer
+  (screen-edge) gaps now show specifically when a workspace has exactly one window
+  (the common case) so there's always a visible-but-small margin to the screen edge
+  then; with multiple tiled windows, outer gaps hide (inner gaps between windows still
+  apply) so tiling doesn't waste edge space to a margin you won't see anyway. Plain
+  `smart_gaps on` (tried first) hid outer gaps for single-window workspaces too, which
+  fought directly against wanting a visible edge margin -- `inverse_outer` reconciles
+  both wants instead of picking one.
+- `workspace_auto_back_and_forth yes`: pressing the key for the workspace you're
+  already on jumps back to whichever workspace you were on before.
+- Both are pure sway behavior config -- zero added CPU/RAM, same per-frame gap
+  calculation sway already does, just different threshold logic.
+
+True directional slide animation when switching workspaces (the original ask) isn't
+achievable on swayfx at any version -- checked the upstream config docs directly
+(`animation_duration_ms` only covers individual windows opening/closing, no code path
+for animating the workspace switch itself). That would require a compositor built
+around it, like Hyprland -- a full compositor swap, not something to start without it
+being its own deliberate decision.
+
 ## 2026-08-23 (bluetooth fix, caffeine mode)
 
 ### Waybar bluetooth module: fixed, same class of bug as before
