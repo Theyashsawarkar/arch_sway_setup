@@ -26,6 +26,7 @@ window#waybar {
 #network,
 #backlight,
 #bluetooth,
+#custom-caffeine,
 #pulseaudio,
 #battery {
     background-color: rgba(17, 17, 27, 0.92); /* Deep Midnight */
@@ -40,20 +41,20 @@ window#waybar {
     transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
-#clock, #keyboard-state, #custom-docker, #network, #bluetooth, #backlight, #pulseaudio, #battery {
+#clock, #keyboard-state, #custom-docker, #network, #bluetooth, #custom-caffeine, #backlight, #pulseaudio, #battery {
     padding: 0 12px;
 }
 
 /* One consistent accent (Mauve) for "you're pointing at something
    interactive" everywhere, instead of a different color per module */
-#clock:hover, #custom-docker:hover, #network:hover, #bluetooth:hover, #backlight:hover, #pulseaudio:hover, #battery:hover {
+#clock:hover, #custom-docker:hover, #network:hover, #bluetooth:hover, #custom-caffeine:hover, #backlight:hover, #pulseaudio:hover, #battery:hover {
     border-color: rgba(203, 166, 247, 0.4);
 }
 
 /* --- Logical grouping instead of one evenly-spaced row ---
-   Left:  [workspaces] [caps/num lock] · [docker]        (nav | input state · dev status)
-   Right: [network][bluetooth] · [backlight][pulseaudio] · [battery]
-                connectivity    ·      personal controls  ·  power
+   Left:  [workspaces] [caps/num lock] · [docker]                    (nav | input state · dev status)
+   Right: [network][bluetooth] · [caffeine][backlight][pulseaudio] · [battery]
+                connectivity    ·           personal controls        ·  power
    Tighter margin within a group, a clearer gap between groups, instead
    of every pill sitting at the same uniform distance regardless of
    what it's actually related to. */
@@ -75,6 +76,10 @@ window#waybar {
 
 #bluetooth {
     margin-right: 12px;
+}
+
+#custom-caffeine {
+    margin-left: 10px; /* starts the "personal controls" group */
 }
 
 #backlight {
@@ -158,6 +163,19 @@ window#waybar {
 #bluetooth.connected {
     color: #A6E3A1; /* Pastel green when paired */
     border-color: rgba(166, 227, 161, 0.4);
+}
+
+/* CAFFEINE — dim gray when off (matches every other "off" state above),
+   warm peach "brewing" glow when on so it's impossible to miss that the
+   screen won't sleep right now */
+#custom-caffeine.inactive {
+    color: #6C7086;
+}
+
+#custom-caffeine.active {
+    color: #FAB387;
+    border-color: rgba(250, 179, 135, 0.45);
+    box-shadow: 0 0 8px rgba(250, 179, 135, 0.35);
 }
 
 /* BATTERY STATES */
