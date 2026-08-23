@@ -94,7 +94,6 @@ Each directory represents an independent package managed by GNU Stow.
 ├── tmux/
 ├── waybar/
 ├── wofi/
-├── wlogout/         # power menu modal (lock/logout/suspend/reboot/shutdown)
 ├── xdg/             # mimeapps.list (default app associations)
 ├── zed/
 └── zsh/

@@ -3,6 +3,45 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-23 (replaced wlogout with a compact wofi power menu)
+
+User feedback on the fixed wlogout modal: wanted it transparent like kitty's terminal
+(0.85 opacity) and much smaller, on the scale of a wofi popup, not a screen-spanning
+modal. Tried to get there with wlogout first, hit a real architectural wall rather
+than a styling problem:
+
+- Measured (with a synthetic lime-green marker background, same technique as the
+  caffeine padding fix, since the wallpaper's own colors made a plain Mauve-color
+  search unreliable) that even with tiny 84px buttons, the 5 buttons still spanned
+  1438×598px on screen -- three times wider than intended.
+- Confirmed via wlogout's own `main.c` that its `GtkGrid` is a plain, unnamed grid
+  with no size constraint in the code -- but GTK still expands it to fill the entire
+  layer-shell surface (a widget property set at the C level, not something CSS
+  `grid { ... }` can override in GTK3).
+- Tried `--column-spacing 0 --row-spacing 0` explicitly -- **identical** 1438×598
+  measurement, proving the spread isn't about spacing at all; wlogout's grid divides
+  the full screen width into N equal columns regardless of button size or spacing
+  flags. This is fundamental to how it lays out, not a config mistake.
+
+Given the user's own size reference was wofi's popup, and wofi is already proven in
+this exact setup to render at a precise, compact size (verified the app launcher's
+600x400 elsewhere) -- switched the whole power menu to a `wofi --dmenu` list instead
+of fighting a tool whose layout model doesn't support what was asked:
+
+- New `scripts/.local/bin/power-menu.sh`: prints 5 lines (icon + label) to
+  `wofi --dmenu --width 280 --height 260 --style ~/.config/wofi/power-style.css`,
+  then runs the matching action from the selection -- same commands already used
+  elsewhere in this setup (lock uses the identical
+  `swaylock -C ~/.config/sway/lockconfig`).
+- New `wofi/.config/wofi/power-style.css`: same visual language as the existing app
+  launcher stylesheet, at kitty's 0.85 opacity instead of the launcher's 0.95, so it
+  reads as the same "glass" material as the terminal.
+- Verified the actual rendered popup by screenshotting it and searching for the Mauve
+  border color within the expected center region: **279×259px**, matching the
+  requested 280×260 almost exactly.
+- Removed the `wlogout` stow package and its `packages/aur.txt` entry entirely --
+  abandoned approach, not worth keeping around unused.
+
 ## 2026-08-23 (wlogout: fixed a genuinely broken modal, not just restyled it)
 
 User feedback: "the UI of the popup modal is too crud." Investigated with the same

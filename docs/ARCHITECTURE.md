@@ -18,7 +18,7 @@ manifests, not something stow ever touches.
 | ---------- | --------------------------------------- | ------------- |
 | `sway`     | `~/.config/sway/`                       | Window manager, keybindings, lock/idle config |
 | `waybar`   | `~/.config/waybar/`                     | Top status bar |
-| `wofi`     | `~/.config/wofi/`                       | App launcher / dmenu-style prompts |
+| `wofi`     | `~/.config/wofi/`                       | App launcher / dmenu-style prompts, and the power menu (`power-style.css`, triggered via `scripts/.local/bin/power-menu.sh` from waybar's power button) |
 | `mako`     | `~/.config/mako/`                       | Notifications |
 | `kitty`    | `~/.config/kitty/`                      | Terminal, incl. the Nerd Font setting everything else depends on |
 | `tmux`     | `~/.config/tmux/`, `~/.tmux/scripts/`   | Multiplexer config + the docker status-bar script |
@@ -29,7 +29,7 @@ manifests, not something stow ever touches.
 | `systemd`  | `~/.config/systemd/user/`               | User units: daily wallpaper fetch, optional detached tmux session |
 | `gtk`      | `~/.config/gtk-{3,4}.0/`                | GTK theme selection (Catppuccin Mocha) |
 | `xdg`      | `~/.config/mimeapps.list`               | Default app associations (browser, image viewer, etc.) |
-| `wlogout`  | `~/.config/wlogout/`                    | Power menu modal (lock/logout/suspend/reboot/shutdown), triggered from waybar's power button. Launched as `wlogout -b 5` (buttons-per-row), not bare `wlogout` -- its default isn't 5, and without it the 5 buttons render wildly uneven sizes. |
+
 
 ## Why some things *aren't* here
 
