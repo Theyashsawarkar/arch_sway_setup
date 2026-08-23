@@ -3,6 +3,30 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-23 (power menu: fit all tiles, no scrollbar, re-verified click-outside)
+
+More feedback: not all 5 tiles were visible without scrolling, wanted the scrollbar
+gone, wanted a pointer cursor on hover, and "click outside doesn't work at all" (true
+-- the previous entry removed `close_on_focus_loss` entirely based on untested
+reasoning about `focus_follows_mouse`).
+
+- Width 460->560, height 280->460 -- 460px wasn't tall enough for 3 full rows of
+  44px-icon tiles with 26px padding, so the third row (the 5th item) was getting cut
+  off, forcing a scroll. Added `--hide-scroll` for the scrollbar itself. Verified: all
+  5 tiles visible with room to spare, no scrollbar, 559x449px against a requested
+  560x460.
+- Tried `cursor: pointer` in CSS for the hand-cursor request -- GTK itself reported
+  `Theme parsing error: 'cursor' is not a valid property name`, a real warning, not
+  silently ignored. GTK3 controls cursor shape at the widget/GDK level, not via CSS,
+  so this isn't fixable from the stylesheet. Removed the invalid property rather than
+  leave dead CSS with a warning attached.
+- **Actually tested `close_on_focus_loss` this time** instead of reasoning about it
+  abstractly: opened a real window, confirmed the popup stays open with no action,
+  then shifted focus to that window via `swaymsg` (simulating a genuine click
+  elsewhere) and confirmed the popup closed immediately. It works correctly -- the
+  previous entry's removal was based on untested theory about
+  `focus_follows_mouse` that didn't hold up under an actual test. Re-added it.
+
 ## 2026-08-23 (power menu: wider, and click-outside removed for a real reason)
 
 Two more requests: more width, and "moving the cursor away closes it" -- reported as a
