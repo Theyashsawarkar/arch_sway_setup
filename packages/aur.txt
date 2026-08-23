@@ -11,6 +11,7 @@ sddm-sugar-dark
 sway-audio-idle-inhibit-git
 swayfx
 swaylock-effects
+wlogout
 wofi-emoji
 yay
 zen-browser-bin
