@@ -3,6 +3,25 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-23 (power menu: wider, and click-outside removed for a real reason)
+
+Two more requests: more width, and "moving the cursor away closes it" -- reported as a
+bug, but it's a direct consequence of `close_on_focus_loss` (added in the previous
+entry) interacting with sway's `focus_follows_mouse`, which defaults to `yes` when
+unset (confirmed -- it's not set anywhere in `sway/config`). With hover-focus, moving
+the mouse off the popup at all counts as losing focus, not just an actual click
+elsewhere -- so the popup was closing on mere hover-away, not just clicks.
+
+Checked whether `focus_follows_mouse` could be scoped to just this popup (`sway.5`
+confirms it's a global-only command, no `for_window` equivalent) -- fixing this
+properly would mean click-to-focus for the *entire* desktop, a far bigger change than
+was asked for. Removed `close_on_focus_loss` instead: dismissing now works the same
+way as every other wofi popup in this setup (app launcher, calculator, emoji picker)
+already does -- Escape or picking an option, no click-outside.
+
+Width 360->460 (height unchanged at 280). Verified: 459x279px against a requested
+460x280.
+
 ## 2026-08-23 (power menu: bigger, no search bar, click-outside dismisses it)
 
 Three more requests: more width and bigger buttons, remove the search bar, and close
