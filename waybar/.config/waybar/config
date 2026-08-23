@@ -5,7 +5,7 @@
 	"spacing": 5,
 
 	"modules-center": ["clock"],
-	"modules-left": ["sway/workspaces", "keyboard-state", "custom/docker", "bluetooth", "custom/caffeine"],
+	"modules-left": ["sway/workspaces", "keyboard-state", "custom/docker", "custom/caffeine", "bluetooth"],
 
 	"modules-right": [
 		"network", 

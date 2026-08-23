@@ -47,11 +47,13 @@ window#waybar {
 
 /* Icon-only (no accompanying text/number like docker's count or
    bluetooth's device name), so the default 12px reads as cramped —
-   a bit more horizontal room, and an explicit min-width so it doesn't
-   collapse to a tighter box than its neighbors. */
+   a bit more horizontal room. No min-width here on purpose: it forced
+   the box wider than the glyph needed, and since the label content
+   isn't centered within extra forced width, that read as uneven
+   (more gap on one side) rather than as breathing room. Plain
+   symmetric padding sizes the pill to the content evenly instead. */
 #custom-caffeine {
     padding: 0 14px;
-    min-width: 16px;
 }
 
 /* One consistent accent (Mauve) for "you're pointing at something
@@ -61,9 +63,9 @@ window#waybar {
 }
 
 /* --- Logical grouping instead of one evenly-spaced row ---
-   Left:  [workspaces] [caps/num lock] · [docker][bluetooth][caffeine]
+   Left:  [workspaces] [caps/num lock] · [docker][caffeine][bluetooth]
    Right: [network][network#speed] · [backlight][pulseaudio] · [battery]
-                nav | input state  ·  dev/connectivity/controls   ·  connectivity  ·  personal controls  ·  power
+                nav | input state  ·  dev/controls/connectivity   ·  connectivity  ·  personal controls  ·  power
    Tighter margin within a group, a clearer gap between groups, instead
    of every pill sitting at the same uniform distance regardless of
    what it's actually related to. */
@@ -71,7 +73,7 @@ window#waybar {
     margin-left: 10px; /* starts the left status group, after keyboard-state */
 }
 
-#custom-caffeine {
+#bluetooth {
     margin-right: 12px; /* ends the left status group, before the center clock */
 }
 
