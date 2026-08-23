@@ -150,7 +150,8 @@ stow $(find . -maxdepth 1 -mindepth 1 -type d ! -name packages ! -name docs ! -n
 The tmux config needs one thing Stow can't set up for you, and one plugin manager bootstrap:
 
 * **Nerd Font** — the status bar's rounded separators and icons (session, docker) are
-  Nerd Font glyphs. Install one (e.g. `ZedMono Nerd Font`, `JetBrainsMono Nerd Font`) and
+  Nerd Font glyphs. This repo standardizes on `JetBrainsMono Nerd Font` (a pacman
+  package, `ttf-jetbrains-mono-nerd`, already in `packages/pacman.txt`) — install it and
   set it as your terminal's font. Without it, those glyphs render as blank boxes.
 * **TPM (Tmux Plugin Manager)** — installs `tmux-resurrect` and `tmux-continuum`:
 

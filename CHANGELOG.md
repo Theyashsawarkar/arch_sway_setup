@@ -3,7 +3,66 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
-## 2026-08-23
+## 2026-08-23 (optimization pass)
+
+Went looking for what could be optimized/improved system-wide and fixed what could
+safely be fixed without root access (this session's tools have no sudo on this
+machine — see the two items at the end that need the user to run them).
+
+### Font: dropped ZedMono Nerd Font entirely
+
+Scoped this as "switch tmux/kitty off the 700MB manual font download" and then found,
+partway through, that **ZedMono Nerd Font was actually the primary font across sway,
+mako, wofi, zed, and waybar too** — not just kitty/tmux. Deleted the font directory
+before catching that (a `grep --include="*.conf" --include="*.sh"` missed the plain
+`sway/config`/`mako/config` files with no extension, and the `.css`/`.json` configs
+entirely) — a real mistake, caught immediately by re-grepping with no filter, and
+since `rm -rf` on ext4 has no undo, the only responsible path forward was finishing
+the migration properly everywhere rather than leaving it half-broken.
+
+Switched every reference to `JetBrainsMono Nerd Font` — already a pacman package
+(`ttf-jetbrains-mono-nerd`, already in `packages/pacman.txt`), verified via
+`fc-query -f '%{charset}'` to cover every codepoint the tmux status bar actually uses
+before relying on it. Updated: `kitty.conf`, `sway/config`, `mako/config`,
+`wofi/style.css`, `zed/settings.json`, `waybar/style.css`'s font fallback chain, and
+removed the now-dead ZedMono download step from `install.sh` entirely — one less
+external dependency and one less thing that could fail on a fresh install.
+
+### Committed four "pending WIP" files that turned out to be finished work
+
+These had been sitting uncommitted for a while and were deliberately left alone in
+every earlier session on the assumption they might be someone's mid-edit. Actually
+reading the diffs this time: all four were complete, coherent work, not unfinished --
+
+- `sway/config`: wires up `swayidle` and `sway-audio-idle-inhibit` automatically at
+  startup (previously had to be started manually), plus idle-timeout inhibition for
+  fullscreen windows (videos won't get the screen locked mid-playback).
+- `waybar/config` + `style.css`: a full redesign -- Nerd Font glyph icons replacing
+  emoji throughout, a `network#speed` module added, floating-pill styling reworked
+  with real design rationale in the comments (logical module grouping, one consistent
+  hover accent instead of per-module colors, tooltips matching the theme).
+- `nvim/lazy-lock.json`: routine plugin version bump from normal `nvim` use.
+
+### Display managers: pruned to just the one actually in use
+
+`packages/pacman.txt` had `sddm` (the one actually enabled and running), plus
+`greetd` + `greetd-tuigreet` + `ly` installed and unused -- leftovers from earlier
+experimentation. Removed the three unused ones from the manifest so a fresh install
+doesn't carry them forward. **Not yet removed from this live machine** -- that needs
+`sudo`, which this session doesn't have; see the note in `docs/ARCHITECTURE.md`.
+
+### Docker + UFW: documented, not silently "fixed"
+
+Docker manipulates `iptables` directly and can bypass UFW's rules for published
+container ports -- a real gap, but checked `docker ps` first and confirmed **no
+containers are currently running and no ports are currently published**, so there's
+no live exposure today. Given that, and given this session has no `sudo` to test a
+firewall change against, writing a specific `iptables`/`ufw` rule I can't verify would
+be worse than not touching it -- a wrong firewall rule is a worse outcome than a
+correctly-scoped gap. Documented the mechanism and the safe default (bind future
+`-p` publishes to `127.0.0.1` explicitly) in `docs/ARCHITECTURE.md` instead.
+
+## 2026-08-13
 
 ### Made the wallpaper fetcher bulletproof
 

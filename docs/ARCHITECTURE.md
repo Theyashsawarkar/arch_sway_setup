@@ -155,3 +155,45 @@ Missing either one renders as a blank box, and the two failure modes look identi
 if a fresh machine shows boxes, check the font first (`fc-query -f '%{charset}' <font
 file>`, and confirm the codepoint tmux is using is actually in there) before assuming
 the config is wrong.
+
+## The one true font: JetBrainsMono Nerd Font
+
+Every config that renders text with icons — `kitty`, `tmux`, `sway` (window
+title/border font), `mako`, `wofi`, `zed`, `waybar` — uses `"JetBrainsMono Nerd Font"`.
+One font, one pacman package (`ttf-jetbrains-mono-nerd`), zero manual downloads. This
+used to be `ZedMono Nerd Font`, a ~700MB manual download from its own upstream nerd-fonts
+release with no package-manager equivalent; migrated everything off it (see
+2026-08-23 in the changelog for the full story, including a real mistake made along
+the way — the font directory got deleted before every reference to it had been found).
+If you're about to add a new app to this setup and it wants a monospace/icon font,
+use this one unless you have a specific reason not to — consistency here is what made
+the tmux/waybar glyph debugging tractable in the first place.
+
+## Known gaps that need root, not left silently unfixed
+
+Two things identified during an optimization pass that this environment could not
+apply itself (no `sudo` access here) — flagged explicitly rather than either faking a
+fix or silently skipping them:
+
+- **Unused display managers still installed on the live machine.** `packages/pacman.txt`
+  no longer lists `greetd`, `greetd-tuigreet`, or `ly` (pruned so a *fresh* install
+  won't carry them forward), but they're still actually installed on this machine.
+  To remove them here too:
+  ```bash
+  sudo systemctl disable greetd ly 2>/dev/null
+  sudo pacman -R greetd greetd-tuigreet ly
+  ```
+- **Docker can bypass UFW.** Docker manipulates `iptables` directly for published
+  container ports (`-p`), which UFW's rules don't see — a container publish can be
+  reachable from the network even if UFW would otherwise block that port. Checked
+  `docker ps` and confirmed no containers are currently running and no ports are
+  currently published, so there's no live exposure today, and no `iptables`/`ufw` rule
+  has been written here since it couldn't be tested against this system without
+  `sudo` — a wrong firewall rule is worse than a correctly-scoped known gap. Safe
+  default going forward: bind published ports explicitly to localhost unless you
+  actually want them reachable from the network —
+  `docker run -p 127.0.0.1:8080:80 ...` instead of `-p 8080:80` (which binds
+  `0.0.0.0`). If you do need to expose a port and want UFW to actually govern it,
+  Docker's own docs cover the `DOCKER-USER` iptables chain it creates specifically for
+  this — that's the sanctioned insertion point, not editing Docker's own generated
+  rules.
