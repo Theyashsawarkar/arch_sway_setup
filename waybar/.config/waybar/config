@@ -5,11 +5,11 @@
 	"spacing": 5,
 
 	"modules-center": ["clock"],
-	"modules-left": ["sway/workspaces", "keyboard-state"],
+	"modules-left": ["sway/workspaces", "keyboard-state", "custom/docker"],
 
 	"modules-right": [
-		"custom/docker",
 		"network", 
+		"network#speed",
 		"bluetooth",
 		"backlight",
 		"pulseaudio",
@@ -28,7 +28,7 @@
 	},
 
 	"backlight": {
-		"format": "🔆 {percent}%",
+		"format": "  {percent}%",
 		"tooltip": false,
 		"on-scroll-up": "brightnessctl set +5%",
 		"on-scroll-down": "brightnessctl set 5%-"
@@ -37,39 +37,45 @@
 	"keyboard-state": {
 		"capslock": true,
 		"numlock": true,
-		"format": "{name} {icon} ",
+		"format": "{name} {icon}",
 		"format-icons": {
-			"locked": "",
-			"unlocked": ""
+			"locked": "",
+			"unlocked": ""
 		}
 	},
 
 	"clock": {
-	// Formats as: June 01  02:11 PM
-	"format": "{:%B %d   %I:%M %p}",
+	// Formats as: Wed, August 12   02:11 PM
+	"format": "  {:%a, %B %d   %I:%M %p}",
 	"tooltip-format": "<tt><small>{calendar}</small></tt>"
 	},
 
 	"custom/docker": {
 		"exec": "docker ps -q | wc -l",
 		"interval": 5,
-		"format": "🐳 {}",
+		"format": "  {}",
 		"tooltip": false
 	},
 
 	"network": {
-		"format-wifi": "🛜 {essid}   ⬇️ {bandwidthDownBytes}  ⬆️ {bandwidthUpBytes}",
-		"format-ethernet": "🌐 {ipaddr}   ⬇️ {bandwidthDownBytes}  ⬆️ {bandwidthUpBytes}",
-		"format-disconnected": "🛑 Offline",
+		"format-wifi": "  {essid}",
+		"format-ethernet": "  {ipaddr}",
+		"format-disconnected": "  Offline",
 		"interval": 2,
-		"max-length": 50
+		"max-length": 30
+	},
+
+	"network#speed": {
+		"interval": 2,
+		"format": "⬇ {bandwidthDownBytes}  ⬆ {bandwidthUpBytes}",
+		"tooltip": false
 	},
 
 	"bluetooth": {
-		"format-off": "",
-		"format-on": "",
-		"format-connected": "🎧 {device_alias}",
-		"format-connected-battery": "🎧 {device_alias} 🔋{device_battery_percentage}%",
+		"format-off": "",
+		"format-on": "",
+		"format-connected": "  {device_alias}",
+		"format-connected-battery": "  {device_alias}  {device_battery_percentage}%",
 		"tooltip-format": "Bluetooth Status: {status}",
 		"on-click": "blueman-manager",
 		"max-length": 25
@@ -80,14 +86,18 @@
 			"warning": 30,
 			"critical": 15
 		},
-		"format": "🔋 {capacity}%",
-		"format-charging": "⚡ {capacity}%",
-		"format-plugged": "🔌 {capacity}%"
+		"format": "{icon}  {capacity}%",
+		"format-charging": "  {capacity}%",
+		"format-plugged": "  {capacity}%",
+		"format-icons": ["", "", "", "", ""]
 	},
 
 	"pulseaudio": {
-		"format": "🔊 {volume}%",
-		"format-muted": "🔇 Muted",
+		"format": "{icon}  {volume}%",
+		"format-muted": "  Muted",
+		"format-icons": {
+			"default": ["", "", ""]
+		},
 		"on-click": "pavucontrol"
 	}
 }

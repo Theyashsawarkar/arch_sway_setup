@@ -1,105 +1,188 @@
 * {
-    font-family: "ZedMono Nerd Font", "JetBrainsMono Nerd Font", "Noto Color Emoji", "sans-serif";
+    font-family: "JetBrainsMono Nerd Font", "Noto Color Emoji", "sans-serif";
     font-size: 15px;
-    font-weight: bold;
+    font-weight: 600;
     min-height: 0;
     border: none;
     box-shadow: none;
 }
 
-/* 1. Make the main bar completely transparent */
+/* Make the main bar itself invisible — only the pills below are seen */
 window#waybar {
     background-color: transparent;
 }
 
-/* 
-   2. THE FLOATING PILLS
-   Apply the Midnight background, Mauve borders, and margins to drop them down
+/*
+   THE FLOATING PILLS
+   Deep Midnight background, a Royal Mauve hairline border for definition
+   against dark wallpapers. No blur/shadow here on purpose — a soft blurred
+   shadow behind a solid fill reads as a hazy "glass panel" sitting behind
+   the pill, which is exactly the look we don't want. Crisp and flat instead.
 */
-#workspaces, 
-#clock, 
-#custom-docker, 
+#workspaces,
+#clock,
+#custom-docker,
 #keyboard-state,
-#network, 
+#network,
 #backlight,
-#bluetooth, 
-#pulseaudio, 
+#bluetooth,
+#pulseaudio,
 #battery {
-    background-color: rgba(17, 17, 27, 0.95); /* Deep Midnight */
-    color: #CDD6F4; /* Clean Silver text */
-    border-radius: 12px;
+    background-color: rgba(17, 17, 27, 0.92); /* Deep Midnight */
+    color: #CDD6F4; /* Clean Silver — one consistent base text color everywhere */
+    border-radius: 16px;
     padding: 2px 12px;
-    margin-top: 2px; /* Drops the pills down from the top edge */
-    margin-bottom: 2px;
+    margin-top: 4px;
+    margin-bottom: 4px;
     margin-left: 4px;
     margin-right: 4px;
-    border: 1px solid rgba(203, 166, 247, 0.2); /* Subtle Royal Mauve border */
+    border: 1px solid rgba(203, 166, 247, 0.18); /* Subtle Royal Mauve border */
+    transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
-/* Unified padding for the exact modules we are using */
 #clock, #keyboard-state, #custom-docker, #network, #bluetooth, #backlight, #pulseaudio, #battery {
-    padding: 0 10px;
+    padding: 0 12px;
+}
+
+/* One consistent accent (Mauve) for "you're pointing at something
+   interactive" everywhere, instead of a different color per module */
+#clock:hover, #custom-docker:hover, #network:hover, #bluetooth:hover, #backlight:hover, #pulseaudio:hover, #battery:hover {
+    border-color: rgba(203, 166, 247, 0.4);
+}
+
+/* --- Logical grouping instead of one evenly-spaced row ---
+   Left:  [workspaces] [caps/num lock] · [docker]        (nav | input state · dev status)
+   Right: [network][bluetooth] · [backlight][pulseaudio] · [battery]
+                connectivity    ·      personal controls  ·  power
+   Tighter margin within a group, a clearer gap between groups, instead
+   of every pill sitting at the same uniform distance regardless of
+   what it's actually related to. */
+#custom-docker {
+    margin-left: 10px;
+}
+
+#network {
+    margin-right: 2px;
+}
+
+/* The second `network#speed` instance — covering both the documented
+   naming convention (.speed as an added class) and the alternate some
+   waybar versions use (a hyphenated id), since it wasn't practical to
+   confirm which applies without a live GTK inspector on this machine. */
+#network.speed, #network-speed {
+    margin-right: 2px;
+}
+
+#bluetooth {
+    margin-right: 12px;
+}
+
+#backlight {
+    margin-right: 2px;
+}
+
+#pulseaudio {
+    margin-right: 12px;
+}
+
+/* --- Color is reserved for actual status, not module branding --- */
+
+#network.disconnected {
+    color: #F38BA8; /* Red */
+    border-color: rgba(243, 139, 168, 0.35);
 }
 
 /* KEYBOARD STATE INDICATORS */
+#keyboard-state {
+    padding: 0 8px;
+}
+
 #keyboard-state label {
-    padding: 0 4px;
+    padding: 3px 9px;
+    margin: 2px;
+    border-radius: 10px;
+    background-color: transparent;
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 #keyboard-state label.unlocked {
     color: #6C7086; /* Dim and unobtrusive when off */
 }
 
-#keyboard-state label.locked {
-    background-color: #CBA6F7; /* Active workspace pops in solid Mauve */
-    color: #11111B; /* Dark text for contrast */
-    border-radius: 8px;
-    margin-left: 2px ;
+/* Caps Lock: Yellow — a "heads up", since it's usually left on by accident */
+#keyboard-state label.capslock.locked {
+    background-color: #F9E2AF;
+    color: #11111B;
+    box-shadow: 0 0 6px rgba(249, 226, 175, 0.45);
 }
 
-/* 3. WORKSPACES STYLING */
+/* Num Lock: Teal — neutral, since it's usually on intentionally */
+#keyboard-state label.numlock.locked {
+    background-color: #94E2D5;
+    color: #11111B;
+    box-shadow: 0 0 6px rgba(148, 226, 213, 0.45);
+}
+
+/* WORKSPACES — same Mauve accent + neutral-gray language as the rest of
+   the bar, so it reads as part of one palette rather than its own thing */
 #workspaces {
-    padding: 2px 4px; 
+    padding: 2px 4px;
 }
 
 #workspaces button {
-    padding: 0 8px;
-    color: #6C7086; /* Dim inactive workspaces */
-    border-radius: 8px;
+    padding: 0 10px;
+    color: #6C7086; /* Dim inactive — matches keyboard-state's unlocked gray */
+    background-color: rgba(203, 166, 247, 0.05); /* Faint mauve chip so each number still reads as a button */
+    border-radius: 10px;
     margin: 2px;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 #workspaces button:hover {
-    background-color: rgba(203, 166, 247, 0.1);
+    background-color: rgba(203, 166, 247, 0.16);
     color: #CBA6F7;
 }
 
 #workspaces button.focused {
     background-color: #CBA6F7; /* Active workspace pops in solid Mauve */
     color: #11111B; /* Dark text for contrast */
+    box-shadow: 0 0 8px rgba(203, 166, 247, 0.45); /* Soft glow on the active one */
 }
 
-/* 4. BLUETOOTH STATES */
-/* Dimmed out when off */
+/* BLUETOOTH STATES */
 #bluetooth.disabled, #bluetooth.off {
-    color: #6C7086; 
+    color: #6C7086;
     border-color: transparent;
 }
 
-/* Pops in pastel green when connected to your headphones */
 #bluetooth.connected {
-    color: #A6E3A1; 
+    color: #A6E3A1; /* Pastel green when paired */
     border-color: rgba(166, 227, 161, 0.4);
 }
 
-/* 5. BATTERY STATES */
+/* BATTERY STATES */
 #battery.warning {
-    color: #FAB387; /* Peach/Orange */
+    color: #FAB387; /* Peach */
     border-color: rgba(250, 179, 135, 0.4);
 }
 
 #battery.critical {
     color: #F38BA8; /* Red */
     border-color: rgba(243, 139, 168, 0.4);
+}
+
+#battery.charging {
+    color: #F9E2AF; /* Yellow while topping up */
+}
+
+/* TOOLTIPS — match the pill theme instead of the OS default */
+tooltip {
+    background-color: rgba(17, 17, 27, 0.97);
+    border: 1px solid rgba(203, 166, 247, 0.25);
+    border-radius: 10px;
+}
+
+tooltip label {
+    color: #CDD6F4;
+    padding: 4px 6px;
 }
