@@ -21,6 +21,14 @@ button {
     margin: 14px;
     font-size: 56px; /* Large enough that the Nerd Font glyph itself reads as a real icon */
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    /* Without an explicit size, GTK sizes each button to fit its own
+       content -- with nothing else constraining that, one button rendered
+       as a proper large card and the other four ended up tiny and cramped
+       together (confirmed by screenshotting the actual modal, not assumed).
+       Forcing all five to the same size fixes that regardless of any
+       content-measurement quirk causing it. */
+    min-width: 220px;
+    min-height: 220px;
 }
 
 button:focus,
