@@ -1,0 +1,17 @@
+[
+  {
+    "label": "Wi-Fi On",
+    "exec": "nmcli radio wifi on",
+    "icon": "network-wireless-symbolic"
+  },
+  {
+    "label": "Wi-Fi Off",
+    "exec": "nmcli radio wifi off",
+    "icon": "network-wireless-offline-symbolic"
+  },
+  {
+    "label": "Settings",
+    "exec": "nm-connection-editor",
+    "icon": "preferences-system-network-symbolic"
+  }
+]

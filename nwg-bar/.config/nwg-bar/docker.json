@@ -1,0 +1,12 @@
+[
+  {
+    "label": "Stats",
+    "exec": "kitty -e docker stats",
+    "icon": "utilities-terminal-symbolic"
+  },
+  {
+    "label": "Stop All",
+    "exec": "/home/yash/.local/bin/docker-stop-all.sh",
+    "icon": "system-shutdown-symbolic"
+  }
+]

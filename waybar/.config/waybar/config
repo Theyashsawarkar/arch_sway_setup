@@ -54,7 +54,8 @@
 		"exec": "docker ps -q | wc -l",
 		"interval": 5,
 		"format": "  {}",
-		"tooltip": false
+		"tooltip": false,
+		"on-click": "nwg-bar -t /home/yash/.config/nwg-bar/docker.json -s /home/yash/.config/nwg-bar/style.css"
 	},
 
 	"network": {
@@ -62,7 +63,8 @@
 		"format-ethernet": "  {ipaddr}",
 		"format-disconnected": "  Offline",
 		"interval": 2,
-		"max-length": 30
+		"max-length": 30,
+		"on-click": "nwg-bar -t /home/yash/.config/nwg-bar/wifi.json -s /home/yash/.config/nwg-bar/style.css"
 	},
 
 	"network#speed": {
@@ -77,7 +79,7 @@
 		"format-connected": "  {device_alias}",
 		"format-connected-battery": "  {device_alias}  {device_battery_percentage}%",
 		"tooltip-format": "Bluetooth Status: {status}",
-		"on-click": "blueman-manager",
+		"on-click": "nwg-bar -t /home/yash/.config/nwg-bar/bluetooth.json -s /home/yash/.config/nwg-bar/style.css",
 		"max-length": 25
 	},
 
@@ -105,7 +107,7 @@
 		"format-icons": {
 			"default": ["", "", ""]
 		},
-		"on-click": "pavucontrol"
+		"on-click": "nwg-bar -t /home/yash/.config/nwg-bar/volume.json -s /home/yash/.config/nwg-bar/style.css"
 	},
 
 	"custom/power": {

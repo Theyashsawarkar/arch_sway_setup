@@ -1,0 +1,22 @@
+[
+  {
+    "label": "Mute",
+    "exec": "pactl set-sink-mute @DEFAULT_SINK@ toggle",
+    "icon": "audio-volume-muted-symbolic"
+  },
+  {
+    "label": "Vol -",
+    "exec": "pactl set-sink-volume @DEFAULT_SINK@ -5%",
+    "icon": "audio-volume-low-symbolic"
+  },
+  {
+    "label": "Vol +",
+    "exec": "pactl set-sink-volume @DEFAULT_SINK@ +5%",
+    "icon": "audio-volume-high-symbolic"
+  },
+  {
+    "label": "Mixer",
+    "exec": "pavucontrol",
+    "icon": "multimedia-volume-control-symbolic"
+  }
+]
