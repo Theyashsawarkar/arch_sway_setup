@@ -3,6 +3,45 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-23 (audio/video/brightness robustness audit — found a battery safety gap)
+
+Asked to make sure audio, display, and brightness are all robust and won't
+unexpectedly "shut off." Audited each:
+
+- **Brightness was at 1%** (`brightnessctl`: 655/65535) — looked alarming (screen
+  effectively looks off) but isn't a bug: `systemd-backlight@backlight:amdgpu_bl1.service`
+  is systemd's own brightness persistence (saves on shutdown, restores on boot) working
+  exactly as designed. The *previous* session just happened to end at 1%. Bumped it to
+  60% for practical use; nothing to fix in config.
+- **Audio (pipewire/pipewire-pulse/wireplumber)**: all active, sound plays, volume/mute
+  controls work. Clean.
+- **Display/GPU**: `dmesg` clean of amdgpu errors or resets, `eDP-1` output active with
+  DPMS on. Clean.
+- **`batsignal` (battery warnings + forced-suspend-on-danger) was completely broken,
+  possibly since it was first configured.** The exec line's comment said "Forces
+  Suspend at 5%" but passed `-f` — which is actually batsignal's "battery **full**
+  notification" flag (fires when *charging* completes) and requires a percentage
+  argument it was never given. Result: `batsignal: Option -f requires an argument.` and
+  immediate exit, every single time sway started it. There was no low-battery warning
+  and no forced-suspend safety net at all -- a real battery-depletion event would have
+  been an uncontrolled power-loss shutdown, not a graceful suspend.
+
+  Fixed with the actual correct flag: `-D COMMAND` ("run COMMAND at the danger level"),
+  wired to `-D "systemctl suspend"`. Verified the fix two ways, not just assumed: ran
+  the corrected command line directly first (confirmed it starts and finds the battery
+  instead of erroring instantly), then after converting to a systemd service, inspected
+  `/proc/<pid>/cmdline` (NUL-separated, unlike `ps`) to confirm systemd's unit-file
+  quoting actually kept `"systemctl suspend"` as one argument to `-D` rather than
+  splitting it into two.
+
+  Also converted to a systemd service (`systemd/.config/systemd/user/batsignal.service`,
+  `Restart=on-failure`) rather than a raw `exec`, matching swayidle and
+  sway-audio-idle-inhibit from earlier today -- this is exactly the kind of daemon
+  where a silent, unnoticed crash has real consequences (no restart = no warning before
+  the battery just dies), so it gets the same auto-recovery treatment.
+
+Added to `install.sh`'s service-enable line.
+
 ## 2026-08-23 (verification found two real regressions from this session's own changes)
 
 Went back to check that recent changes actually held up (after the user rebooted to
