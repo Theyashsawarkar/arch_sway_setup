@@ -116,6 +116,23 @@ uninterrupted run against an actual blank machine — this machine already has
 everything it does in place, so a live run here would be a no-op, and that one gap
 genuinely needs a spare VM or drive to close.
 
+## exec order matters: dbus-update-activation-environment must come first
+
+`sway/config`'s very first `exec` is `dbus-update-activation-environment --all`. This
+has to run before *anything* that starts a systemd `--user` service (`swayidle.service`,
+`sway-audio-idle-inhibit.service`) — those services run under the systemd user
+manager, a separate process from sway with its own environment, and it has no idea
+`WAYLAND_DISPLAY`/`SWAYSOCK` exist until this command imports them. Get the order
+wrong and those services crash-loop with "Unable to connect to the compositor" —
+happened for real once, see the changelog. If you add another systemd `--user`
+service that needs to talk to sway, its `exec systemctl --user start ...` line needs
+to come after this one.
+
+Note this only matters at sway's actual startup: plain `exec` lines (unlike
+`exec_always`) don't re-run on `swaymsg reload`, so testing an exec-order fix via
+reload alone won't catch an actual ordering bug — it only shows up on a real fresh
+login.
+
 ## Idle management: swayidle as a systemd user service, plus caffeine mode
 
 `swayidle` (screen dimming, lock, suspend timeouts — `sway/.config/sway/idle/config`)

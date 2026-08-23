@@ -3,6 +3,38 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-23 (verification found two real regressions from this session's own changes)
+
+Went back to check that recent changes actually held up (after the user rebooted to
+test the boot-time fix) rather than assuming. `systemctl --failed` was not clean:
+
+- **`swayidle.service` was crash-looping since login**, hitting `start-limit-hit`.
+  Root cause: `exec dbus-update-activation-environment --all` -- which imports
+  `WAYLAND_DISPLAY`/`SWAYSOCK` into the *systemd --user manager's own environment*
+  (separate from sway's process environment, and required before any systemd --user
+  service can reach the compositor) -- was sitting near the *bottom* of `sway/config`,
+  after `exec systemctl --user restart swayidle.service` had already fired. Introduced
+  by me when swayidle got converted to a systemd service a few sessions back; not
+  caught at the time because reloading sway to test it doesn't re-run plain `exec`
+  lines (only `exec_always` re-fires on reload), so the bug only showed up on a real
+  fresh login. Moved the `dbus-update-activation-environment` line to the top of the
+  exec block, ahead of anything that depends on it. Fixed the *live* broken state
+  separately (ran the import + `systemctl --user reset-failed` + `start` by hand),
+  since exec-order fixes in the config file don't retroactively fix an already-running
+  session either.
+- **`sway-audio-idle-inhibit` had crashed at login and never came back** (segfault in
+  `Pulse::connect`, likely connecting to pipewire-pulse before it was fully up) --
+  found via `journalctl -p err -b`, not something `systemctl --failed` would show
+  since it was a plain `exec`, not a tracked systemd unit, so systemd had no idea it
+  died. Converted it to a systemd service too
+  (`systemd/.config/systemd/user/sway-audio-idle-inhibit.service`), with
+  `After=pipewire-pulse.socket pipewire-pulse.service` to address the likely race and
+  `Restart=on-failure` so a future crash recovers on its own instead of silently
+  leaving idle-inhibition dead until next login.
+
+Both added to `install.sh`'s service-enable line. Re-checked `systemctl --failed` /
+`systemctl --user --failed` clean after applying both fixes, not just assumed.
+
 ## 2026-08-23 (boot follow-up: confirmed 4x win, oomd, waybar height fix)
 
 The `iwd`/`systemd-networkd` fix from the previous entry got applied: boot went from
