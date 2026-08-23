@@ -36,11 +36,12 @@ linux-firmware
 mako
 mesa-utils
 neovim
-network-manager-applet
 networkmanager
+network-manager-applet
 noto-fonts
 noto-fonts-emoji
 nvm
+nwg-bar
 pavucontrol
 pgcli
 pipewire
@@ -48,10 +49,10 @@ pipewire-alsa
 pipewire-jack
 pipewire-pulse
 power-profiles-daemon
+qt6ct
 qt6-multimedia-ffmpeg
 qt6-svg
 qt6-virtualkeyboard
-qt6ct
 ripgrep
 sddm
 seahorse
