@@ -141,27 +141,32 @@ window#waybar {
 /* WORKSPACES — same Mauve accent + neutral-gray language as the rest of
    the bar, so it reads as part of one palette rather than its own thing */
 #workspaces {
-    padding: 2px 4px;
+    padding: 1px 2px;
 }
 
 #workspaces button {
-    padding: 0 10px;
+    padding: 0 7px; /* was 10px -- tighter, more compact chips */
     color: #6C7086; /* Dim inactive — matches keyboard-state's unlocked gray */
-    background-color: rgba(203, 166, 247, 0.05); /* Faint mauve chip so each number still reads as a button */
-    border-radius: 10px;
-    margin: 2px;
+    background-color: rgba(255, 255, 255, 0.03); /* Barely-there neutral chip, not mauve-washed while idle */
+    border-radius: 8px; /* smaller radius to match the smaller chip */
+    margin: 1px;
     transition: background-color 0.2s ease, color 0.2s ease;
 }
 
+/* Three real states now instead of two shades of the same mauve:
+   idle (gray) -> hover (Lavender, "about to switch") -> focused (solid
+   Mauve, "this is where you are"). Workspaces are the one module with
+   three meaningfully different states, so a third distinct hue earns
+   its keep here even though every other module sticks to one accent. */
 #workspaces button:hover {
-    background-color: rgba(203, 166, 247, 0.16);
-    color: #CBA6F7;
+    background-color: rgba(180, 190, 254, 0.18);
+    color: #B4BEFE;
 }
 
 #workspaces button.focused {
     background-color: #CBA6F7; /* Active workspace pops in solid Mauve */
     color: #11111B; /* Dark text for contrast */
-    box-shadow: 0 0 8px rgba(203, 166, 247, 0.45); /* Soft glow on the active one */
+    box-shadow: 0 0 6px rgba(203, 166, 247, 0.5); /* Tighter glow to match the smaller chip */
 }
 
 /* BLUETOOTH STATES */
