@@ -3,6 +3,52 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-23
+
+### Made the wallpaper fetcher bulletproof
+
+Root cause of "sometimes the wallpaper script just crashes sway and I have to keep
+reloading": found live in `journalctl --user -u wallpaper.service` — the Bing wallpaper
+API occasionally returns a JSON status blob (`[{"success": true}]`) instead of image
+bytes. The old script only checked the response was non-empty (`[ -s "$FILEPATH" ]`),
+so that JSON got saved as `wallpaper-*.jpg`, symlinked to `current.jpg`, and handed
+straight to `swaymsg output * bg ... fill` — which crashes `swaybg` (the process sway
+actually delegates background rendering to) since it isn't a real image. The output
+goes blank until something reapplies a valid background, which is what "reloading sway
+until it works" was actually doing.
+
+Rewrote `scripts/.local/bin/fetch_wallpaper.sh` around three fixes:
+
+- **Actually validate the response is an image** (`file --mime-type`, not just
+  non-empty) before it ever touches `current.jpg` or gets near `swaymsg`.
+- **Check network connectivity first** (`nmcli networking connectivity check`) and
+  give the download itself real timeouts (`--connect-timeout 10 --max-time 20`) and
+  3 retries — previously an unreachable network meant an unbounded hang or a fast
+  false failure, depending on how DNS/connect behaved that day.
+- **Three-tier fallback**, in order: today's freshly-validated download → the last
+  known-good wallpaper (`.last_good.jpg`, a stable copy outside the daily
+  Active/Archive rotation so it can't itself get archived away or overwritten by a bad
+  run) → a plain solid color via `swaybg`'s native `-c`/`solid_color` mode, which needs
+  no image file at all and therefore cannot itself fail to parse. A brand-new machine
+  with no wallpaper history yet and no network still gets a valid background, never a
+  crash.
+- Also fixed a latent bug in the *old* script's archiving order: it moved whatever was
+  in `Active/` to `Archive/` **before** attempting the new download, so a bad response
+  got archived right alongside the real history. Now archiving only happens after the
+  new file is confirmed valid.
+- Added `flock`-based locking (manual trigger and the daily timer could otherwise race
+  each other) and structured logging to `~/.local/state/fetch-wallpaper/fetch-wallpaper.log`
+  (simple size-based rotation) — every attempt, failure reason, and fallback decision is
+  now visible there instead of the script being a black box between "works" and "crashed
+  and I don't know why."
+
+Verified against four scenarios before trusting it live: the real API (happy path), a
+fake endpoint returning JSON (the actual historical failure, confirmed it falls back
+instead of applying the bad response), an unreachable host (confirmed retry + fallback
+to last-known-good), and a from-scratch machine with neither network nor prior
+wallpaper history (confirmed the solid-color tier). Then ran it for real on this
+machine and confirmed `swaybg` picked up the result correctly.
+
 ## 2026-08-13
 
 ### Tmux status bar: redesigned and fixed

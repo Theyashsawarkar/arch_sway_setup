@@ -107,6 +107,44 @@ parser, the `.gitignore` glob) verified in an isolated sandbox, but it has not b
 end-to-end on a real fresh install — this machine already has everything it does in
 place, so a live run here would just be a very expensive no-op.
 
+## The wallpaper pipeline, and why it can't crash sway anymore
+
+`systemd/.config/systemd/user/wallpaper.timer` fires `wallpaper.service` once a day,
+which runs `scripts/.local/bin/fetch_wallpaper.sh`. The manual `output * bg ... fill`
+line in `sway/.config/sway/config` only sets the background once, at sway startup —
+this script is what keeps it updated day to day, and what applies it live via
+`swaymsg` without needing a sway restart.
+
+It's built so that no single failure — API downtime, a malformed response, no network,
+or a totally fresh machine with no wallpaper history yet — can leave sway without a
+background or crash `swaybg` (the helper process sway delegates background rendering
+to; a bad image crashes *it*, not sway itself, but the visible symptom — background
+gone, needs a reload to fix — reads the same from the outside):
+
+1. **Network check** (`nmcli networking connectivity check`) skips a doomed attempt
+   outright; not authoritative on its own, since the download's own timeouts are the
+   real check.
+2. **Download with retries** (3 attempts, `--connect-timeout 10 --max-time 20` so a
+   flaky connection fails fast instead of hanging).
+3. **Validate the response is actually an image** (`file --mime-type`, not just
+   "non-empty") before it's allowed anywhere near `current.jpg` or `swaymsg`. This is
+   the fix for the actual historical bug: the API occasionally returns a JSON status
+   blob instead of image bytes, which used to sail straight through to `swaybg` and
+   crash it.
+4. **Three-tier fallback** if 1–3 don't produce a valid image: today's download →
+   `.last_good.jpg` (a stable copy kept outside the `Active/`/`Archive/` rotation,
+   updated only after a successful validation, so a bad day can never overwrite or
+   archive it away) → a plain solid color via `swaybg -c`/`solid_color` mode, which has
+   no image to parse and therefore can't itself fail. Tier 3 is what makes a from-scratch
+   machine safe on day one, before any fetch has ever succeeded.
+5. **`flock`** so the timer and a manual run can't race each other.
+
+**Logging**: `~/.local/state/fetch-wallpaper/fetch-wallpaper.log` (rotated at ~1MB,
+one previous copy kept) has every attempt, failure reason, and which fallback tier
+fired. Also visible live via `journalctl --user -u wallpaper.service`. If the wallpaper
+ever looks stale or wrong, that log is the first thing to check — it will say exactly
+which of the three tiers actually ran, rather than leaving you guessing.
+
 ## The tmux status bar's dependency chain
 
 Worth calling out on its own, since it broke in layers (see changelog): the rounded
