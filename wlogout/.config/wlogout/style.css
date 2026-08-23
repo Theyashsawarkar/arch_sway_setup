@@ -1,0 +1,78 @@
+* {
+    font-family: "JetBrainsMono Nerd Font", "Noto Color Emoji", "sans-serif";
+    background-image: none;
+    transition: all 0.2s ease;
+}
+
+/* The full-screen backdrop -- dims and slightly blurs everything behind
+   the buttons, so the row of buttons genuinely reads as a floating modal
+   rather than just more desktop content. */
+window {
+    background-color: rgba(17, 17, 27, 0.75); /* Deep Midnight, translucent */
+}
+
+/* Buttons are laid out by wlogout as one centered row -- no extra
+   positioning needed here, just style each one as a floating card. */
+button {
+    color: #CDD6F4; /* Clean Silver -- matches waybar's pill text */
+    background-color: rgba(30, 30, 46, 0.9); /* Base, slightly lighter than the backdrop so cards read as distinct surfaces */
+    border: 1px solid rgba(203, 166, 247, 0.18); /* Same subtle Royal Mauve hairline as the waybar pills */
+    border-radius: 22px;
+    margin: 14px;
+    font-size: 56px; /* Large enough that the Nerd Font glyph itself reads as a real icon */
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+button:focus,
+button:active {
+    outline: none;
+}
+
+/* One consistent "you're about to pick this" affordance -- lift + glow +
+   a per-action accent border, rather than a flat color swap, so it feels
+   tactile instead of just changing color. */
+button:hover {
+    margin-top: 4px;
+    margin-bottom: 24px;
+}
+
+/* Per-action accent on hover, reserved for THIS moment of choosing --
+   everywhere else in this desktop, color means status, not branding, but
+   a power menu is the one place distinguishing "gentle" from "final"
+   actions by color is actually useful feedback, not decoration. */
+
+/* Lock -- same Mauve used for the session/lock identity elsewhere */
+#lock:hover {
+    border-color: #CBA6F7;
+    box-shadow: 0 12px 32px rgba(203, 166, 247, 0.35), 0 0 0 2px rgba(203, 166, 247, 0.25) inset;
+    color: #CBA6F7;
+}
+
+/* Logout -- Lavender, same "leaving" hue used for workspace hover */
+#logout:hover {
+    border-color: #B4BEFE;
+    box-shadow: 0 12px 32px rgba(180, 190, 254, 0.35), 0 0 0 2px rgba(180, 190, 254, 0.25) inset;
+    color: #B4BEFE;
+}
+
+/* Suspend -- Teal, a calm "resting" color */
+#suspend:hover {
+    border-color: #94E2D5;
+    box-shadow: 0 12px 32px rgba(148, 226, 213, 0.35), 0 0 0 2px rgba(148, 226, 213, 0.25) inset;
+    color: #94E2D5;
+}
+
+/* Reboot -- Peach, "in-between" rather than final */
+#reboot:hover {
+    border-color: #FAB387;
+    box-shadow: 0 12px 32px rgba(250, 179, 135, 0.35), 0 0 0 2px rgba(250, 179, 135, 0.25) inset;
+    color: #FAB387;
+}
+
+/* Shutdown -- Red, the one genuinely destructive/final action here,
+   same red used for critical battery elsewhere in this desktop */
+#shutdown:hover {
+    border-color: #F38BA8;
+    box-shadow: 0 12px 32px rgba(243, 139, 168, 0.35), 0 0 0 2px rgba(243, 139, 168, 0.25) inset;
+    color: #F38BA8;
+}

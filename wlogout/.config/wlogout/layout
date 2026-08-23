@@ -1,0 +1,5 @@
+{"label": "lock", "action": "swaylock -C ~/.config/sway/lockconfig", "text": "", "keybind": "l", "width": 0.5, "height": 0.55}
+{"label": "logout", "action": "swaymsg exit", "text": "", "keybind": "e", "width": 0.5, "height": 0.55}
+{"label": "suspend", "action": "systemctl suspend", "text": "", "keybind": "s", "width": 0.5, "height": 0.55}
+{"label": "reboot", "action": "systemctl reboot", "text": "", "keybind": "r", "width": 0.5, "height": 0.55}
+{"label": "shutdown", "action": "systemctl poweroff", "text": "", "keybind": "p", "width": 0.5, "height": 0.55}
