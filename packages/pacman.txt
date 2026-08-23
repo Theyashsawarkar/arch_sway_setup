@@ -28,8 +28,6 @@ fzf
 git
 gnome-keyring
 google-chrome
-greetd
-greetd-tuigreet
 grim
 gst-plugin-pipewire
 inxi
@@ -41,7 +39,6 @@ libpulse
 libqalculate
 linux
 linux-firmware
-ly
 mako
 mesa-utils
 mongosh-bin
