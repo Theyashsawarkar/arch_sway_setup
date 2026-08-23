@@ -242,7 +242,10 @@ exec waybar
 exec mako
 
 # Start the idle manager automatically
-exec swayidle -w -C ~/.config/sway/idle/config
+# Managed as a systemd user service (systemd/.config/systemd/user/swayidle.service)
+# rather than a raw exec, so caffeine-toggle.sh can stop/start it cleanly via
+# systemctl instead of juggling raw processes.
+exec systemctl --user restart swayidle.service
 exec sway-audio-idle-inhibit
 
 # Prevent idle timeouts when watching fullscreen videos

@@ -1,0 +1,11 @@
+[Unit]
+Description=swayidle -- screen dimming/lock/suspend timeouts
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/swayidle -w -C %h/.config/sway/idle/config
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=default.target
