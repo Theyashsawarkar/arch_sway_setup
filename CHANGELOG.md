@@ -3,6 +3,45 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-23 (found the actual boot-time problem: 2 minutes wasted on a redundant network stack)
+
+Ran a real optimization sweep instead of another cosmetic pass: `zsh -i -c exit` timing
+(~200ms after cache warm, fine — p10k's instant prompt is doing its job), `nvim
+--startuptime` (~110ms total, fine), `systemd-analyze` and `systemd-analyze blame`.
+
+`systemd-analyze` reported boot as **2min 26s total**, of which
+**`systemd-networkd-wait-online.service` alone was 2 minutes** — essentially the
+entire boot. Verified this is genuinely dead weight, not something actually needed:
+
+- `nmcli device status` shows NetworkManager owns `wlan0` and is connected.
+- `networkctl list` shows `systemd-networkd` *also* trying to configure the same
+  `wlan0` (`configuring`, indefinitely — it can never actually finish, since
+  NetworkManager already has the interface).
+- `/etc/systemd/network/20-{wlan,wwan,ethernet}.network` exist as manual drop-ins —
+  leftover from networkd being configured at some point before NetworkManager was
+  installed, never cleaned up afterward.
+- Separately, `iwd.service` is enabled and running, but NetworkManager's actual wifi
+  backend is `wpa_supplicant` (confirmed running, D-Bus-activated by NetworkManager;
+  `NetworkManager.conf` has no `wifi.backend=iwd` override) — `iwd` was just a second
+  unused wifi daemon sitting in the background the whole time.
+- `systemd-resolved` *is* genuinely in use (`resolv.conf` → its stub resolver, real
+  DNS answers via `resolvectl status`) — left alone.
+
+**Fixed in the reproducible setup**: `install.sh` was enabling `iwd` alongside
+`NetworkManager`, which would have reproduced this exact redundancy (and the 2-minute
+boot stall, if a fresh machine's `systemd-networkd` ever got enabled some other way)
+on any new machine. Removed `iwd` from the service-enable line — the package stays in
+`packages/pacman.txt` since `iwctl` is genuinely useful for bootstrapping Wi-Fi from a
+bare TTY before `install.sh` even runs (see the README's Quick Start), it just
+shouldn't run as a background service once NetworkManager takes over.
+
+**Not fixed on the live machine** — needs `sudo`, which this session doesn't have:
+```bash
+sudo systemctl disable --now iwd.service
+sudo systemctl disable --now systemd-networkd-wait-online.service systemd-networkd.service
+```
+Expected result: next boot should land somewhere around 25-30 seconds instead of 2min 26s.
+
 ## 2026-08-23 (removed a duplicate wallpaper system, window margins)
 
 ### Found and removed a second, untracked, more wasteful wallpaper fetcher
