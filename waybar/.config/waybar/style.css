@@ -41,8 +41,17 @@ window#waybar {
     transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
-#clock, #keyboard-state, #custom-docker, #network, #bluetooth, #custom-caffeine, #backlight, #pulseaudio, #battery {
+#clock, #keyboard-state, #custom-docker, #network, #bluetooth, #backlight, #pulseaudio, #battery {
     padding: 0 12px;
+}
+
+/* Icon-only (no accompanying text/number like docker's count or
+   bluetooth's device name), so the default 12px reads as cramped —
+   a bit more horizontal room, and an explicit min-width so it doesn't
+   collapse to a tighter box than its neighbors. */
+#custom-caffeine {
+    padding: 0 14px;
+    min-width: 16px;
 }
 
 /* One consistent accent (Mauve) for "you're pointing at something
@@ -52,14 +61,18 @@ window#waybar {
 }
 
 /* --- Logical grouping instead of one evenly-spaced row ---
-   Left:  [workspaces] [caps/num lock] · [docker]                    (nav | input state · dev status)
-   Right: [network][bluetooth] · [caffeine][backlight][pulseaudio] · [battery]
-                connectivity    ·           personal controls        ·  power
+   Left:  [workspaces] [caps/num lock] · [docker][bluetooth][caffeine]
+   Right: [network][network#speed] · [backlight][pulseaudio] · [battery]
+                nav | input state  ·  dev/connectivity/controls   ·  connectivity  ·  personal controls  ·  power
    Tighter margin within a group, a clearer gap between groups, instead
    of every pill sitting at the same uniform distance regardless of
    what it's actually related to. */
 #custom-docker {
-    margin-left: 10px;
+    margin-left: 10px; /* starts the left status group, after keyboard-state */
+}
+
+#custom-caffeine {
+    margin-right: 12px; /* ends the left status group, before the center clock */
 }
 
 #network {
@@ -71,15 +84,7 @@ window#waybar {
    waybar versions use (a hyphenated id), since it wasn't practical to
    confirm which applies without a live GTK inspector on this machine. */
 #network.speed, #network-speed {
-    margin-right: 2px;
-}
-
-#bluetooth {
     margin-right: 12px;
-}
-
-#custom-caffeine {
-    margin-left: 10px; /* starts the "personal controls" group */
 }
 
 #backlight {

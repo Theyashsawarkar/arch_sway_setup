@@ -5,13 +5,11 @@
 	"spacing": 5,
 
 	"modules-center": ["clock"],
-	"modules-left": ["sway/workspaces", "keyboard-state", "custom/docker"],
+	"modules-left": ["sway/workspaces", "keyboard-state", "custom/docker", "bluetooth", "custom/caffeine"],
 
 	"modules-right": [
 		"network", 
 		"network#speed",
-		"bluetooth",
-		"custom/caffeine",
 		"backlight",
 		"pulseaudio",
 		"battery"
