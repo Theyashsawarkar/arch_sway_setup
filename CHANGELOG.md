@@ -3,6 +3,42 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-23 (wlogout: fixed a genuinely broken modal, not just restyled it)
+
+User feedback: "the UI of the popup modal is too crud." Investigated with the same
+screenshot-and-measure discipline as the caffeine padding fix, rather than guessing at
+CSS tweaks -- found real bugs, not just aesthetic ones:
+
+- **The `wlogout` stow package had never actually been `stow`'d.** `~/.config/wlogout/`
+  didn't exist at all -- wlogout had been silently falling back to `/etc/wlogout/`'s
+  system-default layout and CSS this entire time. Every earlier CSS/layout edit had
+  zero effect, because wlogout was never reading any of those files. Caught by running
+  it with an explicit `-C`/`-l` path and seeing `Failed to open .../layout` in stderr;
+  confirmed by checking `~/.config/wlogout` was simply missing. Now stowed.
+- **wlogout's default `--buttons-per-row` isn't 5.** With exactly 5 buttons and no
+  explicit `-b`, one button rendered as a proper large card and the other four were
+  cramped into a fraction of the row -- confirmed visually via `grim` screenshots
+  rendered as ASCII-art brightness maps (no image viewer available in this session).
+  Fixed by passing `-b 5` explicitly in the waybar `on-click` command
+  (`wlogout -b 5`), which wlogout's own layout math then distributes evenly.
+- Tried centering each icon within its card via the `width`/`height` fields
+  documented in `wlogout(5)` -- this triggered real `Gtk-CRITICAL` assertion failures
+  (`gtk_label_set_yalign/xalign: assertion 'GTK_IS_LABEL (label)' failed`) and only
+  marginally improved icon position. Reverted to the default (no `width`/`height`
+  override) once confirmed clean and warning-free -- not worth a real GTK error for a
+  small positioning tweak.
+- Also hit the raw-glyph-gets-silently-stripped issue from earlier sessions many times
+  while iterating on this -- inconsistently, sometimes 8+ consecutive identical
+  attempts failed before one landed. Every glyph in the final `layout` file was
+  written as a `\uXXXX` Python escape and verified by codepoint after writing, not
+  trusted on the first attempt.
+- Kept the `min-width`/`min-height: 220px` CSS sizing from the first pass as a safety
+  net alongside `-b 5`, so card size stays consistent even if buttons-per-row ever
+  changes.
+
+Verified the final result with a clean screenshot: 5 evenly-sized floating cards, no
+warnings in wlogout's own output.
+
 ## 2026-08-23 (power menu: waybar button + wlogout modal)
 
 Added a power button to the far right of the waybar bar (`custom/power`, after
