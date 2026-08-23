@@ -250,6 +250,15 @@ bindsym $mod+Print exec ~/.config/sway/scripts/screenshot.sh region
 bindsym Mod1+Shift+semicolon exec swaylock -C ~/.config/sway/lockconfig
 
 ### User Executions & Environment Settings
+# Import WAYLAND_DISPLAY/SWAYSOCK into the systemd --user manager's own
+# environment FIRST -- it's separate from sway's process environment, and
+# systemd --user services (like swayidle.service right below) can't reach
+# the compositor at all until this has run. Learned this one from a real
+# failure: swayidle.service crash-looped with "Unable to connect to the
+# compositor" because this used to run near the end of this file, after
+# the swayidle restart below had already fired.
+exec dbus-update-activation-environment --all
+
 exec waybar 
 exec mako
 
@@ -258,7 +267,10 @@ exec mako
 # rather than a raw exec, so caffeine-toggle.sh can stop/start it cleanly via
 # systemctl instead of juggling raw processes.
 exec systemctl --user restart swayidle.service
-exec sway-audio-idle-inhibit
+# Also a systemd user service now (systemd/.config/systemd/user/sway-audio-idle-inhibit.service)
+# instead of a raw exec -- it crashed once connecting to the audio stack too
+# early at login and never came back (plain exec doesn't restart on crash).
+exec systemctl --user restart sway-audio-idle-inhibit.service
 
 # Prevent idle timeouts when watching fullscreen videos
 for_window [class=".*"] inhibit_idle fullscreen
@@ -275,9 +287,6 @@ exec batsignal -w 20 -c 10 -d 5 -f
 exec --no-startup-id cliphist store
 exec --no-startup-id wl-paste --type text --watch cliphist store
 exec --no-startup-id wl-paste --type image --watch cliphist store
-
-
-exec dbus-update-activation-environment --all
 
 include /etc/sway/config.d/*
 
