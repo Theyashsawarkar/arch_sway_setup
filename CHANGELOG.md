@@ -3,6 +3,28 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-23 (power menu: bigger, no search bar, click-outside dismisses it)
+
+Three more requests: more width and bigger buttons, remove the search bar, and close
+on click-outside instead of requiring Escape.
+
+- Width 220->360, height 320->280 (shorter now that the search bar's gone), tile
+  padding 16px->26px, icon font-size 30px->44px. Verified via the same
+  screenshot-and-measure approach: 359x279px against a requested 360x280.
+- `close_on_focus_loss=true` (via `-D`, a real documented wofi config option, not
+  guessed) makes wofi quit when it loses focus -- which is what happens when you
+  click anywhere else. Confirmed the flag is actually present on the running
+  process's command line; couldn't fully simulate a mouse click to test it end-to-end
+  since `ydotool` isn't installed and `wtype` only does keyboard input, and installing
+  a new package just for this one test wasn't worth it.
+- Tried wofi's own `--hide-search` flag for the search bar first -- **broke entry
+  rendering entirely** when combined with `--dmenu` in this wofi version (confirmed
+  by testing side by side: identical command minus that one flag rendered the grid
+  fine, with it the popup was empty). Worked around it by visually collapsing `#input`
+  via CSS instead (`min-height: 0`, `opacity: 0`) -- keeps the widget functionally
+  present, which avoids whatever code path the flag itself breaks, while still being
+  invisible.
+
 ## 2026-08-23 (power menu: actual grid layout, not a vertical list)
 
 Follow-up feedback: wanted the buttons in a real grid, and the popup ("too small but
