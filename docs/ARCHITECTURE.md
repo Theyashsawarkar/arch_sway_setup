@@ -18,7 +18,8 @@ manifests, not something stow ever touches.
 | ---------- | --------------------------------------- | ------------- |
 | `sway`     | `~/.config/sway/`                       | Window manager, keybindings, lock/idle config |
 | `waybar`   | `~/.config/waybar/`                     | Top status bar |
-| `wofi`     | `~/.config/wofi/`                       | App launcher / dmenu-style prompts, and the power menu (`power-style.css`, triggered via `scripts/.local/bin/power-menu.sh` from waybar's power button) |
+| `wofi`     | `~/.config/wofi/`                       | App launcher / dmenu-style prompts |
+| `nwg-bar`  | `~/.config/nwg-bar/`                    | Power menu (Lock/Logout/Suspend/Reboot/Shutdown), triggered from waybar's power button. See the changelog for why this isn't wofi -- its `--dmenu` mode hit several real, separately-confirmed limits for a button-grid popup (no CSS cursor support, `--columns` capped at 2, `--hide-search` breaks rendering, `close_on_focus_loss` fights `focus_follows_mouse`). |
 | `mako`     | `~/.config/mako/`                       | Notifications |
 | `kitty`    | `~/.config/kitty/`                      | Terminal, incl. the Nerd Font setting everything else depends on |
 | `tmux`     | `~/.config/tmux/`, `~/.tmux/scripts/`   | Multiplexer config + the docker status-bar script |

@@ -3,6 +3,59 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-23 (power menu: switched tools -- wofi's dmenu mode wasn't built for this)
+
+User feedback: alignment still off, no pointer cursor, click-outside still not
+working -- fair, after five rounds of patching wofi's `--dmenu` mode, each fix
+uncovered another real limitation in the same tool rather than converging:
+
+- No CSS `cursor` property support in this GTK version (confirmed via a real GTK
+  parse error, not a guess) -- can't give hover feedback via cursor shape at all in
+  wofi's dmenu entries.
+- `--columns` capped at 2 per row no matter the width or invocation method.
+- `--hide-search` breaks entry rendering entirely when combined with `--dmenu`.
+- `close_on_focus_loss` can't distinguish "clicked elsewhere" from "hovered near
+  another window" while sway's `focus_follows_mouse` (global-only) is on, which it is
+  by default.
+
+Each of these is a real, separately-confirmed limitation of wofi's dmenu mode for
+this specific use case (a small button-grid popup), not a config mistake -- so
+continuing to patch around them wasn't going to converge. Researched purpose-built
+alternatives instead of iterating further on the same tool.
+
+**Switched to `nwg-bar`** (part of the nwg-shell project, official Arch `extra` repo --
+no AUR build needed): read its actual Go source before committing to it, not just the
+README --
+
+- Real `gtk.ButtonNew()` widgets for every entry -- proper pointer-cursor hover
+  behavior comes for free from GTK, unlike wofi's list/flow entries.
+- Closes on `leave-notify-event` with a genuine 500ms debounce that's cancelled by
+  `enter-notify-event` if the pointer comes back -- solves the "closes mid-hover"
+  problem architecturally, since it's the bar's own pointer-leave event, not tied to
+  sway's global focus model at all.
+- Escape also closes it (`key-release-event` checking `KEY_Escape`).
+- Its own default template *is* a sway exit menu (Lock/Logout/Reboot/Shutdown) --
+  built for exactly this.
+- One real limitation found before writing the config, not after: buttons get no
+  individual CSS name/class in nwg-bar's source, so per-action accent colors (a
+  different hover color for Lock vs Shutdown, like the earlier wlogout attempt) aren't
+  possible here. Used one consistent Mauve accent instead, matching how most other
+  waybar modules already work.
+
+New `nwg-bar` stow package: `bar.json` (5 entries, referencing the icon SVGs the
+`nwg-bar` package itself ships at `/usr/share/nwg-bar/images/` -- no icon assets
+bundled in this repo) and `style.css` (same glass-card material as everywhere else:
+kitty's 0.85 opacity, Mauve border/radius). Added to `packages/pacman.txt`. Removed
+the wofi-based `power-menu.sh` and `power-style.css` entirely.
+
+**Not yet verified visually** -- `nwg-bar` isn't installed on this machine and
+installing it needs `sudo`, which this session doesn't have:
+```bash
+sudo pacman -S nwg-bar
+```
+Waybar's power button already points at it (`"on-click": "nwg-bar"`); it just won't
+do anything until the package above is installed.
+
 ## 2026-08-23 (power menu: single row via orientation=horizontal, click-outside dropped for good)
 
 Two things: confirmed in real use (not a synthetic test this time) that the popup was

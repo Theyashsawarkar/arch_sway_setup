@@ -87,6 +87,7 @@ Each directory represents an independent package managed by GNU Stow.
 ├── kitty/
 ├── mako/
 ├── nvim/
+├── nwg-bar/         # power menu (lock/logout/suspend/reboot/shutdown)
 ├── scripts/         # ~/.local/bin utilities used by sway keybindings
 ├── sway/
 ├── systemd/         # ~/.config/systemd/user units (wallpaper, swayidle,
@@ -137,7 +138,7 @@ Install individual packages:
 
 ```bash
 stow kitty tmux nvim zed zsh scripts systemd gtk xdg
-stow sway waybar mako wofi
+stow sway waybar mako wofi nwg-bar
 ```
 
 Or install everything (`packages/` and `docs/` aren't stow packages, so they're excluded):
