@@ -28,7 +28,8 @@ window#waybar {
 #bluetooth,
 #custom-caffeine,
 #pulseaudio,
-#battery {
+#battery,
+#custom-power {
     background-color: rgba(17, 17, 27, 0.92); /* Deep Midnight */
     color: #CDD6F4; /* Clean Silver — one consistent base text color everywhere */
     border-radius: 16px;
@@ -41,7 +42,7 @@ window#waybar {
     transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
-#clock, #keyboard-state, #custom-docker, #network, #bluetooth, #backlight, #pulseaudio, #battery {
+#clock, #keyboard-state, #custom-docker, #network, #bluetooth, #backlight, #pulseaudio, #battery, #custom-power {
     padding: 0 12px;
 }
 
@@ -57,6 +58,23 @@ window#waybar {
    9px left / 19px right measured out to an 11px/12px visual gap. */
 #custom-caffeine {
     padding: 0 19px 0 9px;
+}
+
+/* Sits apart from the rest of the right group -- it's the one button
+   here that ends the session rather than reporting on it, same reasoning
+   as giving workspaces their own hover hue for a genuinely different kind
+   of interaction. Resting state gets a faint red tint (not full accent
+   color, so it doesn't look like an active warning at rest) and margin
+   separating it from battery. */
+#custom-power {
+    margin-left: 10px;
+    color: #F38BA8;
+}
+
+#custom-power:hover {
+    color: #F38BA8;
+    border-color: rgba(243, 139, 168, 0.5);
+    box-shadow: 0 0 8px rgba(243, 139, 168, 0.4);
 }
 
 /* One consistent accent (Mauve) for "you're pointing at something
