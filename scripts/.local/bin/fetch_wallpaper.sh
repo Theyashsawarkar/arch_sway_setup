@@ -24,6 +24,7 @@ LOCK_FILE="/tmp/fetch_wallpaper.lock"
 LOG_DIR="$HOME/.local/state/fetch-wallpaper"
 LOG_FILE="$LOG_DIR/fetch-wallpaper.log"
 LOG_MAX_BYTES=1048576
+MAX_ARCHIVE_FILES=60  # ~2 months of daily wallpapers before pruning oldest
 FALLBACK_COLOR="1e1e2e"  # Catppuccin Mocha base -- last resort if there is no
                           # good wallpaper on disk at all (e.g. brand-new
                           # machine, first run ever, no network yet)
@@ -136,6 +137,15 @@ mv -f "$TMP_FILE" "$FILEPATH"
 chmod 644 "$FILEPATH"
 cp -f "$FILEPATH" "$LAST_GOOD"
 ln -sf "$FILEPATH" "$CURRENT"
+
+archive_count=$(find "$ARCHIVE_DIR" -maxdepth 1 -type f -name '*.jpg' | wc -l)
+if [ "$archive_count" -gt "$MAX_ARCHIVE_FILES" ]; then
+  prune_count=$((archive_count - MAX_ARCHIVE_FILES))
+  find "$ARCHIVE_DIR" -maxdepth 1 -type f -name '*.jpg' -printf '%T@ %p\n' \
+    | sort -n | head -n "$prune_count" | cut -d' ' -f2- \
+    | xargs -r rm -f
+  log INFO "pruned $prune_count old archived wallpaper(s), keeping newest $MAX_ARCHIVE_FILES"
+fi
 
 if apply_background image "$CURRENT"; then
   log INFO "applied new wallpaper: $FILEPATH"
