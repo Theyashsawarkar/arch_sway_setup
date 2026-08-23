@@ -1,7 +1,7 @@
 [
   {
     "label": "Lock",
-    "exec": "swaylock -C ~/.config/sway/lockconfig",
+    "exec": "swaylock -C /home/yash/.config/sway/lockconfig",
     "icon": "/usr/share/nwg-bar/images/system-lock-screen.svg"
   },
   {
