@@ -1,6 +1,8 @@
 /* Power menu -- same look as the main wofi style.css, but at kitty's
-   0.85 background_opacity instead of the app-launcher's 0.95, since this
-   should read as the same "glass" material as the terminal. */
+   0.85 background_opacity instead of the app-launcher's 0.95 (reads as
+   the same "glass" material as the terminal), and laid out as a grid
+   (--columns 3 on the wofi invocation) with each entry styled as its
+   own tile instead of a plain list row. */
 
 window {
     margin: 0px;
@@ -35,19 +37,28 @@ window {
     border: none;
 }
 
+/* Each grid cell is its own tile -- a faint border/fill so it reads as
+   a button, not just a positioned label. Centered text since a grid of
+   icons (unlike a vertical list) has no natural left edge to align to. */
+/* Square-ish icon-only tiles now (no text label) -- equal padding on
+   all sides so each cell reads as a real grid button, not a text row. */
 #entry {
-    padding: 8px 12px;
-    border-radius: 8px;
-    background-color: transparent;
+    padding: 16px;
+    margin: 5px;
+    border-radius: 12px;
+    background-color: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(203, 166, 247, 0.18);
 }
 
 #text {
-    margin: 2px;
+    margin: 0px;
     color: #A6ADC8;
+    font-size: 30px;
 }
 
 #entry:selected {
-    background-color: rgba(203, 166, 247, 0.15);
+    background-color: rgba(203, 166, 247, 0.18);
+    border-color: #CBA6F7;
 }
 
 #entry:selected #text {
