@@ -20,8 +20,7 @@ ICON_SHUTDOWN=$''
 
 choice=$(printf '%s\n%s\n%s\n%s\n%s\n' \
     "$ICON_LOCK" "$ICON_LOGOUT" "$ICON_SUSPEND" "$ICON_REBOOT" "$ICON_SHUTDOWN" \
-    | wofi --dmenu --prompt "Power" --width 360 --height 280 --columns 2 \
-        -D close_on_focus_loss=true \
+    | wofi --dmenu --prompt "Power" --width 460 --height 280 --columns 2 \
         --style ~/.config/wofi/power-style.css)
 # NOT --hide-search: it's buggy in this wofi build (v1.5.3) and breaks
 # entry rendering entirely when combined with --dmenu (confirmed by
@@ -30,6 +29,18 @@ choice=$(printf '%s\n%s\n%s\n%s\n%s\n' \
 # (#input collapsed to 0 height in power-style.css), which keeps it
 # functionally present so wofi doesn't hit whatever internal path
 # --hide-search breaks.
+#
+# NOT close_on_focus_loss=true either: sway's focus_follows_mouse
+# defaults to "yes" (unset in sway/config = default), which focuses
+# whatever's under the cursor on mere hover, not just on click. Combined
+# with close_on_focus_loss, the popup was closing the instant the mouse
+# moved off it at all, not just on an actual click elsewhere -- and
+# focus_follows_mouse can't be scoped per-window in sway (checked
+# sway.5, it's a global-only command), so fixing that for real would
+# mean click-to-focus for the entire desktop, a much bigger change than
+# asked for. Dismissing via Escape or picking an option instead, same
+# as every other wofi popup in this setup (app launcher, calculator,
+# emoji picker) already works.
 
 case "$choice" in
     "$ICON_LOCK")     swaylock -C ~/.config/sway/lockconfig ;;
