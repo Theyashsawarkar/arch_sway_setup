@@ -1,0 +1,56 @@
+/* Power menu -- same look as the main wofi style.css, but at kitty's
+   0.85 background_opacity instead of the app-launcher's 0.95, since this
+   should read as the same "glass" material as the terminal. */
+
+window {
+    margin: 0px;
+    border: 2px solid #CBA6F7;
+    background-color: rgba(17, 17, 27, 0.85);
+    border-radius: 16px;
+    font-family: "JetBrainsMono Nerd Font";
+    font-size: 16px;
+}
+
+#input {
+    margin: 10px;
+    padding: 10px;
+    border: none;
+    background-color: rgba(49, 50, 68, 0.5);
+    color: #CBA6F7;
+    border-radius: 10px;
+    font-weight: bold;
+}
+
+#inner-box {
+    margin: 0px 10px 10px 10px;
+    background-color: transparent;
+}
+
+#outer-box {
+    background-color: transparent;
+}
+
+#scroll {
+    margin: 0px;
+    border: none;
+}
+
+#entry {
+    padding: 8px 12px;
+    border-radius: 8px;
+    background-color: transparent;
+}
+
+#text {
+    margin: 2px;
+    color: #A6ADC8;
+}
+
+#entry:selected {
+    background-color: rgba(203, 166, 247, 0.15);
+}
+
+#entry:selected #text {
+    color: #CBA6F7;
+    font-weight: bold;
+}
