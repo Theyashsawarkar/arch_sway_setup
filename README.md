@@ -89,7 +89,8 @@ Each directory represents an independent package managed by GNU Stow.
 ├── nvim/
 ├── scripts/         # ~/.local/bin utilities used by sway keybindings
 ├── sway/
-├── systemd/         # ~/.config/systemd/user units (wallpaper timer, tmux)
+├── systemd/         # ~/.config/systemd/user units (wallpaper, swayidle,
+│                    #   audio-idle-inhibit, batsignal, tmux)
 ├── tmux/
 ├── waybar/
 ├── wofi/
