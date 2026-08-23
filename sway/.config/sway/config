@@ -32,7 +32,7 @@ bindsym $mod+period exec wofi-emoji
 # Core border style for windows
 default_border pixel 2
 default_floating_border pixel 2
-font pango:ZedMono Nerd Font 10
+font pango:JetBrainsMono Nerd Font 10
 
 # --- Window Geometry (Margins / Gaps) ---
 # Inner gaps separate adjacent windows from each other
@@ -240,6 +240,14 @@ bindsym Mod1+Shift+semicolon exec swaylock -C ~/.config/sway/lockconfig
 ### User Executions & Environment Settings
 exec waybar 
 exec mako
+
+# Start the idle manager automatically
+exec swayidle -w -C ~/.config/sway/idle/config
+exec sway-audio-idle-inhibit
+
+# Prevent idle timeouts when watching fullscreen videos
+for_window [class=".*"] inhibit_idle fullscreen
+for_window [app_id=".*"] inhibit_idle fullscreen
 
 # System State Daemons (Notifications & Applets)
 exec nm-applet --indicator
