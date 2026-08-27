@@ -3,6 +3,40 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-27 (color pass, part 2: every remaining module gets its own hue)
+
+Finished the "bar is too monochrome" pass -- clock, backlight, pulseaudio, docker,
+and bluetooth's idle-but-on state were all still plain silver (`#CDD6F4`), the only
+modules left without an identity color after the network pass. Picked with color
+psychology in mind rather than arbitrarily:
+
+- `clock` -> Rosewater. Glanced at constantly, so it gets the calmest, warmest hue
+  rather than anything that reads as a status/alert.
+- `backlight` -> Flamingo. Warm glow tone for light/comfort, deliberately not the
+  Yellow already spoken for by capslock/battery-charging so brightness doesn't
+  visually compete with those "heads up" moments.
+- `pulseaudio` -> Pink. Audio is the most expressive/personal control in the bar,
+  so it gets the most vivid hue left in the palette.
+- `custom/docker` -> Blue when containers are actually running (matches Docker's
+  own brand blue), dim gray when idle -- previously always showed the same static
+  color regardless of whether anything was running. Needed a real script change,
+  not just CSS: `docker ps -q | wc -l` piped straight into `format` had no way to
+  carry a class, so wrote `scripts/.local/bin/docker-status.sh` (same
+  `{"text","class","tooltip"}` JSON pattern as `caffeine-status.sh`) and switched
+  the module to `"return-type": "json"`.
+- `bluetooth.on` -> Maroon. This is the "powered on, nothing connected" state --
+  was falling through to plain silver before, same gap as everything else here.
+  Distinct from `.disabled` (gray) and `.connected` (green).
+
+Verified every state live, not just visually glanced at: screenshotted and
+pixel-searched for each of the six colors (four resting states plus docker's two),
+confirming each cluster lands at the module's actual x-position in the bar (clock
+dead center at x834-1084, bluetooth in the left group at x469-478, etc.). Docker's
+`.running` state needed an actual running container to verify, so spun up
+`docker run --rm -d alpine sleep 20` as a self-cleaning test -- confirmed the Blue
+cluster appears at x343-376 while it's up, and `docker ps -a` shows nothing left
+over once it exits on its own.
+
 ## 2026-08-27 (network module: color, signal strength, richer tooltip)
 
 First piece of the wider "the bar is too monotone" color pass, scoped to `network`/

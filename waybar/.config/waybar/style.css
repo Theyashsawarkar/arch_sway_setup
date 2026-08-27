@@ -118,6 +118,52 @@ window#waybar {
     margin-right: 12px;
 }
 
+/* --- Color engineering pass: every module gets its own resting-state
+   hue now, picked with color psychology in mind rather than leaving
+   everything the same flat silver. Status colors (red=alert, green=good,
+   yellow=heads-up, gray=off) established above stay reserved for actual
+   state changes -- these are identity colors for modules that otherwise
+   never had one. --- */
+
+/* Clock: glanced at constantly, so it gets the calmest, warmest hue in
+   the palette rather than anything that could read as a status/alert. */
+#clock {
+    color: #F5E0DC; /* Rosewater */
+}
+
+/* Backlight: warm glow tone, evokes light/comfort rather than anything
+   clinical -- distinct from the Yellow already spoken for by
+   capslock/battery-charging so brightness doesn't visually compete with
+   those "heads up" moments. */
+#backlight {
+    color: #F2CDCD; /* Flamingo */
+}
+
+/* Pulseaudio: audio is the most expressive/personal control in the bar,
+   so it gets the most vivid, least "serious" hue left in the palette. */
+#pulseaudio {
+    color: #F5C2E7; /* Pink */
+}
+
+/* Docker: Blue when containers are actually running (matches Docker's
+   own brand blue, reads as "infrastructure active"), dim gray when idle
+   -- same "off" language as bluetooth.disabled/caffeine.inactive rather
+   than a second distinct "nothing running" color. */
+#custom-docker.running {
+    color: #89B4FA; /* Blue */
+}
+
+#custom-docker.idle {
+    color: #6C7086;
+}
+
+/* Bluetooth: "on" is the powered-on-but-nothing-connected state -- was
+   falling through to plain silver before, same as everything else in
+   this pass. Distinct from .disabled (gray) and .connected (green). */
+#bluetooth.on {
+    color: #EBA0AC; /* Maroon */
+}
+
 /* --- Color is reserved for actual status, not module branding --- */
 
 #network.disconnected {
