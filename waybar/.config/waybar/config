@@ -78,7 +78,7 @@
 
 	"network#speed": {
 		"interval": 2,
-		"format": "<span color='#A6E3A1'>⬇ {bandwidthDownBytes}</span>  <span color='#FAB387'>⬆ {bandwidthUpBytes}</span>",
+		"format": "<span color='#A6E3A1'> {bandwidthDownBytes}</span>  <span color='#FAB387'> {bandwidthUpBytes}</span>",
 		"tooltip": false
 	},
 
