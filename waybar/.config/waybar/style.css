@@ -131,12 +131,17 @@ window#waybar {
     color: #F5E0DC; /* Rosewater */
 }
 
-/* Backlight: warm glow tone, evokes light/comfort rather than anything
-   clinical -- distinct from the Yellow already spoken for by
-   capslock/battery-charging so brightness doesn't visually compete with
-   those "heads up" moments. */
+/* Backlight: Yellow is the single strongest, most universal color
+   association for light/brightness (sun, glow) -- worth reusing even
+   though capslock/battery-charging already use it, since both of those
+   are far away in the bar (left group, or only transient while
+   charging) and won't sit adjacent to this one. Originally tried
+   Flamingo here, but next to Pink on pulseaudio right beside it, two
+   near-identical pale pastel pinks were impossible to tell apart at a
+   glance -- exactly the kind of neighbor clash this pass was supposed
+   to avoid. */
 #backlight {
-    color: #F2CDCD; /* Flamingo */
+    color: #F9E2AF; /* Yellow */
 }
 
 /* Pulseaudio: audio is the most expressive/personal control in the bar,
