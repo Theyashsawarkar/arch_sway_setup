@@ -125,6 +125,21 @@ window#waybar {
     border-color: rgba(243, 139, 168, 0.35);
 }
 
+#network.disabled {
+    color: #6C7086; /* Dim gray — matches every other "off" state (bluetooth.disabled, caffeine.inactive) */
+    border-color: transparent;
+}
+
+#network.wifi {
+    color: #89DCEB; /* Sky */
+    border-color: rgba(137, 220, 235, 0.35);
+}
+
+#network.ethernet {
+    color: #74C7EC; /* Sapphire — close enough to Sky to read as "same family" (both connectivity), distinct enough to tell wifi/wired apart at a glance */
+    border-color: rgba(116, 199, 236, 0.35);
+}
+
 /* KEYBOARD STATE INDICATORS */
 #keyboard-state {
     padding: 0 8px;

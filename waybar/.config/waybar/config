@@ -62,17 +62,23 @@
 	},
 
 	"network": {
-		"format-wifi": "  {essid}",
+		"format-wifi": "  {essid}  {signalStrength}%",
 		"format-ethernet": "  {ipaddr}",
 		"format-disconnected": "  Offline",
+		"format-disabled": "  Disabled",
+		"format-linked": "  No IP",
 		"interval": 2,
 		"max-length": 30,
+		"tooltip-format-wifi": "{essid}\nSignal: {signalStrength}%  ({signaldBm} dBm)\nFrequency: {frequency} GHz\nIP: {ipaddr}/{cidr}\nGateway: {gwaddr}",
+		"tooltip-format-ethernet": "{ifname}\nIP: {ipaddr}/{cidr}\nGateway: {gwaddr}",
+		"tooltip-format-disconnected": "Disconnected",
+		"tooltip-format-disabled": "Wi-Fi disabled (rfkill)",
 		"on-click": "nwg-bar -t /home/yash/.config/nwg-bar/wifi.json -s /home/yash/.config/nwg-bar/style.css"
 	},
 
 	"network#speed": {
 		"interval": 2,
-		"format": "⬇ {bandwidthDownBytes}  ⬆ {bandwidthUpBytes}",
+		"format": "<span color='#A6E3A1'>⬇ {bandwidthDownBytes}</span>  <span color='#FAB387'>⬆ {bandwidthUpBytes}</span>",
 		"tooltip": false
 	},
 

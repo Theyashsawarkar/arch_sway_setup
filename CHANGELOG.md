@@ -3,6 +3,40 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-27 (network module: color, signal strength, richer tooltip)
+
+First piece of the wider "the bar is too monotone" color pass, scoped to `network`/
+`network#speed` since that's what got asked about. Read `man waybar-network` before
+touching anything -- it documents state-based CSS classes (`#network.wifi`,
+`#network.ethernet`, `#network.disabled`, `#network.disconnected`, `#network.linked`)
+and a full set of format placeholders that weren't being used at all before
+(`{signalStrength}`, `{signaldBm}`, `{frequency}`, `{gwaddr}`, `{cidr}`).
+
+- `#network.wifi` -> Sky `#89DCEB`, `#network.ethernet` -> Sapphire `#74C7EC` (same
+  blue family since both mean "connected", distinct enough to tell wifi from wired
+  at a glance), `#network.disabled` (rfkill-blocked) -> the same dim gray every other
+  "off" state in the bar already uses. `#network.disconnected` (red) was already
+  there and untouched.
+- `format-wifi` now shows signal strength inline (`{essid}  {signalStrength}%`)
+  instead of just the SSID.
+- Tooltip went from nothing useful to real diagnostics: SSID/signal/dBm/frequency
+  for wifi, interface/IP/gateway for ethernet, explicit disabled/disconnected text.
+- `network#speed`'s down/up arrows are now two different colors via inline Pango
+  markup (`<span color='...'>`, confirmed supported: `man waybar` -> "MODULE FORMAT"
+  section) -- green for download, peach for upload -- rather than one flat color for
+  both directions.
+
+Verified for real, not just "JSON parses": reloaded waybar live, screenshotted with
+`grim`, and pixel-searched the render (had to rewrite `/tmp/pngdecode.py` from
+scratch again -- it's `/tmp`, doesn't survive a session/reboot, no PIL/imagemagick
+available to install without sudo). Found Sky-colored pixels exactly where the
+`network` module sits (x1121-1307), and two separate color clusters in the speed
+module's x-range -- green at x1376-1444 (download), peach at x1495-1562 (upload) --
+confirming the Pango spans render as two colors, not one blended block. The
+`network.ethernet` rule can't be live-verified the same way (this machine's on wifi,
+not ethernet, right now) -- taken on the man page's word that the class exists,
+same discipline as everywhere else in this repo, just flagged as unverified live.
+
 ## 2026-08-27 (scroll was flooding waybar, and briefly drove volume to 1494%)
 
 User reported scroll-to-adjust "wasn't working" on the volume/brightness pills.
