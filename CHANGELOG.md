@@ -3,6 +3,49 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-27 (volume/brightness: real sliders and device selection, not nwg-bar buttons)
+
+The volume popup's Vol-/Vol+ buttons "didn't work" -- tested the underlying `pactl`
+commands directly first (`env pactl set-sink-volume @DEFAULT_SINK@ -5%`, confirmed
+90%->85%, worked fine), so the bug wasn't the command. Read `nwg-bar`'s `launch()`
+in its Go source instead: it fires `glib.TimeoutAdd(150, gtk.MainQuit)` after *every*
+click, so the whole popup closed ~150ms after each Vol-/Vol+ press -- no way to make
+several incremental adjustments without reopening the menu each time. Root cause was
+the widget, not the command: `nwg-bar` only has buttons (no scale/slider in its JSON
+schema at all), and volume/brightness are drag-to-a-value interactions.
+
+Replaced both:
+
+- `pulseaudio` waybar module: click = mute/unmute, right-click = `pavucontrol` (real
+  drag sliders, plus Output/Input device tabs -- microphone selection included, for
+  free), scroll = +-5%. `pavucontrol` was already installed and already renders in
+  Catppuccin Mocha (the GTK3 theme is applied system-wide via `gtk-3.0/settings.ini`),
+  so no new styling work was needed.
+- `backlight` waybar module: click = a new script, `scripts/.local/bin/brightness-slider.sh`,
+  wrapping `zenity --scale --print-partial | while read v; do brightnessctl set
+  "${v}%"; done` -- `--print-partial` streams every drag frame, so it's a real-time
+  slider, not a set-once dialog. Needs `zenity` (added to `packages/pacman.txt`,
+  official `extra` repo -- **not yet installed on the live machine**, this session
+  has no `sudo`: `sudo pacman -S zenity`).
+- Deleted `nwg-bar/.config/nwg-bar/volume.json` -- the button-popup it drove is gone.
+- `sway/.config/sway/scripts/volume_osd.sh` gained a `mute-toggle` mode (used by both
+  the waybar click and the `XF86AudioMute` key, replacing an inline `pactl && notify-send`
+  one-liner that had drifted out of sync with the script) and now auto-unmutes before
+  applying a volume delta, so scrolling/raising always changes what you actually hear.
+  Added `XF86AudioMicMute` (`pactl set-source-mute @DEFAULT_SOURCE@ toggle`) -- there
+  was no microphone-mute keybinding before this.
+- `brightness_osd.sh`'s scroll path is unchanged in behavior, just now also wired to
+  the waybar `backlight` module's `on-scroll-up`/`on-scroll-down` (previously those
+  called raw `brightnessctl` directly, with no OSD notification at all).
+
+Verified end to end with `sh -c` invocations matching exactly what waybar itself runs
+(not just running the scripts directly): mute-toggle round-trips correctly
+(`Mute: no` -> `yes` -> `no`), scroll volume goes 90%->85%, scroll brightness goes
+0%->5%, `pavucontrol` resolves on `$PATH`. `brightness-slider.sh` itself needed a
+`stow -R scripts` to actually land the new symlink in `~/.local/bin/` -- caught this
+because the first `env` test of the exact waybar-invoked absolute path 404'd until
+the restow.
+
 ## 2026-08-23 (same nwg-bar treatment for volume/wifi/bluetooth/docker -- found the tilde bug again)
 
 Extended the power-menu pattern to four more waybar modules, reusing `nwg-bar` +

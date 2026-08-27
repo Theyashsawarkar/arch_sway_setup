@@ -19,7 +19,7 @@ manifests, not something stow ever touches.
 | `sway`     | `~/.config/sway/`                       | Window manager, keybindings, lock/idle config |
 | `waybar`   | `~/.config/waybar/`                     | Top status bar |
 | `wofi`     | `~/.config/wofi/`                       | App launcher / dmenu-style prompts |
-| `nwg-bar`  | `~/.config/nwg-bar/`                    | Five small popup menus, all sharing one `style.css`: the power button (`bar.json`: Lock/Logout/Suspend/Reboot/Shutdown), and `docker.json`/`wifi.json`/`bluetooth.json`/`volume.json` triggered from the matching waybar modules. See the changelog for why this isn't wofi -- its `--dmenu` mode hit several real, separately-confirmed limits for a button-grid popup (no CSS cursor support, `--columns` capped at 2, `--hide-search` breaks rendering, `close_on_focus_loss` fights `focus_follows_mouse`). **Important, and it bit twice**: nothing in the `nwg-bar` invocation chain goes through a shell -- neither its own `exec` commands (`exec.Command()` directly, confirmed by reading the source) nor its `-t`/`-s` flag values (confirmed by testing `env nwg-bar -t '~/...'` directly -- it doesn't even detect a non-absolute path the way it does for the `icon` field, it just concatenates onto its default config dir and fails outright). **Never use `~` anywhere in an `nwg-bar` invocation or its JSON `exec` fields — always the absolute path.** Icons: either an absolute file path, or a name from the system icon theme (`createPixbuf()` falls back to `gtk.IconThemeGetDefault().LoadIcon()`) -- verify a given icon name actually exists in the installed theme (`find /usr/share/icons/<theme> -iname '<name>.svg'`) before using it, the same discipline as verifying Nerd Font codepoints elsewhere in this repo. |
+| `nwg-bar`  | `~/.config/nwg-bar/`                    | Four small button-grid popup menus, all sharing one `style.css`: the power button (`bar.json`: Lock/Logout/Suspend/Reboot/Shutdown), and `docker.json`/`wifi.json`/`bluetooth.json` triggered from the matching waybar modules. See the changelog for why this isn't wofi -- its `--dmenu` mode hit several real, separately-confirmed limits for a button-grid popup (no CSS cursor support, `--columns` capped at 2, `--hide-search` breaks rendering, `close_on_focus_loss` fights `focus_follows_mouse`). **Important, and it bit twice**: nothing in the `nwg-bar` invocation chain goes through a shell -- neither its own `exec` commands (`exec.Command()` directly, confirmed by reading the source) nor its `-t`/`-s` flag values (confirmed by testing `env nwg-bar -t '~/...'` directly -- it doesn't even detect a non-absolute path the way it does for the `icon` field, it just concatenates onto its default config dir and fails outright). **Never use `~` anywhere in an `nwg-bar` invocation or its JSON `exec` fields — always the absolute path.** Icons: either an absolute file path, or a name from the system icon theme (`createPixbuf()` falls back to `gtk.IconThemeGetDefault().LoadIcon()`) -- verify a given icon name actually exists in the installed theme (`find /usr/share/icons/<theme> -iname '<name>.svg'`) before using it, the same discipline as verifying Nerd Font codepoints elsewhere in this repo. **`volume.json` used to exist here too, and was removed** -- `nwg-bar` only renders buttons (confirmed reading its Go source: no scale/slider widget type exists in its JSON schema at all), and its `launch()` fires a 150ms auto-`gtk.MainQuit()` after *every* click, so a Vol-/Vol+ button pair closed the whole popup after one click each time -- looked like a broken command but was actually just the wrong widget for the job. Volume and brightness are handled below instead. |
 | `mako`     | `~/.config/mako/`                       | Notifications |
 | `kitty`    | `~/.config/kitty/`                      | Terminal, incl. the Nerd Font setting everything else depends on |
 | `tmux`     | `~/.config/tmux/`, `~/.tmux/scripts/`   | Multiplexer config + the docker status-bar script |
@@ -202,6 +202,35 @@ one previous copy kept) has every attempt, failure reason, and which fallback ti
 fired. Also visible live via `journalctl --user -u wallpaper.service`. If the wallpaper
 ever looks stale or wrong, that log is the first thing to check — it will say exactly
 which of the three tiers actually ran, rather than leaving you guessing.
+
+## Volume and brightness: real controls, not nwg-bar buttons
+
+Both used to be `nwg-bar` button popups (`volume.json`, and no popup at all for
+brightness). Neither belongs in a button grid -- adjusting volume/brightness is
+fundamentally a "drag to a value" interaction, and `nwg-bar` categorically can't
+render one (buttons only, confirmed reading its Go source). Replaced with:
+
+- **`pulseaudio` waybar module**: click = mute/unmute (`sway/.config/sway/scripts/volume_osd.sh
+  mute-toggle`), right-click = `pavucontrol` (a real GTK mixer with per-device drag
+  sliders and separate Playback/Recording/Output Devices/Input Devices tabs -- this is
+  where output *and* microphone device selection actually happens, for free, and it
+  already renders in Catppuccin Mocha since the GTK3 theme is applied system-wide, no
+  extra CSS needed), scroll = +-5% (`volume_osd.sh +5%`/`-5%`).
+- **`backlight` waybar module**: click = `scripts/.local/bin/brightness-slider.sh`, a
+  `zenity --scale --print-partial` dialog -- `--print-partial` streams the live value
+  on every drag frame, piped into `brightnessctl set "${value}%"` per line, so it's a
+  genuine real-time slider rather than a set-once popup. Needs `zenity` (in
+  `packages/pacman.txt`, official `extra` repo). Scroll = +-5%
+  (`brightness_osd.sh`), unchanged.
+- Both `volume_osd.sh` and `brightness_osd.sh` (`sway/.config/sway/scripts/`) are
+  shared between the `XF86Audio*`/`XF86MonBrightness*` keybindings *and* the waybar
+  scroll bindings now, so there's exactly one place that fires the progress-bar mako
+  notification for each, not two copies drifting apart. `volume_osd.sh` also
+  auto-unmutes before applying a delta (raising/lowering volume should always be
+  audible) and gained a `mute-toggle` mode used by both the `XF86AudioMute` key and
+  the waybar click. `XF86AudioMicMute` was added alongside it
+  (`pactl set-source-mute @DEFAULT_SOURCE@ toggle`) -- there wasn't a microphone-mute
+  keybinding at all before.
 
 ## The tmux status bar's dependency chain
 
