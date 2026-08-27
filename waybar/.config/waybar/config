@@ -32,7 +32,8 @@
 		"tooltip-format": "Click: drag to set   Scroll: +/-5%",
 		"on-click": "/home/yash/.local/bin/brightness-slider.sh",
 		"on-scroll-up": "/home/yash/.config/sway/scripts/brightness_osd.sh +5%",
-		"on-scroll-down": "/home/yash/.config/sway/scripts/brightness_osd.sh 5%-"
+		"on-scroll-down": "/home/yash/.config/sway/scripts/brightness_osd.sh 5%-",
+		"smooth-scrolling-threshold": 1
 	},
 
 	"keyboard-state": {
@@ -112,7 +113,8 @@
 		"on-click": "/home/yash/.config/sway/scripts/volume_osd.sh mute-toggle",
 		"on-click-right": "pavucontrol",
 		"on-scroll-up": "/home/yash/.config/sway/scripts/volume_osd.sh +5%",
-		"on-scroll-down": "/home/yash/.config/sway/scripts/volume_osd.sh -5%"
+		"on-scroll-down": "/home/yash/.config/sway/scripts/volume_osd.sh -5%",
+		"smooth-scrolling-threshold": 1
 	},
 
 	"custom/power": {

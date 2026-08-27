@@ -232,6 +232,37 @@ render one (buttons only, confirmed reading its Go source). Replaced with:
   (`pactl set-source-mute @DEFAULT_SOURCE@ toggle`) -- there wasn't a microphone-mute
   keybinding at all before.
 
+### The scroll flood, and why on-scroll needs `smooth-scrolling-threshold`
+
+Scrolling on the volume/brightness pills looked broken -- confirmed via
+`/tmp/waybar.log`, which had 249 lines of `Connection failure: Connection
+terminated` and `Value "" of hint "value" could not be parsed as type "int"` after
+one scroll session. Root cause, found in waybar's own man pages
+(`man waybar-pulseaudio`, `man waybar-backlight`): defining `on-scroll-up`/
+`on-scroll-down` "replaces the default behaviour" *and* neither module had
+`smooth-scrolling-threshold` set (default is unset/0). A touchpad emits continuous
+fractional scroll deltas (kinetic/smooth scrolling), not one discrete tick per
+gesture -- with the threshold at 0, waybar fired the script on every single delta,
+so one real scroll gesture spawned dozens of `pactl`/`brightnessctl`/`notify-send`
+processes within milliseconds, flooding mako's D-Bus connection and racing each
+other reading volume/brightness mid-write. Fixed by adding
+`"smooth-scrolling-threshold": 1` to both modules, so waybar accumulates a full
+scroll unit before firing once.
+
+**Forcing the same burst manually (30 concurrent invocations) also surfaced a real,
+separate danger**: `pactl set-sink-volume @DEFAULT_SINK@ +5%` does **not** clamp at
+100% on its own -- the 30-way race drove the sink to 1494% (confirmed no audio was
+actively playing at the time, via `pactl list sink-inputs short`, so nothing was
+physically blasted, but it would have been audible/damaging if something had been).
+`brightnessctl` does self-clamp (`set 1000%` lands at exactly 100%, confirmed by
+testing), so no equivalent overdrive risk there, but concurrent calls can still
+stack out of order. Both scripts now serialize their read-current -> compute-target
+-> apply sequence behind `flock` (`/tmp/volume_osd.lock` / `/tmp/brightness_osd.lock`),
+and `volume_osd.sh` computes and clamps the target to 0-100 itself rather than
+trusting pactl's relative math. Re-ran the identical 30-concurrent-call burst after
+the fix: clamps land exactly at 100%/0% instead of overshooting, and the waybar log
+stayed at zero errors.
+
 ## The tmux status bar's dependency chain
 
 Worth calling out on its own, since it broke in layers (see changelog): the rounded

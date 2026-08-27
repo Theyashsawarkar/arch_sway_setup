@@ -3,6 +3,32 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-27 (scroll was flooding waybar, and briefly drove volume to 1494%)
+
+User reported scroll-to-adjust "wasn't working" on the volume/brightness pills.
+`/tmp/waybar.log` had 249 lines of `Connection failure: Connection terminated` and
+`Value "" of hint "value" could not be parsed as type "int"` -- real evidence, not a
+guess. Root cause, found in `man waybar-pulseaudio`/`man waybar-backlight`: custom
+`on-scroll-up`/`on-scroll-down` "replaces the default behaviour", and neither module
+had `smooth-scrolling-threshold` set (default 0). Touchpads emit continuous
+fractional scroll deltas, not discrete ticks, so with the threshold at 0 every
+micro-delta from one scroll gesture fired the script separately -- dozens of
+concurrent `pactl`/`brightnessctl`/`notify-send` processes within milliseconds,
+flooding mako's D-Bus connection. Fixed with `"smooth-scrolling-threshold": 1` on
+both modules.
+
+Reproducing the flood manually (30 concurrent script calls) also caught a second,
+more serious bug: `pactl set-sink-volume ... +5%` doesn't clamp at 100% -- the burst
+drove the sink to **1494%**. Confirmed nothing was actually playing at the time
+(`pactl list sink-inputs short` was empty), so nothing got physically blasted, but
+it would have been genuinely dangerous if something had been. `brightnessctl` does
+self-clamp (tested: `set 1000%` lands at exactly 100%), so brightness only had the
+flood risk, not an overdrive risk. Fixed both scripts with `flock`-serialized
+read-compute-apply, and `volume_osd.sh` now computes and clamps its own 0-100
+target instead of trusting pactl's relative math. Re-ran the identical 30-call
+burst after the fix: lands exactly at the 100%/0% boundary, zero waybar log errors.
+Volume/brightness were reset back to their pre-test values (50%/5%) afterward.
+
 ## 2026-08-27 (volume/brightness: real sliders and device selection, not nwg-bar buttons)
 
 The volume popup's Vol-/Vol+ buttons "didn't work" -- tested the underlying `pactl`
