@@ -3,6 +3,50 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-28 (battery: real charging icon with the lightning bolt built in)
+
+Follow-up: wanted the charging icon to actually show a bolt again, from "the
+same family" as the plain battery icon, not just rely on color. Previous entry
+concluded this wasn't possible because `format-icons` looked like a single flat
+array shared by every format variant -- wrong, caught by reading waybar's
+actual source (`ALabel::getIcon`, `src/ALabel.cpp`) rather than trusting the
+man page summary alone this time: `format-icons` can be an **object**, and the
+battery module builds a lookup-key list `{status+"-"+state, status, state}`
+(confirmed `status` gets lowercased with spaces turned into dashes before this,
+matching the `#battery.charging` CSS class already in use) -- falling back to
+a `"default"` key. Critically, each value in that object can *itself* be an
+array, independently capacity-tiered exactly like the flat form. So
+`{"charging": [...5 icons...], "default": [...5 icons...]}` genuinely works:
+whichever status is active picks its own tiered set.
+
+Used a real "battery with a bolt inside" icon family (`md-battery_charging_10`
+through `_100`, verified present in the font) for the `"charging"` key, and
+switched `"default"` to the matching plain `md-battery_*` set instead of the
+old FontAwesome one, so charging/non-charging read as the same visual family
+with just the bolt as the distinguishing detail, not two unrelated icon styles
+stitched together.
+
+Hit the raw-glyph corruption bug again, but in a new form -- `\U000fXXXX`
+8-digit escapes (needed for these supplementary-plane codepoints, all above
+`U+FFFF`) got silently truncated in transport this time: `\U000f089c` landed
+as `\uf089` (4 digits) plus a stray literal `c` character, valid JSON but
+wrong content, caught only by checking codepoints after writing -- the same
+discipline that already caught the plain raw-character version of this bug
+several times earlier in this session. Confirmed via an isolated `python3 -c`
+call that the escape syntax itself is correct in isolation; something in this
+specific heredoc's transport mangled it. Fixed by sidestepping escape-literal
+parsing entirely -- built the strings with `chr(0xf089c)` etc. instead, which
+can't be misinterpreted the way a backslash sequence can.
+
+Verified live: valid JSON, clean waybar reload with no errors (confirms the
+object-keyed `format-icons` syntax parsed correctly), and the battery pill
+still renders Green at the real current capacity (90%, discharging) with a
+comparable icon pixel count to prior checks -- consistent with a real glyph
+rendering, not a blank/missing one. Could not force an actual charging session
+to visually confirm the bolt icon itself renders -- same real limitation as
+the previous entry, still resting on the mechanism being correctly wired
+rather than a live A/B screenshot of it charging.
+
 ## 2026-08-28 (battery: real percentage gradient, icon now tiers while charging too)
 
 Checked the actual live state first rather than guessing: real capacity 93-94%,
