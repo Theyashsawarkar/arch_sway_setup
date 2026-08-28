@@ -3,6 +3,51 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-28 (icons that never actually changed state: volume mute, brightness, wifi signal)
+
+Volume's mute icon and its low-volume tier icon were the literal same codepoint
+(`f026`, FontAwesome's `volume_off`/`volume_x`/`volume_xmark` -- confirmed via
+nerd-fonts' own glyphnames.json that all three names alias to one codepoint), so
+muting while already at low volume showed no visible change at all, and even at
+higher volume the "off" icon read ambiguously close to the low-tier one. Backlight
+had a single static sun icon the whole time -- no tiering existed at all. The
+main waybar network pill's wifi icon was likewise a single static glyph, never
+reflecting signal strength (only the wifi *picker* dropdown had tiered icons,
+added earlier -- the always-visible bar pill never did).
+
+Switched volume to a full, consistent Material Design Icons set instead of
+patching around FontAwesome's ambiguity: `volume_low`/`volume_medium`/`volume_high`
+for the tiers, `volume_mute` (a genuinely different codepoint, `f075f`) for muted.
+Backlight gained a real 5-tier `format-icons` (`brightness_1`..`brightness_5`,
+`f00da`-`f00de`). Network's `format-wifi` now uses `{icon}` against the same
+5-tier wifi-strength set (`wifi_strength_outline`/`_1`/`_2`/`_3`/`_4`) already
+verified for the wifi picker, so the bar pill and the picker's icons finally
+match instead of the bar staying static.
+
+Caught a real hallucination while researching this: an earlier WebFetch summary
+of nerd-fonts' glyphnames.json invented `fa-volume_mute` at `f131` -- sounded
+completely plausible, wasn't real. Downloaded the actual JSON directly to the
+machine and grepped it myself before trusting anything this time (`curl` +
+`python3 -c "import json..."` against the real 545KB file) -- that's also just a
+more reliable method going forward than relying on a small model's summary of a
+huge file, independent of this specific miss. Every codepoint used here was
+independently confirmed present in the installed font via `fc-query` afterward,
+same discipline as everywhere else in this repo.
+
+Verified all three live, not just "JSON parses": muted vs unmuted at the same 65%
+volume now render two clearly different glyph shapes (screenshotted, rendered as
+ASCII brightness maps to compare, confirmed genuinely different silhouettes, not
+just eyeballed); brightness at 10% vs 90% likewise render distinguishably
+different icons (fewer vs more visible sun-rays). Wifi's tiered icon couldn't be
+forced to a specific signal strength for a live A/B test the same way (real
+hardware, real signal), so that one rests on the codepoint verification plus a
+clean waybar reload with no errors, not a live visual diff.
+
+Battery was checked too and turned out already correct -- its `format-icons`
+(`battery_empty` through `battery_full`, 5 genuinely distinct FontAwesome
+codepoints) never had this bug, confirmed by inspecting the config before
+assuming it needed the same fix.
+
 ## 2026-08-28 (cursor theme was never actually configured anywhere; wofi hover-cursor investigated)
 
 User reported the cursor doesn't turn into a pointer hovering over entries in the

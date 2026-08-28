@@ -28,7 +28,8 @@
 	},
 
 	"backlight": {
-		"format": "  {percent}%",
+		"format": "{icon}  {percent}%",
+		"format-icons": ["󰃚", "󰃛", "󰃜", "󰃝", "󰃞"],
 		"tooltip-format": "Click: drag to set   Scroll: +/-5%",
 		"on-click": "/home/yash/.local/bin/brightness-slider.sh",
 		"on-scroll-up": "/home/yash/.config/sway/scripts/brightness_osd.sh +5%",
@@ -70,11 +71,12 @@
 	},
 
 	"network": {
-		"format-wifi": "  {essid}",
+		"format-wifi": "{icon}  {essid}",
 		"format-ethernet": "  {ipaddr}",
 		"format-disconnected": "  Offline",
 		"format-disabled": "  Disabled",
 		"format-linked": "  No IP",
+		"format-icons": ["󰤯", "󰤟", "󰤢", "󰤥", "󰤨"],
 		"interval": 2,
 		"max-length": 30,
 		"tooltip-format-wifi": "{essid}\nSignal: {signalStrength}%  ({signaldBm} dBm)\nFrequency: {frequency} GHz\nIP: {ipaddr}/{cidr}\nGateway: {gwaddr}",
@@ -120,9 +122,9 @@
 
 	"pulseaudio": {
 		"format": "{icon}  {volume}%",
-		"format-muted": "  Muted",
+		"format-muted": "󰝟  Muted",
 		"format-icons": {
-			"default": ["", "", ""]
+			"default": ["󰕿", "󰖀", "󰕾"]
 		},
 		"tooltip-format": "Click: mute/unmute   Right-click: mixer   Scroll: +/-5%",
 		"on-click": "/home/yash/.config/sway/scripts/volume_osd.sh mute-toggle",
