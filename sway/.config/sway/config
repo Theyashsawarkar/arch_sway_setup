@@ -63,17 +63,18 @@ shadow_color #0000007F
 
 # --- Theme Window Borders ---
 # Color configuration for window frames
-# Focused border: Mauve, back from Sapphire then Lavender -- asked for
-# "royal colors" specifically, and Mauve is the actual royal purple of
-# this palette (this repo's own earlier comments already nicknamed it
-# "Royal Mauve"). It also still does double duty as waybar's universal
-# hover/interactive accent, which earlier reasoning treated as a reason
-# to avoid it here -- overridden this time since beauty/theme fit was
-# asked for directly, and the two contexts (a window border vs a waybar
-# hover flash) are different enough in practice that sharing the hue
-# isn't actually confusing to look at.
+# Focused border: Red. Went Mauve -> Sapphire -> Lavender -> Mauve before
+# this -- asked for something more "dominant" than Mauve read as. Red is
+# the single boldest, most commanding hue in this palette -- everywhere
+# else in this setup it's reserved for real alerts (network disconnected,
+# battery critical, the power button), which is a real trade-off worth
+# naming: unlike those, this is a *persistent* fixture on every focused
+# window, not a transient alert, and the two read differently enough in
+# practice (a thin border outline vs. a whole waybar pill going red) that
+# it shouldn't actually get mistaken for "something's wrong" -- but flag
+# it if it ever does read that way.
 # class                 border  bground text    indicator child_border
-client.focused          #CBA6F7 #11111B #CDD6F4 #CBA6F7   #CBA6F7
+client.focused          #F38BA8 #11111B #CDD6F4 #F38BA8   #F38BA8
 client.focused_inactive #45475A #1E1E2E #A6ADC8 #45475A   #45475A
 client.unfocused        #313244 #1E1E2E #6C7086 #313244   #313244
 

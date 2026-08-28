@@ -3,6 +3,23 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-28 (focused window border: Red, the actually-dominant pick)
+
+Clock time/date (Blue/Maroon) landed well; the border's Mauve didn't --
+asked for something more "dominant." Red is the single boldest, most
+commanding hue in this palette. Named the real trade-off before shipping it
+rather than after: Red is reserved everywhere else in this setup for actual
+alerts (network disconnected, battery critical, the power button), and this
+is the fourth different border color tried in a row (Mauve -> Sapphire ->
+Lavender -> Mauve -> Red) -- worth being explicit that a persistent "this
+window is focused" fixture reads differently from a transient alert pill,
+rather than silently hoping that distinction holds.
+
+Verified live against the same real window as every prior border-color
+entry: Red renders at 1245 pixels along the top border (consistent with the
+1244 every previous color measured at), Mauve completely gone from that
+position.
+
 ## 2026-08-28 (royal color trio: window border, clock time, clock date)
 
 Asked for "royal colors" specifically across the window border, clock time,
