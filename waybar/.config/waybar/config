@@ -41,7 +41,10 @@
 	"keyboard-state": {
 		"capslock": true,
 		"numlock": true,
-		"format": "{icon}",
+		"format": {
+			"capslock": "A {icon}",
+			"numlock": "# {icon}"
+		},
 		"format-icons": {
 			"locked": "",
 			"unlocked": ""

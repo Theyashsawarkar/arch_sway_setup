@@ -232,19 +232,31 @@ window#waybar {
 }
 
 /* Caps Lock: Yellow — a "heads up", since it's usually left on by accident.
-   Text color only now, not a filled background block -- background stays
-   transparent (same as the unlocked state), bold weight carries the
-   emphasis a filled block used to. */
+   Real closed-padlock icon (format-icons "locked", fa-lock), prefixed
+   with a plain "A" in the config's format string -- the padlock shape
+   alone is shared with Num Lock below (waybar's format-icons pool is
+   the same set for every key, confirmed in man waybar-keyboard-state),
+   so color alone telling them apart meant memorizing which color means
+   which key. The "A"/"#" badges make it self-evident without that.
+
+   font-size was bumped here in an earlier pass to make the locked state
+   louder -- caused the whole bar to visibly grow taller the moment a
+   lock activated (waybar's fixed "height" doesn't hard-clip an
+   over-tall label the way it looks like it should). Reverted: no
+   font-size change anywhere in this rule now. The text-shadow glow
+   below is paint-only -- doesn't affect layout/height at all -- so it's
+   still the loud, "damn noticeable" treatment asked for, just without
+   the size change that broke the bar's height. */
 #keyboard-state label.capslock.locked {
     color: #F9E2AF;
-    font-weight: 800;
+    text-shadow: 0 0 8px rgba(249, 226, 175, 0.9), 0 0 14px rgba(249, 226, 175, 0.5);
 }
 
 /* Num Lock: Teal — neutral, since it's usually on intentionally. Same
-   text-only treatment as Caps Lock above. */
+   treatment and same reasoning as Caps Lock above. */
 #keyboard-state label.numlock.locked {
     color: #94E2D5;
-    font-weight: 800;
+    text-shadow: 0 0 8px rgba(148, 226, 213, 0.9), 0 0 14px rgba(148, 226, 213, 0.5);
 }
 
 /* WORKSPACES — same Mauve accent + neutral-gray language as the rest of

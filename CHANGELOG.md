@@ -3,6 +3,34 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-28 (capslock/numlock: fixed two real problems from the last pass)
+
+1. **Couldn't tell which lock was which.** Sharing one padlock shape between
+   caps/num (previous entry) meant color alone had to carry "which key is
+   this" -- fine once memorized, not self-evident. Added a plain letter badge
+   in the config's per-key `format` string alongside `{icon}`: `"A {icon}"`
+   for capslock, `"# {icon}"` for numlock. Icon shape/color (padlock,
+   Yellow/Teal) unchanged, just no longer the only signal.
+2. **Activating a lock grew the whole bar's height.** Real regression from
+   the previous pass's `font-size: 19px` bump on the locked state -- waybar's
+   configured `"height": 41` didn't hard-clip the over-tall label, so the bar
+   visibly grew the moment a lock activated and shrank back when it didn't.
+   Removed the font-size change entirely; the `text-shadow` glow stays (it's
+   paint-only, doesn't participate in layout/box-height calculation at all,
+   confirmed via CSS fundamentals -- this is why it was never the actual
+   cause), so the "damn noticeable" glow treatment survives without the size
+   change that broke the bar.
+
+Confirmed via `swaymsg` reload the bar reports back its configured height
+(`Bar configured (width: 1920, height: 41)`) and `font-size` no longer
+appears anywhere in the capslock/numlock CSS rules. Could not force a real
+capslock/numlock toggle to visually confirm the height stays fixed while
+actually locked (the same `wtype` limitation hit earlier -- synthetic
+Caps_Lock presses don't flip the real LED/modifier state in this
+environment) -- this rests on the CSS box-model reasoning (text-shadow
+cannot affect height, font-size was the only property that could and is now
+gone) rather than a live A/B screenshot.
+
 ## 2026-08-28 (capslock/numlock, take three -- real padlock, deliberately loud)
 
 Neither prior attempt was noticeable enough. Switched to a real closed-padlock
