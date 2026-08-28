@@ -109,6 +109,13 @@ window#waybar {
    confirm which applies without a live GTK inspector on this machine. */
 #network.speed, #network-speed {
     margin-right: 12px;
+    /* Download/upload numbers change digit count constantly (12KB vs
+       1.2MB vs 999B), which was making the whole pill visibly grow and
+       shrink every couple seconds. min-width doesn't stop it growing
+       past this on a genuine burst, but covers the normal range without
+       jitter -- measured the actual live rendered width first (177px)
+       and left real headroom above that rather than guessing a number. */
+    min-width: 200px;
 }
 
 #backlight {
@@ -260,7 +267,15 @@ window#waybar {
     color: #6C7086; /* Dim and unobtrusive when off */
 }
 
-/* Caps Lock: Yellow — a "heads up", since it's usually left on by accident.
+/* Caps Lock: Peach — a "heads up", since it's usually left on by accident.
+   Was Yellow (#F9E2AF) originally, switched here: Catppuccin Mocha's
+   whole palette is pastel by design, and Yellow specifically is one of
+   the palest members of it -- combined with the glow's blur softening
+   it further, it read as washed-out/whitish rather than a clear color
+   at this size. Peach is meaningfully more saturated (warm orange, not
+   pale cream) while keeping the same "warm, noticeable, not alarming"
+   feeling Yellow was going for.
+
    Real closed-padlock icon (fa-lock), prefixed with a plain "A" in
    keylock-status.sh's output -- the padlock shape alone is shared with
    Num Lock below (both scripts use the same fa-lock/fa-unlock icons),
@@ -276,8 +291,8 @@ window#waybar {
    still the loud, "damn noticeable" treatment asked for, just without
    the size change that broke the bar's height. */
 #custom-capslock.locked {
-    color: #F9E2AF;
-    text-shadow: 0 0 8px rgba(249, 226, 175, 0.9), 0 0 14px rgba(249, 226, 175, 0.5);
+    color: #FAB387;
+    text-shadow: 0 0 8px rgba(250, 179, 135, 0.9), 0 0 14px rgba(250, 179, 135, 0.5);
 }
 
 /* Num Lock: Teal — neutral, since it's usually on intentionally. Same

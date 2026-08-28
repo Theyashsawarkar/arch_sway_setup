@@ -3,6 +3,31 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-28 (network speed fixed width; capslock recolored off pale Yellow)
+
+Two separate asks. First: battery was checked and turned out fine -- at the
+time (38%, genuinely `Discharging` per `/sys/class/power_supply/BAT1/status`,
+not charging), neither the warning (30%) nor charging color applied because
+neither condition was true; it should render Green (the healthy-discharging
+state added earlier), not nothing.
+
+**Network speed**: `{bandwidthDownBytes}`/`{bandwidthUpBytes}` change digit
+count constantly (12KB vs 1.2MB vs 999B), which was making the whole pill
+visibly grow and shrink every couple seconds. Measured the actual live
+rendered width first (177px) rather than guessing, then set `min-width:
+200px` on `#network.speed`/`#network-speed` for real headroom. Verified live:
+pixel-sampled the pill's background boundary after reload, found it now
+spans ~204px, matching the new fixed width instead of the old content-only
+177px.
+
+**Capslock color**: was Yellow (`#F9E2AF`), read as washed-out/whitish --
+Catppuccin Mocha's whole palette is pastel by design and Yellow specifically
+is one of its palest members, and the glow's blur softened it further.
+Switched to Peach (`#FAB387`) -- meaningfully more saturated (warm orange,
+not pale cream) while keeping the same "warm heads-up, not alarming" feeling
+Yellow was going for. Num Lock's Teal is unchanged (not pale in the same way,
+no complaint raised about it).
+
 ## 2026-08-28 (capslock/numlock: merged into one pill instead of two)
 
 Asked to put both in a single group rather than two separate pills sitting
