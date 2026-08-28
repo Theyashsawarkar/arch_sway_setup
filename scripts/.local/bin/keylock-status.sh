@@ -13,19 +13,28 @@
 # Reads the real kernel LED state directly (same source waybar's own
 # built-in module reads via libevdev) rather than trusting any cached/
 # derived state -- this is genuinely live.
+#
+# Empty "text" when unlocked is deliberate: paired with "hide-empty-text":
+# true in the module's own waybar config, this makes the whole module
+# disappear -- no space reserved at all -- rather than sitting there
+# showing a dim "off" icon. Each module only reads its own key's LED, so
+# capslock/numlock show/hide completely independently of each other.
 set -uo pipefail
 
 KEY="${1:?usage: keylock-status.sh capslock|numlock}"
 
 case "$KEY" in
-    capslock) LED_GLOB="/sys/class/leds/*::capslock/brightness"; LABEL="Caps Lock"; ICON=$''; ICON_OFF=$''; BADGE="A" ;;
-    numlock)  LED_GLOB="/sys/class/leds/*::numlock/brightness";  LABEL="Num Lock";  ICON=$''; ICON_OFF=$''; BADGE="#" ;;
+    capslock) LED_GLOB="/sys/class/leds/*::capslock/brightness"; LABEL="Caps Lock"; ICON=$'\uf023'; BADGE="A" ;;
+    numlock)  LED_GLOB="/sys/class/leds/*::numlock/brightness";  LABEL="Num Lock";  ICON=$'\uf023'; BADGE="#" ;;
     *) echo "unknown key: $KEY" >&2; exit 1 ;;
 esac
 
 LED_FILE=$(ls $LED_GLOB 2>/dev/null | head -n1)
 if [ -z "$LED_FILE" ]; then
-    printf '{"text":"%s %s","class":"unlocked","tooltip":"%s: unknown (no LED device found)"}\n' "$BADGE" "$ICON_OFF" "$LABEL"
+    # Genuine error (no LED device found at all) -- surfaced, not hidden,
+    # so a real problem doesn't just silently disappear the same way the
+    # normal "off" state now does.
+    printf '{"text":"%s ?","class":"unlocked","tooltip":"%s: unknown (no LED device found)"}\n' "$BADGE" "$LABEL"
     exit 0
 fi
 
@@ -34,5 +43,5 @@ STATE=$(cat "$LED_FILE" 2>/dev/null || echo 0)
 if [ "$STATE" -gt 0 ]; then
     printf '{"text":"%s %s","class":"locked","tooltip":"%s: On -- click to turn off"}\n' "$BADGE" "$ICON" "$LABEL"
 else
-    printf '{"text":"%s %s","class":"unlocked","tooltip":"%s: Off -- click to turn on"}\n' "$BADGE" "$ICON_OFF" "$LABEL"
+    printf '{"text":"","class":"unlocked","tooltip":"%s: Off -- click to turn on"}\n' "$LABEL"
 fi

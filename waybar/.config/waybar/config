@@ -42,14 +42,16 @@
 		"exec": "/home/yash/.local/bin/keylock-status.sh capslock",
 		"on-click": "/home/yash/.local/bin/keylock-toggle.sh capslock",
 		"interval": 1,
-		"return-type": "json"
+		"return-type": "json",
+		"hide-empty-text": true
 	},
 
 	"custom/numlock": {
 		"exec": "/home/yash/.local/bin/keylock-status.sh numlock",
 		"on-click": "/home/yash/.local/bin/keylock-toggle.sh numlock",
 		"interval": 1,
-		"return-type": "json"
+		"return-type": "json",
+		"hide-empty-text": true
 	},
 
 	"clock": {

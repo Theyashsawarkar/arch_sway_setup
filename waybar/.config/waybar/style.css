@@ -235,37 +235,29 @@ window#waybar {
     transition: color 0.2s ease;
 }
 
-/* One continuous pill instead of two separate ones sitting side by side
-   -- same segmented-container technique used nowhere else in this file
-   quite like this, but the same underlying idea as network/network#speed
-   being visually paired. Capslock is the left half (rounded left corners
-   only, no right border, no right margin), numlock is the right half
-   (mirror image) -- they touch in the middle with no seam, one shared
-   background reading as a single group, while still being two
-   independently clickable custom modules underneath (merging them into
-   one module would lose per-key on-click). */
-#custom-capslock {
-    border-radius: 16px 0 0 16px;
-    border-right: none;
-    margin-right: 0;
-    padding-right: 6px;
+/* Used to be visually merged into one continuous pill (segmented-container
+   technique: capslock rounded left corners only, numlock rounded right
+   corners only, touching with no seam) -- reverted back to two
+   independent full pills. That merge assumed both are always present;
+   now that each hides completely when unlocked ("hide-empty-text": true
+   in the config, empty "text" from keylock-status.sh when off -- so only
+   locks that are actually active take up any bar space at all, and one
+   active lock doesn't drag an empty second pill along with it), a
+   half-rounded shape with its open edge flat would look visibly cut off
+   whenever only one of the two happens to be showing -- which is the
+   common case, not an edge case, once both can independently disappear.
+   Conditionally re-merging only when both happen to be visible would
+   need sibling-aware CSS (:first-child/:last-child against whatever
+   waybar's own hide/show does to the widget tree) that isn't practical
+   to verify reliably here -- independent pills is the correct trade,
+   not a shortcut. */
+#custom-capslock, #custom-numlock {
+    margin-right: 2px;
 }
 
-#custom-numlock {
-    border-radius: 0 16px 16px 0;
-    border-left: none;
-    /* -5px, not 0 -- config's top-level "spacing": 5 puts 5px between
-       every pair of sibling modules regardless of their own margins
-       (same reason clock/time needed a negative margin to sit close
-       together), so margin-left: 0 alone would still leave a visible
-       gap here. */
-    margin-left: -5px;
-    padding-left: 6px;
-}
-
-#custom-capslock.unlocked, #custom-numlock.unlocked {
-    color: #6C7086; /* Dim and unobtrusive when off */
-}
+/* No .unlocked rule anymore -- unlocked means keylock-status.sh reports
+   empty text, hide-empty-text removes the whole module, so there's
+   nothing to color for that state any more. */
 
 /* Caps Lock: Peach — a "heads up", since it's usually left on by accident.
    Was Yellow (#F9E2AF) originally, switched here: Catppuccin Mocha's

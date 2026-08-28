@@ -3,6 +3,43 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-28 (capslock/numlock: hidden entirely when off, not just dimmed)
+
+Wanted them to disappear completely (zero bar space) when off, each
+independently -- only one showing if only one is locked. Found the exact
+mechanism in `man waybar-custom`: `hide-empty-text` ("Disables the module
+when output is empty") removes the whole module from the layout, not just
+blanks its text. Added it to both `custom/capslock`/`custom/numlock`, and
+`keylock-status.sh` now outputs `"text":""` for the normal unlocked state
+(previously a dim gray icon+badge). A genuine error case (no LED device
+found at all) still shows something rather than silently vanishing --
+that's a real problem, not an "off" state.
+
+This broke the "one merged pill" look from two entries ago -- that treatment
+(capslock rounded-left-only, numlock rounded-right-only, touching with no
+seam) assumed both are always present. With either now able to disappear on
+its own, a half-rounded pill with its open edge flat would look visibly cut
+off whenever only one shows -- the common case now, not an edge case.
+Reverted to two independent full pills rather than attempting fragile
+sibling-aware CSS to conditionally re-merge them only when both happen to be
+visible, which wasn't practical to verify reliably. Correctness over keeping
+a cosmetic that no longer fits the new behavior.
+
+Hit the same raw-glyph-paste corruption bug again while editing
+`keylock-status.sh` -- `ICON=$''` landed as a genuinely empty string,
+caught by checking `hex(ord(ch))` codepoints immediately after writing
+rather than assuming the paste worked (established discipline in this repo,
+paid off again). Fixed using bash's own `$'\uXXXX'` ANSI-C-quote escape
+syntax instead -- plain ASCII text in the file, bash itself decodes it to
+the real character at runtime, so there's nothing for the paste to corrupt.
+Verified directly: `bash -c "echo -n \$'\uf023'"` piped through Python
+confirmed the exact right UTF-8 bytes.
+
+Verified live: pixel-sampled the row from workspaces through where
+capslock/numlock used to sit -- one continuous dark pill-background tone
+the whole way, transitioning directly into docker's own small intended gap,
+instead of the ~150px both indicators used to occupy together.
+
 ## 2026-08-28 (network speed fixed width; capslock recolored off pale Yellow)
 
 Two separate asks. First: battery was checked and turned out fine -- at the
