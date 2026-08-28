@@ -73,7 +73,7 @@
 	},
 
 	"custom/wallpaper": {
-		"format": "󰸉",
+		"format": "",
 		"tooltip-format": "Click to fetch a new wallpaper",
 		"on-click": "/home/yash/.local/bin/fetch_wallpaper.sh"
 	},

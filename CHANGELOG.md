@@ -3,6 +3,20 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-28 (wallpaper icon swap: fa-image instead of md-wallpaper)
+
+`md-wallpaper` didn't look good -- swapped for `fa-image`/`fa-picture-o`
+(`f03e`), the classic mountain-and-sun-in-a-frame glyph. Simpler than the
+MDI wallpaper icon, and matches the FontAwesome convention most of this
+bar's other icons already use (wifi, bluetooth, lock, battery) rather than
+introducing yet another icon family for one button. Verified present in the
+font first, same discipline as every other icon in this repo.
+
+Verified live: pixel-sampled the pill boundary again at the same position
+(x1430-1444) -- still a clean dark pill bounded by real wallpaper colors on
+both sides, Rosewater renders correctly, higher pixel count than the old
+icon (59 vs 24), consistent with a simpler, bolder glyph.
+
 ## 2026-08-28 (wallpaper refresh icon in waybar, left of docker)
 
 New `custom/wallpaper` module, placed right before `custom/docker` in
