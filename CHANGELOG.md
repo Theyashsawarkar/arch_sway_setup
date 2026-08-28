@@ -3,6 +3,30 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-28 (focused window border: Sapphire, tighter gaps)
+
+Real sway window borders this time (`client.focused` in `sway/config`), not
+waybar -- distinct from the workspace indicator's own earlier Mauve ->
+Sapphire change. Same reasoning applied here too: Mauve stays waybar's one
+universal hover/interactive accent, so the focused window (same "this is
+where you are right now" meaning as the focused workspace) gets its own
+color instead of sharing Mauve for both. `client.focused`'s border,
+indicator, and child_border all switched to Sapphire (`#74C7EC`);
+background/text left alone.
+
+"Margin" read as gaps -- the config's own existing comments already use
+"Margins / Gaps" interchangeably (`### Window Geometry (Margins / Gaps)`,
+and a later comment about outer gaps: "there's always a visible margin to
+the screen edge"), so that's the established vocabulary in this repo, not
+a guess. Reduced both `gaps inner` (8 -> 4) and `gaps outer` (9 -> 4).
+
+Verified live against a real open window, not just a clean reload: pulled
+its actual rect via `swaymsg -t get_tree` (x17,y58, 1886x1005), screenshotted,
+and pixel-searched right at those exact boundary coordinates -- found Sapphire
+solidly along both the top edge (1244 matching pixels at y58) and the left
+edge (400 matching pixels at x17), confirming the real border color, not just
+that the config parsed.
+
 ## 2026-08-28 (battery: real charging icon with the lightning bolt built in)
 
 Follow-up: wanted the charging icon to actually show a bolt again, from "the

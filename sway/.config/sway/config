@@ -36,9 +36,9 @@ font pango:JetBrainsMono Nerd Font 10
 
 # --- Window Geometry (Margins / Gaps) ---
 # Inner gaps separate adjacent windows from each other
-gaps inner 8
+gaps inner 4
 # Outer gaps separate windows from the screen edges and Waybar
-gaps outer 9
+gaps outer 4
 # inverse_outer (not plain "on"): outer (screen-edge) gaps show
 # specifically when a workspace has exactly one window -- the common
 # case -- so there's always a visible margin to the screen edge then.
@@ -63,8 +63,14 @@ shadow_color #0000007F
 
 # --- Theme Window Borders ---
 # Color configuration for window frames
+# Focused border switched from Mauve to Sapphire -- same reasoning as
+# the waybar workspace indicator's own Mauve -> Sapphire change: Mauve
+# stays reserved as the one universal "hover/interactive" accent
+# elsewhere (waybar), so the thing that's actually "where you are right
+# now" (the focused window, same as the focused workspace) gets its own
+# distinct color instead of double-booking Mauve for both meanings.
 # class                 border  bground text    indicator child_border
-client.focused          #CBA6F7 #11111B #CDD6F4 #CBA6F7   #CBA6F7
+client.focused          #74C7EC #11111B #CDD6F4 #74C7EC   #74C7EC
 client.focused_inactive #45475A #1E1E2E #A6ADC8 #45475A   #45475A
 client.unfocused        #313244 #1E1E2E #6C7086 #313244   #313244
 
