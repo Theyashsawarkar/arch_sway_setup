@@ -254,31 +254,41 @@ window#waybar {
 }
 
 #workspaces button {
-    padding: 0 7px; /* was 10px -- tighter, more compact chips */
+    padding: 0 8px; /* one notch wider than before -- the underline accent below needed a little more breathing room to not look cramped */
     color: #6C7086; /* Dim inactive — matches keyboard-state's unlocked gray */
     background-color: rgba(255, 255, 255, 0.03); /* Barely-there neutral chip, not mauve-washed while idle */
     border-radius: 8px; /* smaller radius to match the smaller chip */
     margin: 1px;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    /* Transparent border reserves the same 2px of vertical space idle,
+       hover, and focused all share -- without this, the chip's height
+       would shift by 2px the moment a border-bottom actually appears,
+       a layout jump every hover/switch would otherwise cause. */
+    border-bottom: 2px solid transparent;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
 /* Three real states now instead of two shades of the same mauve:
    idle (gray) -> hover (Lavender, "about to switch") -> focused (solid
    Mauve, "this is where you are"). Workspaces are the one module with
    three meaningfully different states, so a third distinct hue earns
-   its keep here even though every other module sticks to one accent. */
+   its keep here even though every other module sticks to one accent.
+   Hover/focused both get an underline accent now too -- reads like an
+   active browser/editor tab, clearer at a glance than color alone. */
 #workspaces button:hover {
     background-color: rgba(180, 190, 254, 0.18);
     color: #B4BEFE;
+    border-bottom: 2px solid rgba(180, 190, 254, 0.7);
 }
 
 #workspaces button.focused {
-    /* Text color only now, not a filled background block -- background
+    /* Text color only, not a filled background block -- background
        stays the same barely-there neutral chip every workspace button
-       has, bold weight + the Mauve number itself carries the "this is
-       where you are" signal instead of a solid fill. */
+       has. Bold weight + the Mauve number + a solid Mauve underline
+       (same accent, opaque instead of hover's translucent one) carry
+       the "this is where you are" signal instead of a solid fill. */
     color: #CBA6F7; /* Active workspace number pops in Mauve */
     font-weight: 800;
+    border-bottom: 2px solid #CBA6F7;
 }
 
 /* BLUETOOTH STATES */

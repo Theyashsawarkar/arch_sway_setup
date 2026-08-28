@@ -47,10 +47,11 @@ gaps outer 9
 # way: same gap calculation sway already does every frame.
 smart_gaps inverse_outer
 
-# Pressing the key for the workspace you're already on jumps back to
-# whichever workspace you were on before -- like alt-tab for
-# workspaces. Also free: pure behavior config, no extra process/timer.
-workspace_auto_back_and_forth yes
+# Tried workspace_auto_back_and_forth (pressing the key for the workspace
+# you're already on jumps back to whichever one you were on before, like
+# alt-tab) -- reverted: pressing $mod+1 while already on workspace 1
+# should just stay there, not silently toggle away to wherever you'd
+# been previously. Sway's default (off) is what's wanted here.
 
 # --- SwayFX Aesthetics (Rounded Corners & Shadows) ---
 # Smooth corners that match the curvature of your Waybar pills

@@ -3,6 +3,30 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-28 (workspace switcher: fixed a real toggle bug, added an underline accent)
+
+**Bug**: pressing `$mod+1` while already on workspace 1 jumped back to whatever
+workspace you'd been on before -- an alt-tab-style toggle, not "go to/stay on
+workspace 1." Root cause: `workspace_auto_back_and_forth yes`, added earlier this
+session as a deliberate feature ("like alt-tab for workspaces"). Reverted --
+removed the line entirely rather than setting it to `no` explicitly, since `no`
+is sway's own documented default (`man 5 sway`: "Default is no"). Verified with
+the exact reported reproduction: switched to workspace 1, then repeated the same
+switch command -- workspace 1 stayed focused both times (previously the second
+call would have jumped to workspace 2).
+
+**Look**: added a 2px underline accent to hover/focused workspace buttons --
+translucent Lavender on hover, solid Mauve when focused, same colors already in
+use, just a second visual cue (like an active browser/editor tab) on top of the
+existing bold-colored-number treatment. Widened button padding one notch (7px ->
+8px) so the underline doesn't read as cramped. A transparent `border-bottom`
+placeholder on the idle state reserves the same 2px vertical space always, so
+the chip doesn't visibly shift height the moment an underline actually appears.
+Verified live: pixel-searched after switching to workspace 1, found a solid
+~40px-wide horizontal Mauve line at the chip's bottom edge (y32-33), distinct
+from the small number-glyph pixels above it (y13-24) -- confirms a real
+underline, not just a coincidental color match.
+
 ## 2026-08-28 (caffeine mode now actually survives a reboot)
 
 Caffeine mode silently reset to off on every reboot regardless of what it was
