@@ -63,14 +63,19 @@ shadow_color #0000007F
 
 # --- Theme Window Borders ---
 # Color configuration for window frames
-# Focused border switched from Mauve to Sapphire -- same reasoning as
-# the waybar workspace indicator's own Mauve -> Sapphire change: Mauve
-# stays reserved as the one universal "hover/interactive" accent
-# elsewhere (waybar), so the thing that's actually "where you are right
-# now" (the focused window, same as the focused workspace) gets its own
-# distinct color instead of double-booking Mauve for both meanings.
+# Focused border: Lavender. Went through Mauve, then Sapphire -- asked
+# to just pick something beautiful, so picking with actual reasoning
+# instead of the obvious "Mauve, it's Catppuccin's flagship accent"
+# answer: Mauve already has a specific job as waybar's one universal
+# hover/interactive signal, and doubling it here would blur that
+# meaning even though the two contexts are physically separate.
+# Sapphire's now workspace-only (waybar). Lavender was barely used
+# anywhere (clock's time text, one workspace hover state) -- soft
+# periwinkle-lilac, genuinely one of the more elegant hues in this
+# palette, and free to mean one clean thing here: this is your active
+# window.
 # class                 border  bground text    indicator child_border
-client.focused          #74C7EC #11111B #CDD6F4 #74C7EC   #74C7EC
+client.focused          #B4BEFE #11111B #CDD6F4 #B4BEFE   #B4BEFE
 client.focused_inactive #45475A #1E1E2E #A6ADC8 #45475A   #45475A
 client.unfocused        #313244 #1E1E2E #6C7086 #313244   #313244
 

@@ -3,6 +3,25 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-28 (focused window border: Lavender, take two on "beautiful")
+
+Asked to just pick something beautiful for the focused window border, rather
+than continuing to iterate on Sapphire. Considered Mauve first -- it's
+Catppuccin's own flagship accent and the most common community choice for
+exactly this -- but it already has a specific job as waybar's one universal
+hover/interactive signal, and doubling it here would blur that meaning even
+though window borders and waybar hovers are physically separate contexts.
+Landed on Lavender: barely used anywhere else (just the clock's time text and
+one workspace hover state), genuinely one of the more elegant hues in this
+palette, and free to mean one clean thing here -- this is the active window.
+Sapphire stays workspace-only in waybar, untouched.
+
+Verified live against the same real open window as the previous entry (same
+rect, x17/y58/1886x1005): Lavender now renders at the exact same 1244 pixel
+positions Sapphire occupied at the top border, and Sapphire itself is
+completely gone from that location (0 matching pixels) -- confirms a clean
+swap, not a partial/leftover state.
+
 ## 2026-08-28 (focused window border: Sapphire, tighter gaps)
 
 Real sway window borders this time (`client.focused` in `sway/config`), not
