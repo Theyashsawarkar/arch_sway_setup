@@ -399,6 +399,16 @@ window#waybar {
     color: #94E2D5; /* Teal -- topped off and plugged in, nothing left to do */
 }
 
+/* A real percentage gradient now, not just the two emergency thresholds
+   -- previously anything from 31% to 100% rendered the exact same flat
+   Green, no distinction between "just above warning" and "basically
+   full". Same source-order-wins logic as warning/critical below: this
+   sits between .full and .warning so a genuinely low battery still
+   overrides it. */
+#battery.moderate {
+    color: #F9E2AF; /* Yellow -- getting into the range worth noticing, not yet urgent */
+}
+
 #battery.warning {
     color: #FAB387; /* Peach */
     border-color: rgba(250, 179, 135, 0.4);

@@ -119,12 +119,13 @@
 
 	"battery": {
 		"states": {
+			"critical": 15,
 			"warning": 30,
-			"critical": 15
+			"moderate": 60
 		},
 		"format": "{icon}  {capacity}%",
-		"format-charging": "  {capacity}%",
-		"format-plugged": "  {capacity}%",
+		"format-charging": "{icon}  {capacity}%",
+		"format-plugged": "{icon}  {capacity}%",
 		"format-icons": ["", "", "", "", ""]
 	},
 

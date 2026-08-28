@@ -3,6 +3,48 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-28 (battery: real percentage gradient, icon now tiers while charging too)
+
+Checked the actual live state first rather than guessing: real capacity 93-94%,
+genuinely `Discharging`. Confirmed via pixel search it *was* already rendering
+correctly (Green, the healthy-discharging color from an earlier pass) -- so the
+color mechanism itself wasn't broken, but two real gaps explain what looked like
+"not changing": color only had two emergency breakpoints (warning at 30%,
+critical at 15%) with everything from 31% to 100% rendering the exact same flat
+Green, and the icon was completely static (`format-charging`/`format-plugged`
+had a hardcoded bolt glyph, no `{icon}`) whenever actually plugged in --
+capacity-tiering only ever worked while discharging.
+
+**Color**: `states` turns out to accept arbitrary names, not just
+warning/critical (`man waybar-states`: "Every entry consists of a `<name>` and
+a `<value>`"). Added a third tier, `"moderate": 60` -> Yellow, between the
+existing warning (Peach) and critical (Red), positioned in the stylesheet
+between `.full` and `.warning` so a genuinely low battery still overrides it via
+the same source-order logic already used for the other states. Now: >60% Green,
+31-60% Yellow, 16-30% Peach, <=15% Red -- an actual gradient instead of two
+thresholds plus one flat color for the other 70 points of range.
+
+**Icon while charging**: `format-icons` turns out to be a single array shared
+by every format variant (confirmed: no per-status icon set exists in the
+battery module's schema) -- so a dedicated MDI `battery_charging_10..100` tiered
+set (found and verified present in the font, but not usable here since waybar
+can't switch icon arrays by status) wasn't the fix. Real fix:
+`format-charging`/`format-plugged` now use `{icon}` too, pulling from the same
+tiered array `format` already used -- same "icon shape = one concept (capacity),
+color = another (status)" split already used elsewhere in this bar (e.g. the
+volume mute icon). Trade-off: lost the static bolt glyph's obvious "this is
+charging" shape, but color already carries that signal clearly (Yellow while
+charging, Teal when full) -- flagged in case that trade isn't wanted back.
+
+Verified live: reloaded clean, pixel-confirmed battery still renders Green at
+the real 93% capacity (correctly *not* falsely triggering the new 60% Yellow
+tier). Couldn't verify the moderate/warning/critical Yellow/Peach/Red bands or
+the charging icon's tiering with real live A/B tests -- would need the actual
+battery to drain into those ranges or to actually be plugged in, neither of
+which could be forced from here -- this rests on the states mechanism already
+being independently proven correct in an earlier pass, not a fresh live test
+of every band.
+
 ## 2026-08-28 (whole bar reorganized: status indicators left, controls right)
 
 Full layout reorder, requested as a coherent principle rather than a one-off
