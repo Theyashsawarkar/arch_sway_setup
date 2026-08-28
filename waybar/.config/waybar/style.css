@@ -59,6 +59,11 @@ window#waybar {
    9px left / 19px right measured out to an 11px/12px visual gap. */
 #custom-caffeine {
     padding: 0 19px 0 9px;
+    margin-right: 12px; /* ends the device-controls cluster (caps/num lock, docker, caffeine), gap before brightness/volume */
+}
+
+#custom-docker {
+    margin-right: 2px; /* tight pairing with caffeine right after it */
 }
 
 /* Sits apart from the rest of the right group -- it's the one button
@@ -85,18 +90,20 @@ window#waybar {
 }
 
 /* --- Logical grouping instead of one evenly-spaced row ---
-   Left:  [workspaces] [caps/num lock] · [docker][caffeine][bluetooth]
-   Right: [network][network#speed] · [backlight][pulseaudio] · [battery]
-                nav | input state  ·  dev/controls/connectivity   ·  connectivity  ·  personal controls  ·  power
-   Tighter margin within a group, a clearer gap between groups, instead
-   of every pill sitting at the same uniform distance regardless of
-   what it's actually related to. */
-#custom-docker {
-    margin-left: 10px; /* starts the left status group, after capslock/numlock */
-}
-
+   Left:   [workspaces] · [bluetooth][network][network#speed]
+   Center: [time][date]
+   Right:  [caps/num lock][docker][caffeine] · [backlight][pulseaudio] · [battery] · [power]
+             nav  ·  connectivity status          time            device controls          personal controls    power  ·  power
+   Reorganized from an earlier layout that mixed indicators and
+   controls on both sides -- now indicators/status (workspaces,
+   bluetooth, wifi, network speed) read left to right on the left,
+   clock stays centered, and everything you actually click/toggle
+   (lock states, docker, caffeine, brightness, volume, battery, power)
+   lives on the right. Tighter margin within a group, a clearer gap
+   between groups, same principle as before, just re-derived for the
+   new adjacencies. */
 #bluetooth {
-    margin-right: 12px; /* ends the left status group, before the center clock */
+    margin-left: 10px; /* starts the left connectivity cluster, after workspaces */
 }
 
 #network {

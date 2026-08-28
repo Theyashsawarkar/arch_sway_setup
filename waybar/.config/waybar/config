@@ -5,11 +5,13 @@
 	"spacing": 5,
 
 	"modules-center": ["clock#time", "clock"],
-	"modules-left": ["sway/workspaces", "custom/capslock", "custom/numlock", "custom/docker", "custom/caffeine", "bluetooth"],
+	"modules-left": ["sway/workspaces", "bluetooth", "network", "network#speed"],
 
 	"modules-right": [
-		"network", 
-		"network#speed",
+		"custom/capslock",
+		"custom/numlock",
+		"custom/docker",
+		"custom/caffeine",
 		"backlight",
 		"pulseaudio",
 		"battery",

@@ -3,6 +3,39 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-28 (whole bar reorganized: status indicators left, controls right)
+
+Full layout reorder, requested as a coherent principle rather than a one-off
+tweak: status/indicator modules (workspace, bluetooth, wifi, network speed)
+read left to right on the left side, clock stays centered, and everything you
+actually click or toggle (lock states, docker, caffeine, brightness, volume,
+battery, power) lives on the right, in that order. Caps/num lock explicitly
+placed right before docker per the request.
+
+```
+Left:   [workspaces] · [bluetooth][network][network#speed]
+Center: [time][date]
+Right:  [caps/num lock][docker][caffeine] · [backlight][pulseaudio] · [battery] · [power]
+```
+
+Just reordering `modules-left`/`modules-right` wasn't enough on its own --
+several margin/grouping CSS rules were written assuming the *old* adjacencies
+(docker used to mark "start of the left status group", bluetooth used to mark
+its end). Re-derived the grouping margins for the new clusters: bluetooth now
+starts the left connectivity cluster (was docker's old role), caffeine now
+ends the new device-controls cluster on the right (docker+caffeine+lock
+states tight together, gap before brightness/volume) instead of bluetooth
+ending a group that no longer exists in that position.
+
+Verified live rather than trusting the reorder on paper: screenshotted the
+reloaded bar and pixel-searched for six different modules' known colors
+across the full bar width. Every ordering signpost landed where it should --
+workspace (Sapphire) at the far left (x12), wifi (Sky) starting only after a
+gap consistent with bluetooth preceding it (x242+), time/date centered
+(x830-1078), docker (Blue) now clearly in the right portion (x1480-1492), and
+the power button (Red) as the absolute rightmost element, right at the
+screen edge (x1894-1904).
+
 ## 2026-08-28 (capslock/numlock: hidden entirely when off, not just dimmed)
 
 Wanted them to disappear completely (zero bar space) when off, each
