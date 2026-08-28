@@ -3,6 +3,42 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-28 (Wi-Fi picker: color-coded rows -- networks vs saved vs commands)
+
+Networks, saved connections, and commands (Rescan/Enable/Disable/etc.) all
+rendered identically in the wofi menu -- upstream `networkmanager-dmenu` only
+colors the single active/connected line, everything else is plain default text.
+Couldn't fix this via config.ini (no per-category color hook exists there --
+checked the tool's actual config schema first, not just assumed), so wrote
+`scripts/.local/bin/wifi-picker.py`, a themed wrapper waybar now calls instead of
+`networkmanager_dmenu` directly.
+
+Loads the real installed script via `importlib` and monkeypatches exactly two
+functions (`get_wofi_highlight_markup`, `get_selection`) rather than forking the
+whole ~1500-line file -- all real NetworkManager interaction still runs upstream's
+own maintained code. Colors: Sky for an actual network (matches the wifi icon's
+own color elsewhere in the bar), Peach for a command, Teal for a saved connection
+-- detected via `Action.func` identity plus the `:SAVED` name suffix upstream
+already uses internally, both real signals the tool relies on for its own logic,
+not incidental strings I'm guessing at.
+
+Hit a real, worth-remembering bug while verifying this: `importlib.util.
+spec_from_file_location` returns `None` (not an error) when it can't infer a
+loader for a file with no `.py` extension, which `/usr/bin/networkmanager_dmenu`
+is -- failed one line later with a confusing `'NoneType' object has no attribute
+'loader'`. Fixed with an explicit `SourceFileLoader`.
+
+Second, more confusing bug while testing: a background-launched wofi process
+reliably vanished by the time a *separate* tool call checked on it, even under
+`setsid`, producing a false "colors aren't rendering" result from a screenshot of
+a stale/empty window. Real cause: this remote session's execution environment
+doesn't preserve backgrounded processes across separate tool calls the way an
+actual terminal session would. Fix for testing this class of thing here: launch,
+wait, and screenshot all within one single call -- retested that way and
+confirmed Sky/Mauve/Teal all render correctly in the live window via pixel
+search, matching what direct instrumentation of the patched functions had
+already shown (correct markup, correct wofi command with `-m` for pango markup).
+
 ## 2026-08-28 (waybar's network pill: dropped the visible signal percentage too)
 
 Follow-up: the "%" the user didn't want turned out to be on the always-visible

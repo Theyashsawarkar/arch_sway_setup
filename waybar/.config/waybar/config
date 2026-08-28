@@ -81,7 +81,7 @@
 		"tooltip-format-ethernet": "{ifname}\nIP: {ipaddr}/{cidr}\nGateway: {gwaddr}",
 		"tooltip-format-disconnected": "Disconnected",
 		"tooltip-format-disabled": "Wi-Fi disabled (rfkill)",
-		"on-click": "networkmanager_dmenu"
+		"on-click": "/home/yash/.local/bin/wifi-picker.py"
 	},
 
 	"network#speed": {
