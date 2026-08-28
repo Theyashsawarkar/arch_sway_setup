@@ -3,6 +3,33 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-28 (backlight icons: real empty-to-full pie fill, not MDI's sun-ray set)
+
+User reported the dimmest icon (1% brightness) looked like a full circle --
+checked this for real rather than assuming the percentage-tiering math was
+wrong (it wasn't): set brightness to a genuine 1% via `brightnessctl`,
+screenshotted, and rendered the actual icon as an ASCII brightness map. It
+really was a solid, densely-filled disk with zero rays or partial elements --
+confirmed the root cause is the icon choice itself, not a tiering bug.
+`md-brightness_1` (the MDI "sun ray count" icon this repo picked earlier) is
+apparently just a plain solid dot in MDI's own design language (the "base," no
+rays yet) -- reads as "complete/full" to anyone who doesn't already know that
+convention, the opposite of what a status icon should communicate.
+
+Switched to `md-circle_slice_1` through `_8` (picked 1/3/5/7/8 for a 5-tier
+spread) -- a genuine pie-chart fill progression, same visual language as
+battery/volume/wifi's own "empty container gradually fills up" icons already
+used elsewhere in this bar, instead of a ray-count metaphor that doesn't read
+the same way.
+
+Verified live, not just by eye: rendered the actual icon as a detailed ASCII
+brightness map at real 1% (mostly hollow ring, one small filled wedge visible,
+pixel count dropped from 104 to 10 compared to the old icon at the same
+brightness) and real 90% (densely filled disk, just a thin unfilled outline
+remaining) -- a genuine, intuitive empty-to-full contrast between the two,
+confirmed from the actual rendered pixels rather than assumed from the icon
+names.
+
 ## 2026-08-28 (focused window border: Red, the actually-dominant pick)
 
 Clock time/date (Blue/Maroon) landed well; the border's Mauve didn't --

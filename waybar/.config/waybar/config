@@ -31,7 +31,7 @@
 
 	"backlight": {
 		"format": "{icon}  {percent}%",
-		"format-icons": ["󰃚", "󰃛", "󰃜", "󰃝", "󰃞"],
+		"format-icons": ["󰪞", "󰪠", "󰪢", "󰪤", "󰪥"],
 		"tooltip-format": "Click: drag to set   Scroll: +/-5%",
 		"on-click": "/home/yash/.local/bin/brightness-slider.sh",
 		"on-scroll-up": "/home/yash/.config/sway/scripts/brightness_osd.sh +5%",
