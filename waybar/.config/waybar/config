@@ -10,6 +10,7 @@
 	"modules-right": [
 		"custom/capslock",
 		"custom/numlock",
+		"custom/wallpaper",
 		"custom/docker",
 		"custom/caffeine",
 		"backlight",
@@ -69,6 +70,12 @@
 	"clock#time": {
 	"format": "{:%I:%M %p}",
 	"tooltip": false
+	},
+
+	"custom/wallpaper": {
+		"format": "󰸉",
+		"tooltip-format": "Click to fetch a new wallpaper",
+		"on-click": "/home/yash/.local/bin/fetch_wallpaper.sh"
 	},
 
 	"custom/docker": {

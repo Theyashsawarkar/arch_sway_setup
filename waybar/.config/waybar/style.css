@@ -24,6 +24,7 @@ window#waybar {
 #custom-docker,
 #custom-capslock,
 #custom-numlock,
+#custom-wallpaper,
 #network,
 #backlight,
 #bluetooth,
@@ -43,7 +44,7 @@ window#waybar {
     transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
-#clock, #custom-capslock, #custom-numlock, #custom-docker, #network, #bluetooth, #backlight, #pulseaudio, #battery, #custom-power {
+#clock, #custom-capslock, #custom-numlock, #custom-wallpaper, #custom-docker, #network, #bluetooth, #backlight, #pulseaudio, #battery, #custom-power {
     padding: 0 12px;
 }
 
@@ -66,6 +67,16 @@ window#waybar {
     margin-right: 2px; /* tight pairing with caffeine right after it */
 }
 
+/* Wallpaper refresh button: Rosewater -- genuinely unused anywhere else in
+   this bar, warm and soft, fits a personalization/aesthetic action better
+   than any of the harder-working status colors already spoken for
+   elsewhere. Tight pairing with docker right after it, same as the rest
+   of the device-controls cluster. */
+#custom-wallpaper {
+    color: #F5E0DC; /* Rosewater */
+    margin-right: 2px;
+}
+
 /* Sits apart from the rest of the right group -- it's the one button
    here that ends the session rather than reporting on it, same reasoning
    as giving workspaces their own hover hue for a genuinely different kind
@@ -85,7 +96,7 @@ window#waybar {
 
 /* One consistent accent (Mauve) for "you're pointing at something
    interactive" everywhere, instead of a different color per module */
-#clock:hover, #custom-docker:hover, #custom-capslock:hover, #custom-numlock:hover, #network:hover, #bluetooth:hover, #custom-caffeine:hover, #backlight:hover, #pulseaudio:hover, #battery:hover {
+#clock:hover, #custom-docker:hover, #custom-capslock:hover, #custom-numlock:hover, #custom-wallpaper:hover, #network:hover, #bluetooth:hover, #custom-caffeine:hover, #backlight:hover, #pulseaudio:hover, #battery:hover {
     border-color: rgba(203, 166, 247, 0.4);
 }
 

@@ -3,6 +3,44 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-28 (wallpaper refresh icon in waybar, left of docker)
+
+New `custom/wallpaper` module, placed right before `custom/docker` in
+`modules-right` as asked. Reuses the existing `fetch_wallpaper.sh` pipeline
+directly rather than writing a new one -- it already had everything needed
+(download, retry, real image validation, safe fallback, `flock` so a manual
+click can't race the daily timer), just needed a trigger and some feedback.
+
+Added `notify-send` calls at the points that matter -- start ("Fetching a
+new one..."), success (using the new wallpaper itself as the notification
+icon via `-i`), fallback used, and total failure -- since the script used to
+be silent, log-file only. Fine for an unattended daily timer, not fine for a
+manual click that gives zero feedback for the several seconds a real
+download takes. Benefits the daily timer too, not just this new button.
+
+Icon is `md-wallpaper` (`f0e09`), a genuine dedicated "wallpaper" glyph,
+colored Rosewater -- the one hue in this palette that was still completely
+unused anywhere in the bar, fitting for a personalization action rather than
+reusing a status color that already means something else. No `exec`/
+`interval` on the module at all -- confirmed via `man waybar-custom` that
+`exec` isn't mandatory, a static `format` + `on-click` is a valid custom
+module on its own, since there's no changing state to poll for a plain
+action button.
+
+Caught the same recurring codepoint-corruption issue immediately (`"format":
+""` landed empty from a raw pasted glyph) and forgot the module wasn't in
+any of the shared pill-styling CSS selector lists at first, which left it
+rendering as bare unstyled text -- added `#custom-wallpaper` to the
+background/border list, the padding-override list, and the hover-accent
+list, matching every other module.
+
+Verified thoroughly: pixel-sampled the pill's actual background boundary
+(clean dark tone x1430-1444, real wallpaper colors immediately outside on
+both sides -- not just eyeballing a noisy full-height ASCII render, which
+initially looked ambiguous), and ran the on-click script exactly as waybar
+would invoke it (`sh -c`) -- real download succeeded, wallpaper genuinely
+changed live on the machine, log confirms the full pipeline ran clean.
+
 ## 2026-08-28 (active workspace matches the focused window border: both Red)
 
 Asked to make the workspace indicator match the focused window border's

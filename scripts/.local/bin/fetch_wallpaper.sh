@@ -9,7 +9,11 @@
 # something that could crash swaybg.
 #
 # Logs to $LOG_FILE (also visible via `journalctl --user -u wallpaper.service`
-# when run from the timer).
+# when run from the timer). Also fires notify-send at the key points (start,
+# success, fallback used, total failure) -- this used to be silent, log-file
+# only, which was fine for the daily timer but meant a manual click (the
+# waybar wallpaper-refresh icon) gave zero feedback that anything happened
+# for the several seconds a real download takes.
 
 set -uo pipefail
 # Deliberately not `-e`: this script must always be able to reach its own
@@ -48,8 +52,11 @@ fi
 exec 9>"$LOCK_FILE"
 if ! flock -n 9; then
   log INFO "another fetch_wallpaper.sh is already running, exiting"
+  notify-send -u low "Wallpaper" "Already fetching one -- hang tight"
   exit 0
 fi
+
+notify-send -u low "Wallpaper" "Fetching a new one..."
 
 is_valid_image() {
   local f="$1"
@@ -82,11 +89,13 @@ use_fallback() {
     ln -sf "$LAST_GOOD" "$CURRENT"
     if apply_background image "$CURRENT"; then
       log INFO "applied last known-good wallpaper ($LAST_GOOD)"
+      notify-send -u normal "Wallpaper" "Couldn't fetch a new one ($1) -- kept the last good wallpaper"
     fi
   else
     log WARN "no last known-good wallpaper on disk yet either -- using a solid color"
     if apply_background color "$FALLBACK_COLOR"; then
       log INFO "applied solid-color fallback (#$FALLBACK_COLOR)"
+      notify-send -u critical "Wallpaper" "Couldn't fetch a new one ($1), and no previous wallpaper on disk -- using a solid color"
     fi
   fi
 }
@@ -149,6 +158,8 @@ fi
 
 if apply_background image "$CURRENT"; then
   log INFO "applied new wallpaper: $FILEPATH"
+  notify-send -u low -i "$CURRENT" "Wallpaper" "New wallpaper applied"
 else
   log WARN "couldn't reach sway IPC to apply immediately; current.jpg is updated and will show on next sway start/reload"
+  notify-send -u normal "Wallpaper" "Fetched a new one, but couldn't apply it live -- will show on next sway reload"
 fi

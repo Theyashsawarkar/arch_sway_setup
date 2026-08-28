@@ -210,6 +210,13 @@ line in `sway/.config/sway/config` only sets the background once, at sway startu
 this script is what keeps it updated day to day, and what applies it live via
 `swaymsg` without needing a sway restart.
 
+Also triggerable on demand now, not just once a day: waybar's `custom/wallpaper`
+module (Rosewater icon, left of the docker module) runs this exact same script on
+click, no separate wrapper. It's the same `flock`-guarded, retry/validate/fallback
+pipeline either way — a manual click can't race the daily timer, and the script
+picking up `notify-send` calls (fetching / success / fallback / failure) benefits
+both paths, not just the button, since it used to be silent, log-file-only.
+
 It's built so that no single failure — API downtime, a malformed response, no network,
 or a totally fresh machine with no wallpaper history yet — can leave sway without a
 background or crash `swaybg` (the helper process sway delegates background rendering
