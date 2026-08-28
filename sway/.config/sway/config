@@ -80,6 +80,14 @@ input type:touchpad {
 		natural_scroll enabled
 }
 
+# No cursor theme was ever explicitly set anywhere (checked: not in env,
+# not here, not in gtk-3.0/settings.ini) -- apps were left to each fall
+# back to their own default resolution, inconsistently. "default" already
+# resolves to Adwaita (/usr/share/icons/default/index.theme), just never
+# told to anything explicitly. Real, worthwhile fix on its own regardless
+# of any one app's cursor behavior.
+seat seat0 xcursor_theme Adwaita 24
+
 ### Key bindings
 #
 # Basics:

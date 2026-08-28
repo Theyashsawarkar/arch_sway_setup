@@ -3,6 +3,52 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-28 (cursor theme was never actually configured anywhere; wofi hover-cursor investigated)
+
+User reported the cursor doesn't turn into a pointer hovering over entries in the
+WiFi/Bluetooth pickers. Checked `man wofi`/`man wofi-style` (well, the actual
+`wofi.5`/`wofi.7`/`wofi.1` man pages -- there's no separate wofi-style one) for any
+"cursor" mention at all: zero hits anywhere in wofi's own documentation. This
+matches an already-documented finding from this repo's own history (the power-menu
+build): "no CSS cursor support" in wofi's `--dmenu` mode.
+
+Before accepting that at face value again, checked something adjacent that turned
+out to be a real, separate, worthwhile gap: **no cursor theme was configured
+anywhere on this system at all** -- not in any env var (`XCURSOR_THEME` was
+entirely absent, only `XCURSOR_SIZE=24` existed from some other default),
+not in `sway/config` (no `seat ... xcursor_theme` line existed), not in
+`gtk-3.0/settings.ini` or `gtk-4.0/settings.ini` (`gtk-cursor-theme-name` was
+never set). `/usr/share/icons/default` already resolves to Adwaita
+(confirmed: `Inherits=Adwaita` in its `index.theme`), so a sane default cursor
+theme was always *available*, just never explicitly told to anything. Fixed
+with `seat seat0 xcursor_theme Adwaita 24` in `sway/config` and
+`gtk-cursor-theme-name=Adwaita` / `gtk-cursor-theme-size=24` in both GTK
+settings files.
+
+**Tested whether this fixes the actual reported issue, rather than assuming**:
+launched wofi fresh after `swaymsg reload` and checked its real environment
+(`/proc/<pid>/environ`) -- still no `XCURSOR_THEME` there, meaning sway's
+env-var export for the seat's cursor theme apparently only happens at sway's
+own actual startup, not on a soft reload (same class of caveat this repo
+already has documented for plain `exec` lines not re-running on reload --
+will take full effect after next login, not before). The `gtk-cursor-theme-name`
+half should already apply immediately though, since wofi is a real GTK3 app
+(confirmed via `ldd`) reading `gtk-3.0/settings.ini` fresh on every launch, no
+caching involved.
+
+**The actual "no pointer on hover" complaint is a separate thing from theme
+configuration, and isn't fixed by any of this**: a cursor theme controls which
+glyph set gets used for whatever shape is requested, not whether a shape change
+gets requested in the first place. If wofi's dmenu list rows never ask the
+compositor for a "pointer" cursor on hover (which is what "no CSS cursor
+support" means), a correctly-configured theme changes nothing about that --
+there's no shape-change request to render *from* that theme. Real, structural
+wofi limitation, same class as the missing hover-tooltip found earlier -- not
+fixable through config here. The honest options: live with it (matches the
+rest of this bar's wofi-based UI language), or switch the picker backend to
+something with fuller cursor support (e.g. rofi) at the cost of visual
+consistency with everything else that already matches wofi's theme.
+
 ## 2026-08-28 (Bluetooth gets its own picker; WiFi picker no longer shows it)
 
 Four asks in one go: WiFi's menu shouldn't show Bluetooth actions, keyboard focus
