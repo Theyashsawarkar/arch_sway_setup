@@ -96,7 +96,7 @@
 		"format-connected": "  {device_alias}",
 		"format-connected-battery": "  {device_alias}  {device_battery_percentage}%",
 		"tooltip-format": "Bluetooth Status: {status}",
-		"on-click": "nwg-bar -t /home/yash/.config/nwg-bar/bluetooth.json -s /home/yash/.config/nwg-bar/style.css",
+		"on-click": "/home/yash/.local/bin/bluetooth-picker.py",
 		"max-length": 25
 	},
 

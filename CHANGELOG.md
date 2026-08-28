@@ -3,6 +3,55 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-28 (Bluetooth gets its own picker; WiFi picker no longer shows it)
+
+Four asks in one go: WiFi's menu shouldn't show Bluetooth actions, keyboard focus
+should land in the search box automatically, Bluetooth should get "the same modal
+approach" with its own unique options (not WiFi's), and the connected entry should
+read as more than just a different text color.
+
+**Keyboard focus**: tested this directly before assuming it needed a fix --
+launched the picker with zero clicks, typed `wtype "Maha"` into it, screenshotted
+before/after. ~7800 pixels differed in the content region, confirming the typed
+text reached wofi's search box and filtered the list immediately. This already
+works, nothing to change.
+
+**WiFi menu, Bluetooth-free**: `wifi-picker.py` now monkeypatches
+`create_other_actions` too (previously only `get_wofi_highlight_markup` and
+`get_selection`) to drop the Bluetooth toggle entry by `Action.func` identity
+(`is not nmdm.toggle_bluetooth`) before it ever reaches the menu.
+
+**Bluetooth picker**: new `scripts/.local/bin/bluetooth-picker.py`, same modal
+approach as the WiFi one (wofi --dmenu, category colors) but fully self-contained
+on `bluetoothctl` rather than wrapping a third-party tool -- checked first, and
+the only wofi/dmenu-adjacent Bluetooth picker that exists at all is a 3-year-stale
+rofi-specific AUR package, not worth the dependency over ~180 lines. Verified
+every `bluetoothctl` subcommand against this machine's real bluez (5.87) before
+writing anything against it -- caught that `paired-devices` isn't a valid command
+in this version (`devices Paired` is), and confirmed `--timeout <n> scan on`
+works non-interactively. Menu: power toggle, bounded 8s scan (relaunches itself
+after, same self-relaunch pattern upstream networkmanager_dmenu uses for its own
+rescan), Bluetooth Manager shortcut, paired devices (click connects/disconnects),
+and -- added after noticing the "nearby" color was defined but nothing used it,
+which would've made "Scan for Devices" a dead button -- devices bluez has seen
+but not paired with yet, click to pair+trust+connect in one go. Every
+`bluetoothctl` call bounded with a timeout that's now caught centrally in `run()`
+(returns an ordinary failed result instead of an uncaught traceback) since
+connect/pair/disconnect can all hang waiting on a device that needs interactive
+PIN confirmation, which has nowhere to go in a dmenu flow -- documented as a real
+limitation (falls back to suggesting Bluetooth Manager) rather than silently
+dropped. waybar's `bluetooth` on-click now points here; deleted the now-fully-
+superseded `nwg-bar/bluetooth.json`.
+
+**Connected-entry border**: Pango `<span>` markup has no border attribute at all
+(checked: foreground/background/underline/strikethrough/weight/style/size exist,
+border does not) -- a literal CSS-style border around the connected entry isn't
+achievable through this rendering path. Closest honest approximation, applied to
+both pickers: a "┃ " heavy-vertical-line prefix inside the same highlighted span,
+same idea as an active-indicator sidebar tick in a lot of TUI/statusline designs,
+layered on top of the existing filled-background highlight rather than replacing
+it.
+
 ## 2026-08-28 (Wi-Fi picker: color-coded rows -- networks vs saved vs commands)
 
 Networks, saved connections, and commands (Rescan/Enable/Disable/etc.) all

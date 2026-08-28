@@ -5,18 +5,21 @@ colors -- network / saved connection / command -- on top of upstream's
 existing active-connection highlight, so the different kinds of rows in
 the menu ("connect to this network" vs "a saved connection" vs "a command
 like Rescan/Enable/Disable") are visually distinguishable at a glance
-instead of all rendering the same color.
+instead of all rendering the same color. Also strips the Bluetooth toggle
+out of the command list -- this menu is WiFi-only now, Bluetooth gets its
+own separate picker (bluetooth-picker.py) with its own unique options.
 
-Monkeypatches exactly two functions (get_wofi_highlight_markup,
-get_selection) on the real installed module rather than forking the whole
-script -- everything else (NetworkManager interaction, connecting,
-scanning, password prompts) still comes from the real, maintained
-upstream package. Category detection is by Action.func identity
-(process_ap == a real network) plus the ":SAVED" suffix upstream already
-puts on saved-connection action names -- both are core to how the tool
-actually works, not incidental detail likely to silently change, but
-wrapped defensively (_category() swallows any AttributeError) so a future
-upstream refactor degrades to "no color" rather than a crash.
+Monkeypatches three functions (get_wofi_highlight_markup, get_selection,
+create_other_actions) on the real installed module rather than forking
+the whole script -- everything else (NetworkManager interaction,
+connecting, scanning, password prompts) still comes from the real,
+maintained upstream package. Category detection is by Action.func
+identity (process_ap == a real network) plus the ":SAVED" suffix upstream
+already puts on saved-connection action names -- both are core to how
+the tool actually works, not incidental detail likely to silently
+change, but wrapped defensively (_category() swallows any
+AttributeError) so a future upstream refactor degrades to "no color"
+rather than a crash.
 
 get_selection is simplified from upstream to the wofi-only code path
 (upstream branches on rofi/wofi/plain-dmenu; this repo only ever uses
@@ -46,10 +49,19 @@ CATEGORY_COLORS = {
     "command": "#FAB387",  # Peach -- "this changes something" energy
 }
 
+# "┃ " prefix on the active line, inside the same colored span so it
+# inherits the highlight foreground -- Pango <span> markup has no border
+# attribute at all (checked: foreground/background/underline/strikethrough/
+# weight/style/size exist, border does not), so a real CSS-style border
+# around the connected entry isn't achievable here. This is the closest
+# honest approximation: a colored sidebar tick, same idea as an "active
+# indicator bar" in a lot of TUI/statusline designs, on top of the
+# existing filled-background highlight rather than instead of it.
+ACTIVE_MARKER = "┃ "  # heavy vertical line
+
 _COMMAND_FUNC_NAMES = (
     "toggle_wifi",
     "toggle_networking",
-    "toggle_bluetooth",
     "toggle_wwan",
     "launch_connection_editor",
     "delete_connection",
@@ -79,8 +91,10 @@ def themed_markup(action):
     """Replacement for nmdm.get_wofi_highlight_markup -- colors every line
     by category. The active connection still gets the original
     highlight_fg/bg/bold treatment from config.ini on top, checked first
-    so it always wins over the category color."""
+    so it always wins over the category color, plus the ACTIVE_MARKER
+    prefix as a border stand-in."""
     style = ""
+    prefix = ""
     if action.is_active:
         highlight_fg = nmdm.CONF.get("dmenu", "highlight_fg", fallback="")
         highlight_bg = nmdm.CONF.get("dmenu", "highlight_bg", fallback="")
@@ -93,6 +107,7 @@ def themed_markup(action):
             style += f'background="{highlight_bg}" '
         if highlight_bold:
             style += 'weight="bold" '
+        prefix = ACTIVE_MARKER
     else:
         color = CATEGORY_COLORS.get(_category(action))
         if color:
@@ -100,7 +115,7 @@ def themed_markup(action):
 
     if not style:
         return str(action)
-    return f"<span {style}>" + str(action) + "</span>"
+    return f"<span {style}>" + prefix + str(action) + "</span>"
 
 
 def themed_get_selection(all_actions):
@@ -126,8 +141,20 @@ def themed_get_selection(all_actions):
     return action[0]
 
 
+_orig_create_other_actions = nmdm.create_other_actions
+
+
+def wifi_only_other_actions(client):
+    """WiFi-only menu -- strips the Bluetooth toggle upstream mixes in.
+    Bluetooth gets its own separate picker with its own unique options."""
+    return [
+        a for a in _orig_create_other_actions(client) if a.func is not nmdm.toggle_bluetooth
+    ]
+
+
 nmdm.get_wofi_highlight_markup = themed_markup
 nmdm.get_selection = themed_get_selection
+nmdm.create_other_actions = wifi_only_other_actions
 
 if __name__ == "__main__":
     nmdm.main()
