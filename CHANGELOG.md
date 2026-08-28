@@ -3,6 +3,17 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-28 (waybar's network pill: dropped the visible signal percentage too)
+
+Follow-up: the "%" the user didn't want turned out to be on the always-visible
+waybar pill itself (`format-wifi`), not the wofi dropdown from the previous
+entry -- two different places both showing signal info, only one had been fixed.
+`format-wifi` went from `"  {essid}  {signalStrength}%"` back to `"  {essid}"`.
+Left `tooltip-format-wifi` untouched -- it already has the full detail (signal%,
+dBm, frequency, IP, gateway) and, unlike wofi's dmenu list, waybar's tooltips are
+real GTK tooltips that actually work on hover. So the bar now genuinely has the
+"just the name, full detail on hover" behavior that wofi's list couldn't deliver.
+
 ## 2026-08-28 (Wi-Fi picker UI: icons instead of signal-strength text)
 
 Follow-up on the Wi-Fi picker from earlier today: wanted the list to just show

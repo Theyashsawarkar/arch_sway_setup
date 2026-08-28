@@ -70,7 +70,7 @@
 	},
 
 	"network": {
-		"format-wifi": "  {essid}  {signalStrength}%",
+		"format-wifi": "  {essid}",
 		"format-ethernet": "  {ipaddr}",
 		"format-disconnected": "  Offline",
 		"format-disabled": "  Disabled",
