@@ -4,7 +4,7 @@
 	"height": 41,
 	"spacing": 5,
 
-	"modules-center": ["clock"],
+	"modules-center": ["clock", "clock#time"],
 	"modules-left": ["sway/workspaces", "keyboard-state", "custom/docker", "custom/caffeine", "bluetooth"],
 
 	"modules-right": [
@@ -48,9 +48,18 @@
 	},
 
 	"clock": {
-	// Formats as: Wed, August 12   02:11 PM
-	"format": "  {:%a, %B %d   %I:%M %p}",
+	// Date half. Time lives in a separate "clock#time" instance right next
+	// to it -- waybar's clock format only accepts one {:...} placeholder
+	// per module (confirmed: a second one throws "invalid arg-id in format
+	// string"), so two colors means two module instances, same pattern as
+	// network/network#speed.
+	"format": "  {:%a, %B %d}",
 	"tooltip-format": "<tt><small>{calendar}</small></tt>"
+	},
+
+	"clock#time": {
+	"format": "{:%I:%M %p}",
+	"tooltip": false
 	},
 
 	"custom/docker": {

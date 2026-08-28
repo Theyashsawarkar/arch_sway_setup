@@ -125,10 +125,23 @@ window#waybar {
    state changes -- these are identity colors for modules that otherwise
    never had one. --- */
 
-/* Clock: glanced at constantly, so it gets the calmest, warmest hue in
-   the palette rather than anything that could read as a status/alert. */
+/* Clock: date half keeps the full pill treatment (calmest, warmest hue --
+   glanced at constantly, shouldn't read as a status/alert). Time lives in
+   the separate clock#time instance right next to it (see config comment
+   for why), styled below as plain floating text with no background of
+   its own -- the same "boxed pill + adjoining plain-colored text" motif
+   already established by network/network#speed, not a new pattern. */
 #clock {
     color: #F5E0DC; /* Rosewater */
+}
+
+/* Covers both the documented naming convention (.time as an added class)
+   and the alternate hyphenated id some waybar versions use -- same
+   uncertainty already noted for #network.speed/#network-speed. */
+#clock.time, #clock-time {
+    color: #B4BEFE; /* Lavender */
+    margin-left: -8px; /* sits right up against the date pill, reads as one unit */
+    margin-right: 4px;
 }
 
 /* Backlight: Yellow is the single strongest, most universal color
@@ -144,22 +157,29 @@ window#waybar {
     color: #F9E2AF; /* Yellow */
 }
 
-/* Pulseaudio: audio is the most expressive/personal control in the bar,
-   so it gets the most vivid, least "serious" hue left in the palette. */
+/* Pulseaudio: Maroon -- deep, warm, grounded, reads as "dark/dominant"
+   rather than the soft pastel Pink tried first. Distinct from Yellow on
+   backlight right next to it, and Maroon's other use (bluetooth.on) is
+   in the opposite group on the far side of the bar, so no adjacency
+   clash the way Pink/Flamingo had. */
 #pulseaudio {
-    color: #F5C2E7; /* Pink */
+    color: #EBA0AC; /* Maroon */
 }
 
 /* Docker: Blue when containers are actually running (matches Docker's
    own brand blue, reads as "infrastructure active"), dim gray when idle
    -- same "off" language as bluetooth.disabled/caffeine.inactive rather
    than a second distinct "nothing running" color. */
+/* Icon and count are now colored independently via inline Pango spans in
+   docker-status.sh itself (Blue icon always, Green/gray count), so the
+   class here drives a border-color tint on the pill instead of
+   duplicating that signal in a flat text color. */
 #custom-docker.running {
-    color: #89B4FA; /* Blue */
+    border-color: rgba(166, 227, 161, 0.4);
 }
 
 #custom-docker.idle {
-    color: #6C7086;
+    border-color: transparent;
 }
 
 /* Bluetooth: "on" is the powered-on-but-nothing-connected state -- was
@@ -277,7 +297,22 @@ window#waybar {
     box-shadow: 0 0 8px rgba(250, 179, 135, 0.35);
 }
 
-/* BATTERY STATES */
+/* BATTERY STATES -- colored by actual charge status now, not just the
+   two emergency thresholds. #battery.<status> classes come from the
+   kernel's power_supply status file (see waybar-battery(5)), confirmed
+   via `cat /sys/class/power_supply/BAT1/status` on this machine. Placed
+   before .warning/.critical/.charging below: same selector specificity
+   (#battery.<class>), so source order decides when e.g. both
+   .discharging and .warning apply at once -- the low-battery colors
+   need to win, so they stay later in the file. */
+#battery.discharging {
+    color: #A6E3A1; /* Green -- healthy, running on battery normally */
+}
+
+#battery.full {
+    color: #94E2D5; /* Teal -- topped off and plugged in, nothing left to do */
+}
+
 #battery.warning {
     color: #FAB387; /* Peach */
     border-color: rgba(250, 179, 135, 0.4);

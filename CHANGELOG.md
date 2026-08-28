@@ -3,6 +3,52 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-28 (color pass, part 3: battery charge states, clock split, docker/volume rework)
+
+- **Battery**: only had colors for the two emergency thresholds (warning/critical)
+  plus charging -- the normal "healthy, running on battery" state (`Discharging`,
+  confirmed via `cat /sys/class/power_supply/BAT1/status`) fell through to plain
+  silver. Added `#battery.discharging` (Green) and `#battery.full` (Teal, topped
+  off and plugged in) using the `#battery.<status>` classes waybar derives from the
+  kernel's power_supply status file (`waybar-battery(5)`) -- now every real charge
+  state has its own color: Green healthy, Yellow charging, Teal full, Peach warning,
+  Red critical. Placed before the existing warning/critical/charging rules in the
+  stylesheet since they share selector specificity -- source order is what makes
+  the low-battery colors win when both a status and a capacity-state class apply
+  at once.
+- **Pulseaudio**: Pink -> Maroon. Asked for something "dark/dominating" instead of
+  a pastel -- Maroon is deep and grounded, distinct from Yellow on backlight right
+  next to it, and its other use (bluetooth.on) sits in the opposite group so there's
+  no adjacency clash.
+- **Clock**: date and time are now two different colors (Rosewater / Lavender).
+  First attempt used two `{:...}` placeholders in one format string with inline
+  Pango spans -- waybar rejected it outright ("invalid arg-id in format string"),
+  confirming the clock module only accepts one datetime placeholder per instance.
+  Real fix: split into two module instances, `clock` (date, full pill) and
+  `clock#time` (time, plain floating text next to it, no background of its own) --
+  same "boxed pill + adjoining plain-colored text" pattern network/network#speed
+  already established, not a new one.
+- **Docker**: icon is now a constant Blue (was tied to running/idle state before),
+  count switches Green/gray depending on whether anything's actually running --
+  colored independently via inline Pango spans in `docker-status.sh` rather than
+  one flat color for the whole label. The `running`/`idle` class still exists on
+  the module, now driving a border-color tint on the pill instead of duplicating
+  the count's own color signal.
+
+Caught one real bug while writing this: a code comment mentioning the literal
+path `power_supply/*/status` broke waybar's CSS parser outright (`'/*' in comment
+block` at style.css:288) -- the `*/` inside that path silently closed the CSS
+comment early. Waybar wouldn't even start until this was reworded. Also had to
+rebuild `/tmp/pngdecode.py` a second time -- a mid-session connection drop wiped
+`/tmp` entirely, same as every other time this has come up.
+
+Verified every color live: reloaded, screenshotted, pixel-clustered all six new
+colors against their expected x-position in the bar (clock date/time correctly
+split into adjacent clusters at x834-985/x1016-1084, battery's new Green at
+x1795-1846 near the power button, docker's Blue icon narrowed to just x343-355
+now that the count isn't also blue, pulseaudio's Maroon confirmed distinct from
+backlight's Yellow right beside it).
+
 ## 2026-08-27 (color pass, part 2: every remaining module gets its own hue)
 
 Finished the "bar is too monochrome" pass -- clock, backlight, pulseaudio, docker,
