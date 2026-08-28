@@ -3,6 +3,25 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-28 (color pass, part 5: date color, take three)
+
+Sky (matching network.wifi exactly) was rejected as a literal duplicate. Tried
+Sapphire next -- still a cool cyan-blue like Sky, close enough in the same "family"
+that it still read as basically the same color at a glance. Landed on Flamingo: a
+genuinely different hue (warm coral, not blue at all), so there's no ambiguity with
+wifi, and it pairs as a warm/cool contrast against time's Lavender instead of two
+blues sitting side by side.
+
+Verified live: pixel-clustered date/wifi/time after reload -- Flamingo/date at
+x927-1078, Sky/wifi at x1151-1354 (no overlap in position or color), Lavender/time
+at x830-898 immediately to date's left, unchanged.
+
+Also hit the remote session's connection dropping mid-verification on the previous
+attempt (Sapphire) -- the CSS change had already landed and waybar had already
+reloaded clean before the drop, confirmed by grep once the connection came back,
+but the pixel-screenshot step and this commit hadn't happened yet. Nothing was
+lost, just delayed to this entry.
+
 ## 2026-08-28 (color pass, part 4: clock reorder/recolor, docker count -> white)
 
 Follow-up feedback on part 3: Rosewater on the date "doesn't look good", and asked

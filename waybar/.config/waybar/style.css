@@ -128,12 +128,15 @@ window#waybar {
 /* Clock: time comes first (left), date second (right) -- clock#time is
    the separate module instance, plain floating text with no background
    of its own, same "boxed pill + adjoining plain-colored text" motif
-   already established by network/network#speed. Sky on the date instead
-   of the original Rosewater -- asked for something closer to the wifi
-   module's color (also Sky) and the time's Lavender rather than the pale
-   pink that was there before. */
+   already established by network/network#speed. Date is Flamingo -- Sky
+   was rejected for matching network.wifi, and Sapphire (tried next,
+   still a cool cyan-blue like Sky) still read as too close to it.
+   Flamingo is a genuinely different hue family (warm coral, not blue at
+   all), so there's no ambiguity with wifi, and it pairs as a warm/cool
+   contrast against time's Lavender rather than two blues sitting
+   side by side. */
 #clock {
-    color: #89DCEB; /* Sky -- matches network.wifi */
+    color: #F2CDCD; /* Flamingo */
     margin-left: -8px; /* pulls in against the time text to its left, reads as one unit */
 }
 
