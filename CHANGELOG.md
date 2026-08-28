@@ -3,6 +3,31 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-28 (wallpaper icon padding: fa-image sits off-center in its own cell)
+
+Reported the icon had visibly more space on its left than its right. Measured
+rather than guessed, same discipline as the caffeine icon's own asymmetric
+padding fix earlier in this repo: at the shared symmetric 12px/12px padding
+every module gets by default, the glyph's actual ink sat with a 12px gap on
+its left but only 7px on its right (pixel-sampled the pill's background
+boundary against the glyph's own ink boundary) -- `fa-image`'s glyph has
+more built-in left-side bearing than right in this font, same class of issue
+as the caffeine coffee-cup icon, just the opposite direction.
+
+Shifted to `padding-left: 9px` / `padding-right: 15px` (a 3px correction each
+way off the 12/12 midpoint, close to the ~2.5px an even split of the
+measured 5px imbalance would call for). Verified the shift moved in the
+right direction: re-measured after, the ink moved left by exactly 3px,
+matching the padding-left reduction precisely -- confirms the mechanism is
+working as intended. Couldn't get a fully clean final left-gap-vs-right-gap
+verification, though -- this module sits close enough to the docker pill
+right next to it (2px margin, deliberately tight) that a background-color
+scan picks up both pills as one contiguous region with no way to
+automatically tell where one ends and the other begins. Flagged as a real
+measurement limitation rather than claiming a precision this method
+couldn't actually deliver -- the direction and rough magnitude are verified,
+not a pixel-perfect final balance.
+
 ## 2026-08-28 (wallpaper icon swap: fa-image instead of md-wallpaper)
 
 `md-wallpaper` didn't look good -- swapped for `fa-image`/`fa-picture-o`

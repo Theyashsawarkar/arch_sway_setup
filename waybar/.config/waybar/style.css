@@ -75,6 +75,16 @@ window#waybar {
 #custom-wallpaper {
     color: #F5E0DC; /* Rosewater */
     margin-right: 2px;
+    /* fa-image's own glyph has more built-in left-side bearing than
+       right -- same class of issue the caffeine icon has (see its own
+       padding comment above). Measured directly: at the shared 12px/12px
+       padding every module gets by default, the actual ink sat with a
+       12px gap on the left but only 7px on the right (pixel-sampled the
+       pill boundary vs. the glyph's ink boundary, not eyeballed).
+       Shifted padding to compensate rather than leave it visually
+       off-center. */
+    padding-left: 9px;
+    padding-right: 15px;
 }
 
 /* Sits apart from the rest of the right group -- it's the one button
