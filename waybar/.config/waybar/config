@@ -81,7 +81,7 @@
 		"tooltip-format-ethernet": "{ifname}\nIP: {ipaddr}/{cidr}\nGateway: {gwaddr}",
 		"tooltip-format-disconnected": "Disconnected",
 		"tooltip-format-disabled": "Wi-Fi disabled (rfkill)",
-		"on-click": "nwg-bar -t /home/yash/.config/nwg-bar/wifi.json -s /home/yash/.config/nwg-bar/style.css"
+		"on-click": "networkmanager_dmenu"
 	},
 
 	"network#speed": {

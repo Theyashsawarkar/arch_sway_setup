@@ -3,6 +3,44 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-28 (real Wi-Fi picker instead of the nwg-bar On/Off/Settings popup)
+
+Wanted: click the network icon, see available networks, pick one, get prompted
+for the password if it needs one, connect. `nwg-bar`'s wifi.json couldn't do any
+of that -- confirmed (again, same root cause as the volume popup fix earlier)
+that it's a static button grid with no dynamic content support at all, reading
+its Go source. Architecturally impossible there, not a config problem.
+
+Replaced with `networkmanager-dmenu` (official `extra` repo, not AUR) --
+scan/connect/password-prompt/on-off-toggle/nm-connection-editor-shortcut all in
+one menu, using `wofi --dmenu` as its backend. Read the tool's actual Python
+source before trusting it: confirmed real, dedicated wofi support (not just
+generic dmenu-protocol compatibility) -- it detects `wofi` specifically and
+appends wofi's own `-P`/`--password` flag for the passphrase prompt (masks
+input), plus has wofi-specific highlight markup for the connected network.
+
+Given this repo's history of real, confirmed wofi `--dmenu` bugs (the power-menu
+work a while back -- no CSS cursor support, `--columns` capped at 2, etc.),
+smoke-tested `wofi --dmenu` here first rather than assuming it'd just work:
+piped a sample network list into it, screenshotted, and confirmed a normal
+solid popup rendered center-screen with no issue. Those earlier bugs turned out
+to be specific to forcing a *button-grid* layout through `--dmenu` -- a plain
+vertical scrolling list (what this tool actually does) hits none of them.
+
+Config: `networkmanager-dmenu/.config/networkmanager-dmenu/config.ini` (new stow
+package), `dmenu_command = wofi`, Mauve highlight to match the rest of the bar.
+Waybar's `network` module `on-click` now runs `networkmanager_dmenu` directly
+instead of the old `nwg-bar -t .../wifi.json ...` invocation. Deleted
+`nwg-bar/.config/nwg-bar/wifi.json` -- fully superseded, nothing else referenced
+it.
+
+**Not yet installed on the live machine** -- `networkmanager-dmenu` needs `sudo
+pacman -S networkmanager-dmenu`, this session has no `sudo`. Everything here is
+verified as far as it can be without the actual binary present (config syntax,
+waybar JSON validity, the wofi backend smoke test, reading the tool's real
+source for wofi support) but the actual end-to-end click-to-connect flow is
+unverified until it's installed and clicked for real.
+
 ## 2026-08-28 (color pass, part 5: date color, take three)
 
 Sky (matching network.wifi exactly) was rejected as a literal duplicate. Tried

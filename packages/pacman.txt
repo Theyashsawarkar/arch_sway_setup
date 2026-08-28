@@ -37,6 +37,7 @@ mako
 mesa-utils
 neovim
 networkmanager
+networkmanager-dmenu
 network-manager-applet
 noto-fonts
 noto-fonts-emoji
