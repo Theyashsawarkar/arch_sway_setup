@@ -3,6 +3,17 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-28 (capslock/numlock icons, take two -- simpler glyphs)
+
+First attempt (`md-caps_lock`/`md-numeric`) didn't land well visually. Swapped
+for simpler, more minimal glyphs instead of another detailed Material Design
+icon: capslock is now U+21EA (⇪, "UPWARDS WHITE ARROW FROM BAR") -- the actual
+ISO keycap symbol printed on real physical Caps Lock keys, standard Unicode
+rather than a Nerd Font PUA glyph, so no font-coverage risk at all. Numlock is
+`fa-hashtag` (`f292`, a plain `#`) instead of a cluttered "123" icon at bar
+size -- clean, single-glyph, immediately reads as "numbers" without the visual
+noise a multi-digit icon has this small.
+
 ## 2026-08-28 (capslock/numlock: icons instead of "CAPS"/"NUM" text)
 
 Was `"format": "{name} {icon}"` with a shared locked/unlocked icon pair

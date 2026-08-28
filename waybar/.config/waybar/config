@@ -42,8 +42,8 @@
 		"capslock": true,
 		"numlock": true,
 		"format": {
-			"capslock": "󰪛",
-			"numlock": "󰎠"
+			"capslock": "⇪",
+			"numlock": ""
 		}
 	},
 
