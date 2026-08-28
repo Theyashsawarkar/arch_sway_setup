@@ -3,6 +3,24 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-28 (capslock/numlock, take three -- real padlock, deliberately loud)
+
+Neither prior attempt was noticeable enough. Switched to a real closed-padlock
+icon (`fa-lock`, `f023`) for locked, open padlock (`fa-unlock`, `f09c`) for
+unlocked -- back to waybar's shared `format-icons` pool (same icon set for
+every key, per `man waybar-keyboard-state`) rather than a per-key hardcoded
+glyph, since color (Yellow/Teal, unchanged) already tells capslock and numlock
+apart and a genuine padlock shape reads faster than an arrow or a hashtag ever
+would.
+
+Made the locked state deliberately louder than the rest of the bar's own
+restraint calls for: `font-size: 19px` (up from the bar's normal 15px) plus a
+two-layer `text-shadow` glow (tight 8px + wide 14px halo, matching each key's
+own color). A locked modifier key is more urgent than a passive status icon,
+worth breaking the "everything the same size, no glow" convention for. Still
+no filled background block, per the earlier explicit ask -- the glow carries
+the emphasis instead of a solid fill.
+
 ## 2026-08-28 (capslock/numlock icons, take two -- simpler glyphs)
 
 First attempt (`md-caps_lock`/`md-numeric`) didn't land well visually. Swapped
