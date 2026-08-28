@@ -3,6 +3,25 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-28 (capslock/numlock: icons instead of "CAPS"/"NUM" text)
+
+Was `"format": "{name} {icon}"` with a shared locked/unlocked icon pair
+(`format-icons`) -- per `man waybar-keyboard-state`, that icon pool is the same
+set for every key ("the same set of icons is used for number, caps, and scroll
+lock"), so simply dropping `{name}` would've left capslock and numlock showing
+the *identical* generic lock glyph, impossible to tell apart without the text.
+
+Real fix needed distinct icons per key, not just fewer characters. `format`
+turns out to also accept a per-key object (confirmed in the same man page:
+`{"numlock": ..., "capslock": ..., "scrolllock": ...}`), so each key now gets
+its own hardcoded, purpose-specific icon instead of routing through the shared
+locked/unlocked pool at all: `md-caps_lock` (`f0a9b`) for capslock,
+`md-numeric` (`f03a0`) for numlock -- both verified present in the installed
+font via `fc-query` first. Lock state is still conveyed by color exactly as
+before (Yellow/Teal when locked, dim gray when unlocked -- that CSS was
+untouched and already independently verified working in an earlier pass), just
+no longer duplicated in a text label too.
+
 ## 2026-08-28 (active workspace: Sapphire instead of Mauve)
 
 Asked for a different color on the active workspace than Mauve, suggesting
