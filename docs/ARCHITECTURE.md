@@ -142,17 +142,51 @@ login.
 
 `swayidle` (screen dimming, lock, suspend timeouts — `sway/.config/sway/idle/config`)
 runs as a systemd user service, `systemd/.config/systemd/user/swayidle.service`, not a
-raw `exec` line. `sway/config` starts it with `exec systemctl --user restart
-swayidle.service` rather than launching the process directly.
+raw `exec` line. `sway/config` starts it with `exec ~/.local/bin/swayidle-startup.sh`
+rather than launching the process directly.
 
 This exists specifically so caffeine mode — the coffee-cup icon in waybar,
 `custom/caffeine` — can be trivial and reliable: on is `systemctl --user stop
 swayidle.service`, off is `systemctl --user start swayidle.service`. No PID files, no
-state tracking; systemd's own active/inactive state *is* the caffeine state, which
-`caffeine-status.sh` just reads back for the waybar icon. Stopping the whole service
-(rather than e.g. a `systemd-inhibit` suspend lock) is deliberate — an inhibitor
-wouldn't stop swayidle's own `timeout 600 swaymsg output * dpms off` line, since that
-never goes through logind at all. Only actually stopping swayidle keeps the screen on.
+state tracking for the *live* state; systemd's own active/inactive state *is* the
+caffeine state, which `caffeine-status.sh` just reads back for the waybar icon.
+Stopping the whole service (rather than e.g. a `systemd-inhibit` suspend lock) is
+deliberate — an inhibitor wouldn't stop swayidle's own `timeout 600 swaymsg output *
+dpms off` line, since that never goes through logind at all. Only actually stopping
+swayidle keeps the screen on.
+
+### Caffeine mode surviving a reboot
+
+Caffeine mode used to silently reset to off on every reboot, no matter what it was
+left at. Root cause: `swayidle.service` is `enabled` (`WantedBy=default.target` --
+confirmed via `systemctl --user is-enabled swayidle.service`), so systemd's user
+manager auto-starts it at *every* login on its own, completely independent of
+sway -- the plain `exec systemctl --user restart swayidle.service` line that used
+to be here was reasserting "start" regardless of what caffeine mode had last been
+set to, since it had no way to know.
+
+Fixed with a tiny persisted-state file, `~/.local/state/caffeine/enabled` (present
+= caffeine on, absent = off -- a marker file, not a content-parsing exercise).
+`caffeine-toggle.sh` now writes/removes it alongside stopping/starting the service.
+`scripts/.local/bin/swayidle-startup.sh` (what sway's `exec` line actually calls
+now) is the single source of truth for swayidle's state at startup: if the marker
+is present, it explicitly stops the service systemd's `default.target` just
+auto-started, overriding it; otherwise it does the same `restart` this line always
+did (still needed for the `dbus-update-activation-environment` ordering reason
+documented right above this `exec` line -- swayidle started by systemd at login
+can predate that).
+
+Verified the actual failure mode, not just the fix: toggled caffeine on (marker
+created, service stopped), manually re-triggered the auto-start systemd would do
+at the next login (`systemctl --user start swayidle.service`), confirmed the
+service was back to active exactly as it would incorrectly be pre-fix, then ran
+`swayidle-startup.sh` the way sway's `exec` line would and confirmed it correctly
+stopped the service again. Also verified the off case (no marker -> normal
+restart, stays active) and that `caffeine-status.sh` reports the right state
+through a full toggle sequence. Couldn't trigger a literal reboot to verify this
+against a real fresh sway startup without disrupting the live session, so this
+rests on an exact functional simulation of the real startup sequence rather than
+an actual reboot.
 
 An earlier version managed this with raw `pkill`/background-and-`disown` instead of
 systemd, and hit a real hang: the backgrounded process ended up stuck as a direct

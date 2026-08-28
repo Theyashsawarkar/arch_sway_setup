@@ -3,6 +3,34 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-28 (caffeine mode now actually survives a reboot)
+
+Caffeine mode silently reset to off on every reboot regardless of what it was
+left at. Root cause: `swayidle.service` is `enabled` (`WantedBy=default.target`,
+confirmed via `systemctl --user is-enabled`), so systemd's user manager
+auto-starts it at every login *on its own* -- completely independent of sway.
+The old `exec systemctl --user restart swayidle.service` line in `sway/config`
+had no way to know caffeine had been left on, so it just reasserted "start"
+every time.
+
+Fixed with a persisted marker file, `~/.local/state/caffeine/enabled`.
+`caffeine-toggle.sh` now writes/removes it alongside stopping/starting the
+service. New `scripts/.local/bin/swayidle-startup.sh` -- what sway's `exec`
+line calls now instead of the bare `systemctl restart` -- reads the marker at
+startup and is the single source of truth for swayidle's state: stops the
+service if caffeine was left on (overriding whatever systemd's default.target
+just auto-started), otherwise does the same restart this line always did.
+
+Verified the actual failure mode end to end rather than trusting the fix on
+paper: toggled caffeine on, manually replayed what systemd's auto-start would
+do at the next login (`systemctl --user start swayidle.service`), confirmed
+the service came back active exactly as it incorrectly would pre-fix, then ran
+the new startup script the way sway's `exec` line would and confirmed it
+correctly stopped it again. Verified the off case and `caffeine-status.sh`'s
+reporting through a full toggle sequence too. No literal reboot was performed
+to avoid disrupting the live session -- this rests on an exact functional
+simulation of the real startup sequence.
+
 ## 2026-08-28 (workspace/capslock/numlock: text color instead of a filled block)
 
 Active workspace and locked capslock/numlock indicators used a solid
