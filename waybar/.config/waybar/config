@@ -4,7 +4,7 @@
 	"height": 41,
 	"spacing": 5,
 
-	"modules-center": ["clock", "clock#time"],
+	"modules-center": ["clock#time", "clock"],
 	"modules-left": ["sway/workspaces", "keyboard-state", "custom/docker", "custom/caffeine", "bluetooth"],
 
 	"modules-right": [

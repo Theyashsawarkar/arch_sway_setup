@@ -125,14 +125,16 @@ window#waybar {
    state changes -- these are identity colors for modules that otherwise
    never had one. --- */
 
-/* Clock: date half keeps the full pill treatment (calmest, warmest hue --
-   glanced at constantly, shouldn't read as a status/alert). Time lives in
-   the separate clock#time instance right next to it (see config comment
-   for why), styled below as plain floating text with no background of
-   its own -- the same "boxed pill + adjoining plain-colored text" motif
-   already established by network/network#speed, not a new pattern. */
+/* Clock: time comes first (left), date second (right) -- clock#time is
+   the separate module instance, plain floating text with no background
+   of its own, same "boxed pill + adjoining plain-colored text" motif
+   already established by network/network#speed. Sky on the date instead
+   of the original Rosewater -- asked for something closer to the wifi
+   module's color (also Sky) and the time's Lavender rather than the pale
+   pink that was there before. */
 #clock {
-    color: #F5E0DC; /* Rosewater */
+    color: #89DCEB; /* Sky -- matches network.wifi */
+    margin-left: -8px; /* pulls in against the time text to its left, reads as one unit */
 }
 
 /* Covers both the documented naming convention (.time as an added class)
@@ -140,8 +142,6 @@ window#waybar {
    uncertainty already noted for #network.speed/#network-speed. */
 #clock.time, #clock-time {
     color: #B4BEFE; /* Lavender */
-    margin-left: -8px; /* sits right up against the date pill, reads as one unit */
-    margin-right: 4px;
 }
 
 /* Backlight: Yellow is the single strongest, most universal color

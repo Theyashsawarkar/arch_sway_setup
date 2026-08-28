@@ -3,6 +3,31 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-28 (color pass, part 4: clock reorder/recolor, docker count -> white)
+
+Follow-up feedback on part 3: Rosewater on the date "doesn't look good", and asked
+for the time to sit to the left of the date instead of the right.
+
+- Swapped `modules-center` to `["clock#time", "clock"]` -- time first, date
+  second. The negative margin that pulls the pair visually together (offsetting
+  the bar's own 5px inter-module spacing) moved from `clock#time` to `#clock`
+  accordingly, since it's the second element now that needs to pull left toward
+  the first, not the other way around.
+- Date recolored Rosewater -> Sky, matching the wifi module's color and the
+  time's existing Lavender rather than the pale pink that wasn't landing well.
+- Docker's container count is now white (Catppuccin's Text color, `#CDD6F4` --
+  kept consistent with the theme rather than a stark pure `#FFFFFF`) instead of
+  the running/idle Green-or-gray split from the previous pass. That state signal
+  didn't disappear, it just moved: the `running`/`idle` class still exists and
+  still drives the pill's border-color tint, same as before, just no longer
+  duplicated in the count's own text color.
+
+Verified live: reloaded, screenshotted, pixel-clustered Sky and Lavender --
+Lavender (time) lands first at x830-898, Sky (date) right after at x927-1078,
+distinctly separate from the network module's own Sky wifi text further right
+(x1124-1327), confirming the reorder and the reuse aren't colliding into one
+cluster.
+
 ## 2026-08-28 (color pass, part 3: battery charge states, clock split, docker/volume rework)
 
 - **Battery**: only had colors for the two emergency thresholds (warning/critical)

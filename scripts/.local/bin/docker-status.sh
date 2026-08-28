@@ -11,13 +11,14 @@ count=$(docker ps -q | wc -l)
 
 if [ "$count" -gt 0 ]; then
     class="running"
-    count_color="#A6E3A1"  # Green -- containers actually running
     tooltip="$count container(s) running"
 else
     class="idle"
-    count_color="#6C7086"  # dim gray -- matches every other "off" state
     tooltip="No containers running"
 fi
 
-text="<span color='#89B4FA'>$ICON</span>  <span color='$count_color'>$count</span>"
+# Count is always white (Catppuccin's Text color, not pure #FFFFFF --
+# stays consistent with the rest of the theme). running/idle is still
+# signaled, just via the pill's border-color now instead of the text.
+text="<span color='#89B4FA'>$ICON</span>  <span color='#CDD6F4'>$count</span>"
 printf '{"text":"%s","class":"%s","tooltip":"%s"}\n' "$text" "$class" "$tooltip"
