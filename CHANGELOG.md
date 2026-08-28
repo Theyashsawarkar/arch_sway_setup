@@ -3,6 +3,19 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-28 (active workspace matches the focused window border: both Red)
+
+Asked to make the workspace indicator match the focused window border's
+color, changing the workspace side. `#workspaces button.focused` switched
+from Sapphire to Red, matching `client.focused` in `sway/config` -- both
+"this is the active one" signals now use the same hue instead of two
+different "active" colors in different parts of the setup. Mauve stays
+untouched as the bar's one hover/interactive accent elsewhere.
+
+Verified live: switched to workspace 1, pixel-searched the workspace
+region -- Red present at exactly the number-glyph and underline positions
+(y13-33), Sapphire completely gone from that area.
+
 ## 2026-08-28 (backlight icons: real empty-to-full pie fill, not MDI's sun-ray set)
 
 User reported the dimmest icon (1% brightness) looked like a full circle --

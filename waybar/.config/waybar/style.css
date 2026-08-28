@@ -348,20 +348,18 @@ window#waybar {
 #workspaces button.focused {
     /* Text color only, not a filled background block -- background
        stays the same barely-there neutral chip every workspace button
-       has. Bold weight + the Sapphire number + a solid Sapphire
-       underline (opaque, vs hover's translucent Lavender) carry the
-       "this is where you are" signal instead of a solid fill.
-       Sapphire instead of Mauve now -- Mauve stays the bar's one
-       universal "you're pointing at something interactive" hover
-       accent everywhere else, so giving the workspace's own resting
-       focused state a different hue keeps those two meanings distinct
-       instead of overloading Mauve for both. Also ties the active
-       workspace into the same blue "connectivity" family already
-       established for the network module (Sapphire = ethernet, Sky =
-       wifi) -- reads as a deliberate accent choice, not arbitrary. */
-    color: #74C7EC; /* Sapphire */
+       has. Bold weight + the Red number + a solid Red underline
+       (opaque, vs hover's translucent Lavender) carry the "this is
+       where you are" signal instead of a solid fill.
+       Matched to Red specifically -- asked to make the workspace
+       indicator and the focused-window border (sway/config
+       client.focused) the same color, rather than the two "this is
+       active" signals in different parts of the setup using different
+       hues. Was Sapphire, then Mauve, before this; Mauve remains the
+       bar's one hover/interactive accent elsewhere, untouched. */
+    color: #F38BA8; /* Red */
     font-weight: 800;
-    border-bottom: 2px solid #74C7EC;
+    border-bottom: 2px solid #F38BA8;
 }
 
 /* BLUETOOTH STATES */
