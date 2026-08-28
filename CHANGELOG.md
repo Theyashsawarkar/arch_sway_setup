@@ -3,6 +3,21 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-28 (active workspace: Sapphire instead of Mauve)
+
+Asked for a different color on the active workspace than Mauve, suggesting
+Sapphire or wifi's color. Went with Sapphire: Mauve stays the bar's one
+universal "you're pointing at something interactive" hover accent everywhere
+else, so giving the workspace's own resting focused state a different hue
+keeps those two meanings distinct rather than overloading Mauve for both.
+Also ties it into the blue "connectivity" family already established for the
+network module (Sapphire = ethernet, Sky = wifi) instead of an arbitrary new
+hue. Text color and underline both switched together.
+
+Verified live: pixel-searched the workspace area after switching to
+workspace 1, found Sapphire at the number glyph (y13-14/23-24) and the
+underline (y32-33), zero Mauve remaining there.
+
 ## 2026-08-28 (workspace numbers: one shared container, not N separate buttons)
 
 `#workspaces` (the group wrapper) already had the shared pill treatment every
