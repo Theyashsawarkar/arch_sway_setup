@@ -3,6 +3,35 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-28 (royal color trio: window border, clock time, clock date)
+
+Asked for "royal colors" specifically across the window border, clock time,
+and clock date, and to stop iterating on Lavender for the border. Went with
+an actual regal color story instead of three unrelated picks:
+
+- **Window border** -> Mauve. This repo's own earlier comments already
+  nicknamed it "Royal Mauve" -- it's the literal royal purple of this
+  palette. Overrode the earlier concern about it double-booking waybar's
+  universal hover accent -- that reasoning was about avoiding meaning
+  overload, not about beauty, and beauty is what was asked for this time.
+  The two contexts (a persistent window border vs a brief waybar hover
+  flash) don't actually read as confusable in practice.
+- **Clock time** -> Blue, not Sapphire. Sapphire was already tried once on
+  the *date* in an earlier pass and rejected specifically for reading too
+  close to Sky (network.wifi) despite not sitting adjacent to it -- reusing
+  it here would've repeated a mistake this repo already learned from. Blue
+  is a properly saturated, distinct "royal blue" without that problem.
+- **Clock date** -> Maroon. Burgundy/wine, historically a royal-robe color,
+  already used elsewhere in this bar (pulseaudio, bluetooth.on) without
+  issue since neither sits near the center clock.
+
+Verified live: pulled the real focused window's rect again (same window,
+same x17/y58 as the last two border-color entries), confirmed Mauve renders
+at exactly the same 1244 pixel positions Lavender and Sapphire occupied
+before it. Confirmed Blue and Maroon both land at the clock's established
+x-positions (time ~x830+, date ~x928+, matching every prior clock-color
+verification in this file).
+
 ## 2026-08-28 (focused window border: Lavender, take two on "beautiful")
 
 Asked to just pick something beautiful for the focused window border, rather

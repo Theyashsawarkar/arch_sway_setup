@@ -143,15 +143,20 @@ window#waybar {
 /* Clock: time comes first (left), date second (right) -- clock#time is
    the separate module instance, plain floating text with no background
    of its own, same "boxed pill + adjoining plain-colored text" motif
-   already established by network/network#speed. Date is Flamingo -- Sky
-   was rejected for matching network.wifi, and Sapphire (tried next,
-   still a cool cyan-blue like Sky) still read as too close to it.
-   Flamingo is a genuinely different hue family (warm coral, not blue at
-   all), so there's no ambiguity with wifi, and it pairs as a warm/cool
-   contrast against time's Lavender rather than two blues sitting
-   side by side. */
+   already established by network/network#speed.
+
+   Asked for "royal colors" across the board (window border went Mauve
+   for the same reason, see sway/config): date is Maroon -- burgundy/wine,
+   historically a royal-robe color, and already established elsewhere in
+   this bar (pulseaudio, bluetooth.on) without issue since those sit
+   nowhere near the center clock. Time is Blue, not Sapphire -- Sapphire
+   was tried here once already (as the date's color, a different attempt)
+   and rejected for reading too close to Sky (network.wifi) despite not
+   being adjacent to it; Blue is a properly saturated, distinct "royal
+   blue" that doesn't have that problem, and reads clearly next to
+   Maroon as a genuine two-tone pair instead of two blues. */
 #clock {
-    color: #F2CDCD; /* Flamingo */
+    color: #EBA0AC; /* Maroon */
     margin-left: -8px; /* pulls in against the time text to its left, reads as one unit */
 }
 
@@ -159,7 +164,7 @@ window#waybar {
    and the alternate hyphenated id some waybar versions use -- same
    uncertainty already noted for #network.speed/#network-speed. */
 #clock.time, #clock-time {
-    color: #B4BEFE; /* Lavender */
+    color: #89B4FA; /* Blue */
 }
 
 /* Backlight: Yellow is the single strongest, most universal color
