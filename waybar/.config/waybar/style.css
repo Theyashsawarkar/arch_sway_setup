@@ -253,18 +253,24 @@ window#waybar {
     padding: 1px 2px;
 }
 
+/* #workspaces (the group wrapper) already gets the shared pill treatment
+   from the big multi-selector rule up top -- dark background, Mauve
+   hairline border, one rounded container. These buttons used to layer a
+   second, smaller background+radius on top of that per number, which
+   read as "N separate little buttons sitting inside a pill" rather than
+   one unified group. No background/radius of its own now -- numbers
+   just sit directly in the one shared container. Colors, spacing,
+   hover/focused underline accent all unchanged otherwise. */
 #workspaces button {
-    padding: 0 8px; /* one notch wider than before -- the underline accent below needed a little more breathing room to not look cramped */
+    padding: 0 8px;
     color: #6C7086; /* Dim inactive — matches keyboard-state's unlocked gray */
-    background-color: rgba(255, 255, 255, 0.03); /* Barely-there neutral chip, not mauve-washed while idle */
-    border-radius: 8px; /* smaller radius to match the smaller chip */
     margin: 1px;
     /* Transparent border reserves the same 2px of vertical space idle,
        hover, and focused all share -- without this, the chip's height
        would shift by 2px the moment a border-bottom actually appears,
        a layout jump every hover/switch would otherwise cause. */
     border-bottom: 2px solid transparent;
-    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    transition: color 0.2s ease, border-color 0.2s ease;
 }
 
 /* Three real states now instead of two shades of the same mauve:

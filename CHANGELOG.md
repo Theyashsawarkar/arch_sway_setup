@@ -3,6 +3,23 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-28 (workspace numbers: one shared container, not N separate buttons)
+
+`#workspaces` (the group wrapper) already had the shared pill treatment every
+other module gets -- dark background, Mauve hairline border -- but each number
+button *also* had its own smaller background-color and border-radius layered
+on top, which read as "several small buttons sitting inside a pill" instead of
+one unified group. Removed the per-button background/radius entirely; numbers
+now sit directly in the one shared container. Colors, spacing, and the
+hover/focused underline accent from the previous change are all untouched --
+this was specifically about the idle-state look, not a redesign of the states
+themselves.
+
+Verified live: pixel-scanned the workspace area's background after reload,
+found one consistent dark tone throughout (no lighter per-button patches
+standing out), while the Mauve underline (y32-33) and number glyph (y13-24)
+from the previous change both still render correctly.
+
 ## 2026-08-28 (workspace switcher: fixed a real toggle bug, added an underline accent)
 
 **Bug**: pressing `$mod+1` while already on workspace 1 jumped back to whatever
