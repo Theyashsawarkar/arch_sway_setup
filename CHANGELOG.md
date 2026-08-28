@@ -3,6 +3,30 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-28 (capslock/numlock: merged into one pill instead of two)
+
+Asked to put both in a single group rather than two separate pills sitting
+side by side. Kept them as two independently clickable custom modules
+underneath (merging into one module would lose per-key on-click, the thing
+just added) but made them visually read as one: capslock is the left half
+(rounded left corners only, no right border), numlock is the right half
+(mirror image), touching with no seam. Needed the same negative-margin trick
+already used for the clock/time pair -- config's top-level `"spacing": 5`
+puts 5px between every pair of sibling modules regardless of their own
+margins, so `margin-left: 0` alone would've still left a visible gap.
+
+Verified properly this time rather than trusting a single noisy scan: the
+wallpaper bleeding through gaps between pills made a broad region search
+unreliable (same class of issue hit before), so sampled raw pixel values
+along a row instead. From capslock's start to numlock's end, every sampled
+pixel stayed in a tight dark range (17-30 per channel) with no jump to
+wallpaper brightness anywhere -- confirmed continuous. Then sampled the same
+way from numlock into docker as a positive control, specifically to prove
+the method would actually catch a real gap: found exactly that, colors
+jumping to (183,167,131)-range wallpaper tones in the real gap before
+docker. Confirms the capslock/numlock merge is genuinely seamless, not just
+an assumption that the CSS technique worked.
+
 ## 2026-08-28 (capslock/numlock: click to toggle, hover tooltip, real cursor)
 
 Wanted mouse click-to-toggle, a hover tooltip saying which lock it is, and a

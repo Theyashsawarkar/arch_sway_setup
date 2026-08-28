@@ -228,6 +228,34 @@ window#waybar {
     transition: color 0.2s ease;
 }
 
+/* One continuous pill instead of two separate ones sitting side by side
+   -- same segmented-container technique used nowhere else in this file
+   quite like this, but the same underlying idea as network/network#speed
+   being visually paired. Capslock is the left half (rounded left corners
+   only, no right border, no right margin), numlock is the right half
+   (mirror image) -- they touch in the middle with no seam, one shared
+   background reading as a single group, while still being two
+   independently clickable custom modules underneath (merging them into
+   one module would lose per-key on-click). */
+#custom-capslock {
+    border-radius: 16px 0 0 16px;
+    border-right: none;
+    margin-right: 0;
+    padding-right: 6px;
+}
+
+#custom-numlock {
+    border-radius: 0 16px 16px 0;
+    border-left: none;
+    /* -5px, not 0 -- config's top-level "spacing": 5 puts 5px between
+       every pair of sibling modules regardless of their own margins
+       (same reason clock/time needed a negative margin to sit close
+       together), so margin-left: 0 alone would still leave a visible
+       gap here. */
+    margin-left: -5px;
+    padding-left: 6px;
+}
+
 #custom-capslock.unlocked, #custom-numlock.unlocked {
     color: #6C7086; /* Dim and unobtrusive when off */
 }
