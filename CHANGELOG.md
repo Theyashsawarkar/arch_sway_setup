@@ -3,6 +3,28 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-28 (Wi-Fi picker UI: icons instead of signal-strength text)
+
+Follow-up on the Wi-Fi picker from earlier today: wanted the list to just show
+network names, not signal%/bars text, with strength conveyed by icon instead
+(reads faster, takes less horizontal space) -- plus wanted full detail
+available on hover.
+
+Did the icon part: `format` went from `{name}  {sec}  {bars}` to
+`{icon}  {name}`, and set `wifi_icons` to the 5-tier Material Design
+wifi-strength glyphs (`networkmanager-dmenu` already ships a default set of
+these in its own example config, just commented out) -- verified each of the
+5 codepoints (`U+F092F` through `U+F0928`) is actually present in the
+installed font via `fc-query`, same discipline as every other icon in this
+repo, rather than trusting the upstream default blindly.
+
+Couldn't do the hover-detail part -- checked wofi's actual capabilities first
+rather than assuming: its dmenu list has no per-item tooltip support at all,
+nothing to hook into. Said so plainly rather than silently dropping that half
+of the request or pretending a workaround exists. The list is icon+name only
+now; full detail (exact %, security type) isn't surfaced anywhere in this UI as
+a result, which is the real tradeoff of asking for a compact list.
+
 ## 2026-08-28 (real Wi-Fi picker instead of the nwg-bar On/Off/Settings popup)
 
 Wanted: click the network icon, see available networks, pick one, get prompted
