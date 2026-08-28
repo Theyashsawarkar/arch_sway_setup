@@ -3,6 +3,27 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-28 (workspace/capslock/numlock: text color instead of a filled block)
+
+Active workspace and locked capslock/numlock indicators used a solid
+background-color fill + dark text for contrast. Asked to keep the background
+neutral and just recolor the text/number instead. Same hues kept throughout
+(Mauve for the active workspace, Yellow for capslock, Teal for numlock) --
+just moved from `background-color` fill to `color` text, with `font-weight:
+800` added to each so the now-unfilled state still reads as emphasized rather
+than losing prominence entirely.
+
+Verified the workspace change live: pixel-searched for Mauve in the
+workspace region after reload, found a small ~10-pixel cluster sized like a
+single bold glyph (the old filled-block version would have produced hundreds
+of hits across a whole chip) -- confirms text-only rendering, not a background
+block. Tried to verify capslock the same way but `wtype -k Caps_Lock`'s
+synthetic key press doesn't actually toggle the real lock LED state
+(`/sys/class/leds/*capslock*/brightness` stayed at 0 through it) -- a testing-tool
+limitation, not something to chase further, since capslock/numlock use the
+exact same CSS mechanism (state selector + `color` instead of
+`background-color`) already confirmed working for the workspace case.
+
 ## 2026-08-28 (icons that never actually changed state: volume mute, brightness, wifi signal)
 
 Volume's mute icon and its low-volume tier icon were the literal same codepoint

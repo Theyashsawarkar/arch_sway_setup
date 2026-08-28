@@ -231,18 +231,20 @@ window#waybar {
     color: #6C7086; /* Dim and unobtrusive when off */
 }
 
-/* Caps Lock: Yellow — a "heads up", since it's usually left on by accident */
+/* Caps Lock: Yellow — a "heads up", since it's usually left on by accident.
+   Text color only now, not a filled background block -- background stays
+   transparent (same as the unlocked state), bold weight carries the
+   emphasis a filled block used to. */
 #keyboard-state label.capslock.locked {
-    background-color: #F9E2AF;
-    color: #11111B;
-    box-shadow: 0 0 6px rgba(249, 226, 175, 0.45);
+    color: #F9E2AF;
+    font-weight: 800;
 }
 
-/* Num Lock: Teal — neutral, since it's usually on intentionally */
+/* Num Lock: Teal — neutral, since it's usually on intentionally. Same
+   text-only treatment as Caps Lock above. */
 #keyboard-state label.numlock.locked {
-    background-color: #94E2D5;
-    color: #11111B;
-    box-shadow: 0 0 6px rgba(148, 226, 213, 0.45);
+    color: #94E2D5;
+    font-weight: 800;
 }
 
 /* WORKSPACES — same Mauve accent + neutral-gray language as the rest of
@@ -271,9 +273,12 @@ window#waybar {
 }
 
 #workspaces button.focused {
-    background-color: #CBA6F7; /* Active workspace pops in solid Mauve */
-    color: #11111B; /* Dark text for contrast */
-    box-shadow: 0 0 6px rgba(203, 166, 247, 0.5); /* Tighter glow to match the smaller chip */
+    /* Text color only now, not a filled background block -- background
+       stays the same barely-there neutral chip every workspace button
+       has, bold weight + the Mauve number itself carries the "this is
+       where you are" signal instead of a solid fill. */
+    color: #CBA6F7; /* Active workspace number pops in Mauve */
+    font-weight: 800;
 }
 
 /* BLUETOOTH STATES */
