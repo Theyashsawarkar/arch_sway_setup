@@ -5,7 +5,7 @@
 	"spacing": 5,
 
 	"modules-center": ["clock#time", "clock"],
-	"modules-left": ["sway/workspaces", "keyboard-state", "custom/docker", "custom/caffeine", "bluetooth"],
+	"modules-left": ["sway/workspaces", "custom/capslock", "custom/numlock", "custom/docker", "custom/caffeine", "bluetooth"],
 
 	"modules-right": [
 		"network", 
@@ -38,17 +38,18 @@
 		"reverse-scrolling": true
 	},
 
-	"keyboard-state": {
-		"capslock": true,
-		"numlock": true,
-		"format": {
-			"capslock": "A {icon}",
-			"numlock": "# {icon}"
-		},
-		"format-icons": {
-			"locked": "",
-			"unlocked": ""
-		}
+	"custom/capslock": {
+		"exec": "/home/yash/.local/bin/keylock-status.sh capslock",
+		"on-click": "/home/yash/.local/bin/keylock-toggle.sh capslock",
+		"interval": 1,
+		"return-type": "json"
+	},
+
+	"custom/numlock": {
+		"exec": "/home/yash/.local/bin/keylock-status.sh numlock",
+		"on-click": "/home/yash/.local/bin/keylock-toggle.sh numlock",
+		"interval": 1,
+		"return-type": "json"
 	},
 
 	"clock": {

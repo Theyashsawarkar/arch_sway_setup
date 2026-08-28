@@ -3,6 +3,45 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-28 (capslock/numlock: click to toggle, hover tooltip, real cursor)
+
+Wanted mouse click-to-toggle, a hover tooltip saying which lock it is, and a
+pointer cursor on hover. None of that is possible with waybar's built-in
+`keyboard-state` module -- checked `man waybar-keyboard-state` first rather
+than fighting CSS against it: no `on-click`, no `tooltip`, nowhere in its
+config schema at all. Replaced it with `custom/capslock`/`custom/numlock`,
+backed by two new scripts (same `{text,class,tooltip}` JSON pattern already
+used for `custom/caffeine`/`custom/docker`), which support all three natively.
+
+`keylock-status.sh` reads `/sys/class/leds/*::capslock|numlock/brightness`
+directly -- the real kernel LED state, confirmed correct against actual live
+state (numlock genuinely on, capslock genuinely off) at the time.
+
+`keylock-toggle.sh` needed real investigation, not just wiring an `on-click`.
+`wtype -k Caps_Lock` -- already used elsewhere in this repo -- does not
+actually toggle the real lock state here (confirmed: the LED file stayed `0`
+straight through it), because it injects through the `virtual-keyboard-
+unstable-v1` Wayland protocol, which doesn't drive the same XKB lock-latch
+machinery a real key event does on this compositor. Switched to `ydotool`
+instead (official `extra` repo, added to `packages/pacman.txt`) -- injects
+through `/dev/uinput`, indistinguishable from real hardware to the same
+input pipeline, so it actually works. Checked the Arch package's file
+listing before trusting it: ships its own systemd **user** service (no root
+needed at runtime) and its own udev rule for `/dev/uinput` permissions --
+clean, standard, not a loose workaround.
+
+**Not yet installed** -- needs `sudo pacman -S ydotool`, a udev reload, and
+`systemctl --user enable --now ydotool.service` (all three commands in
+`docs/ARCHITECTURE.md`). Until then, clicking either indicator fails with a
+clear `notify-send` telling you exactly which of those steps is missing,
+rather than a silent no-op or a cryptic `ydotool` error -- verified this
+fallback path directly.
+
+Cursor needed no extra work at all: waybar shows a pointer automatically for
+any module with `on-click`, standard GTK behavior, same as every other
+already-clickable pill in this bar. Unrelated to the wofi popups' own cursor
+limitation documented elsewhere -- different code path entirely.
+
 ## 2026-08-28 (capslock/numlock: fixed two real problems from the last pass)
 
 1. **Couldn't tell which lock was which.** Sharing one padlock shape between

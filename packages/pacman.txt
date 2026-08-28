@@ -82,6 +82,7 @@ wofi
 xdg-desktop-portal-wlr
 xorg-xwayland
 yazi
+ydotool
 zed
 zenity
 zoxide

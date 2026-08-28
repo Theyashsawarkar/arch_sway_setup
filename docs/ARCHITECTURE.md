@@ -300,6 +300,73 @@ trusting pactl's relative math. Re-ran the identical 30-concurrent-call burst af
 the fix: clamps land exactly at 100%/0% instead of overshooting, and the waybar log
 stayed at zero errors.
 
+## Capslock/numlock: custom modules, and toggling them needs ydotool
+
+Started as waybar's built-in `keyboard-state` module, replaced with
+`custom/capslock`/`custom/numlock` (backed by `scripts/.local/bin/
+keylock-status.sh` and `keylock-toggle.sh`) once click-to-toggle and a
+hover tooltip were wanted -- the built-in module has neither `on-click`
+nor `tooltip` anywhere in its config schema (confirmed: `man
+waybar-keyboard-state` lists every option it accepts, click/tooltip
+aren't among them), so no amount of CSS or config could make it
+clickable. A custom module can do both, same `{text,class,tooltip}` JSON
+pattern already used for `custom/caffeine`/`custom/docker`.
+
+**Reading state** (`keylock-status.sh capslock|numlock`): reads
+`/sys/class/leds/*::capslock/brightness` / `*::numlock/brightness`
+directly -- the same real kernel LED state the built-in module read via
+libevdev, not a cached or derived value. Confirmed live against actual
+state at the time (numlock was genuinely on, capslock genuinely off) and
+the script reported both correctly.
+
+**Toggling state** (`keylock-toggle.sh capslock|numlock`) is the part
+that needed real investigation. `wtype -k Caps_Lock` -- already used
+elsewhere in this repo, e.g. the scroll-flood stress test -- does **not**
+actually toggle the real lock state on this compositor: confirmed by
+checking `/sys/class/leds/*::capslock/brightness` stayed `0` straight
+through a `wtype` press. wtype injects through the
+`virtual-keyboard-unstable-v1` Wayland protocol, which apparently doesn't
+drive the same XKB lock-latch state machine a real key event does here.
+
+Fixed with `ydotool` instead (official `extra` repo, added to
+`packages/pacman.txt`) -- it injects through `/dev/uinput`, a genuine
+kernel-level virtual input device indistinguishable from real hardware to
+the same libinput → xkbcommon pipeline that processes actual keypresses,
+so it correctly drives the real lock state. Confirmed the package ships
+its own systemd **user** service (`ydotool.service`, no root needed at
+runtime) and its own `udev` rule for `/dev/uinput` permissions (checked
+the package's file list on the Arch package page before trusting this,
+rather than assuming) -- a clean, standard setup, not a security-loose
+workaround.
+
+**Not yet installed on the live machine** -- needs:
+```bash
+sudo pacman -S ydotool
+sudo udevadm control --reload-rules && sudo udevadm trigger
+systemctl --user enable --now ydotool.service
+```
+`keylock-toggle.sh` checks for both `ydotool` being installed and
+`ydotool.service` being active before attempting anything, and
+`notify-send`s the exact fix (which of the two commands above is
+missing) rather than failing silently or with a cryptic `ydotool` error
+if clicked before this setup is done. Verified this fallback path
+directly (`sh -c` invocation matching exactly how waybar calls it) --
+exits cleanly with the right message, doesn't crash.
+
+Keycodes: `58` (capslock), `69` (numlock) -- Linux's standard
+`input-event-codes.h` values, cross-confirmed against
+`waybar-keyboard-state`'s own documented `binding-keys` default
+(`[58, 69, 70]`, i.e. capslock/numlock/scrolllock in that order).
+
+**Cursor**: no explicit CSS needed -- waybar shows a pointer cursor
+automatically for any module with an `on-click` handler (standard GTK
+`EventBox` behavior), same as every other already-clickable pill in this
+bar (docker, caffeine, network, pulseaudio, bluetooth). This is a
+different code path entirely from the wofi popups' cursor limitation
+documented elsewhere in this file -- that one is wofi's own dmenu list
+never requesting a cursor-shape change at all, which is unrelated to how
+waybar's own pill modules behave.
+
 ## The tmux status bar's dependency chain
 
 Worth calling out on its own, since it broke in layers (see changelog): the rounded

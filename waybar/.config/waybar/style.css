@@ -22,7 +22,8 @@ window#waybar {
 #workspaces,
 #clock,
 #custom-docker,
-#keyboard-state,
+#custom-capslock,
+#custom-numlock,
 #network,
 #backlight,
 #bluetooth,
@@ -42,7 +43,7 @@ window#waybar {
     transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
-#clock, #keyboard-state, #custom-docker, #network, #bluetooth, #backlight, #pulseaudio, #battery, #custom-power {
+#clock, #custom-capslock, #custom-numlock, #custom-docker, #network, #bluetooth, #backlight, #pulseaudio, #battery, #custom-power {
     padding: 0 12px;
 }
 
@@ -79,7 +80,7 @@ window#waybar {
 
 /* One consistent accent (Mauve) for "you're pointing at something
    interactive" everywhere, instead of a different color per module */
-#clock:hover, #custom-docker:hover, #network:hover, #bluetooth:hover, #custom-caffeine:hover, #backlight:hover, #pulseaudio:hover, #battery:hover {
+#clock:hover, #custom-docker:hover, #custom-capslock:hover, #custom-numlock:hover, #network:hover, #bluetooth:hover, #custom-caffeine:hover, #backlight:hover, #pulseaudio:hover, #battery:hover {
     border-color: rgba(203, 166, 247, 0.4);
 }
 
@@ -91,7 +92,7 @@ window#waybar {
    of every pill sitting at the same uniform distance regardless of
    what it's actually related to. */
 #custom-docker {
-    margin-left: 10px; /* starts the left status group, after keyboard-state */
+    margin-left: 10px; /* starts the left status group, after capslock/numlock */
 }
 
 #bluetooth {
@@ -214,28 +215,27 @@ window#waybar {
     border-color: rgba(116, 199, 236, 0.35);
 }
 
-/* KEYBOARD STATE INDICATORS */
-#keyboard-state {
-    padding: 0 8px;
-}
-
-#keyboard-state label {
+/* KEYBOARD STATE INDICATORS -- custom/capslock and custom/numlock now,
+   not waybar's built-in keyboard-state module. That module has no
+   on-click, no tooltip, and no config-level way to become clickable at
+   all (confirmed: none of those exist in its schema, man
+   waybar-keyboard-state) -- switched to a custom module (backed by
+   keylock-status.sh/keylock-toggle.sh) specifically so these could
+   become clickable-to-toggle with a real tooltip, which the built-in
+   module could never do regardless of CSS. */
+#custom-capslock, #custom-numlock {
     padding: 3px 9px;
-    margin: 2px;
-    border-radius: 10px;
-    background-color: transparent;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    transition: color 0.2s ease;
 }
 
-#keyboard-state label.unlocked {
+#custom-capslock.unlocked, #custom-numlock.unlocked {
     color: #6C7086; /* Dim and unobtrusive when off */
 }
 
 /* Caps Lock: Yellow — a "heads up", since it's usually left on by accident.
-   Real closed-padlock icon (format-icons "locked", fa-lock), prefixed
-   with a plain "A" in the config's format string -- the padlock shape
-   alone is shared with Num Lock below (waybar's format-icons pool is
-   the same set for every key, confirmed in man waybar-keyboard-state),
+   Real closed-padlock icon (fa-lock), prefixed with a plain "A" in
+   keylock-status.sh's output -- the padlock shape alone is shared with
+   Num Lock below (both scripts use the same fa-lock/fa-unlock icons),
    so color alone telling them apart meant memorizing which color means
    which key. The "A"/"#" badges make it self-evident without that.
 
@@ -247,14 +247,14 @@ window#waybar {
    below is paint-only -- doesn't affect layout/height at all -- so it's
    still the loud, "damn noticeable" treatment asked for, just without
    the size change that broke the bar's height. */
-#keyboard-state label.capslock.locked {
+#custom-capslock.locked {
     color: #F9E2AF;
     text-shadow: 0 0 8px rgba(249, 226, 175, 0.9), 0 0 14px rgba(249, 226, 175, 0.5);
 }
 
 /* Num Lock: Teal — neutral, since it's usually on intentionally. Same
    treatment and same reasoning as Caps Lock above. */
-#keyboard-state label.numlock.locked {
+#custom-numlock.locked {
     color: #94E2D5;
     text-shadow: 0 0 8px rgba(148, 226, 213, 0.9), 0 0 14px rgba(148, 226, 213, 0.5);
 }
@@ -275,7 +275,7 @@ window#waybar {
    hover/focused underline accent all unchanged otherwise. */
 #workspaces button {
     padding: 0 8px;
-    color: #6C7086; /* Dim inactive — matches keyboard-state's unlocked gray */
+    color: #6C7086; /* Dim inactive — matches capslock/numlock's unlocked gray */
     margin: 1px;
     /* Transparent border reserves the same 2px of vertical space idle,
        hover, and focused all share -- without this, the chip's height
