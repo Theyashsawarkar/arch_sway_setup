@@ -255,12 +255,70 @@ gone, needs a reload to fix — reads the same from the outside):
    no image to parse and therefore can't itself fail. Tier 3 is what makes a from-scratch
    machine safe on day one, before any fetch has ever succeeded.
 5. **`flock`** so the timer and a manual run can't race each other.
+6. **Waits for sway's IPC socket instead of checking once** (`apply_background()`,
+   up to 20s, polling every second). Found this auditing the wallpaper/lock setup
+   for boot reliability: `wallpaper.timer` has `Persistent=true` (catches up a
+   missed daily run on boot), but the service is only ordered `After=
+   network-online.target` — nothing ties it to sway actually being up.
+   `graphical-session.target` looked like the obvious fix, but checked first
+   rather than assuming it'd help: `systemctl --user status
+   graphical-session.target` shows it's a real loaded unit that stays
+   **`inactive (dead)`** all session, since nothing in this sway config ever
+   activates it -- ordering against it would've been a no-op. A single instant
+   socket check could lose this race at boot: `current.jpg` gets updated on disk
+   regardless, but the live `swaymsg` apply would silently give up, leaving
+   *yesterday's* wallpaper showing until a reload that never happens on its own.
+   The retry costs nothing in the normal case (manual click, or the timer's
+   normal daily run well after login) -- the socket's already there, so it
+   returns on the very first check.
+
+Also relevant to "does this survive a truly fresh install": `install.sh` does
+`systemctl --user enable --now wallpaper.timer` *before* sway has ever started
+(it's run from setup, not from inside a running session). `Persistent=true`'s
+standard systemd semantics fire a catch-up run immediately in that case (no prior
+trigger recorded), which reaches the `ln -sf "$FILEPATH" "$CURRENT"` line and
+creates a valid `current.jpg` on disk regardless of whether the live `swaymsg`
+apply succeeds -- so sway's own static `output * bg current.jpg fill` line
+(`sway/config`) finds a real file the very first time sway itself starts, not a
+dangling symlink. Not independently re-verified with an actual from-scratch
+install in this pass (same gap the rest of `install.sh`'s verification already
+has, documented above) -- this rests on standard, well-documented systemd
+`Persistent=` behavior, not a fresh empirical test.
 
 **Logging**: `~/.local/state/fetch-wallpaper/fetch-wallpaper.log` (rotated at ~1MB,
 one previous copy kept) has every attempt, failure reason, and which fallback tier
 fired. Also visible live via `journalctl --user -u wallpaper.service`. If the wallpaper
 ever looks stale or wrong, that log is the first thing to check — it will say exactly
 which of the three tiers actually ran, rather than leaving you guessing.
+
+## The lock screen: one config, four trigger points, one dead alternate removed
+
+`sway/.config/sway/lockconfig` is the single real swaylock config -- Catppuccin
+Mocha ring/text/key-highlight colors, a big left-positioned clock/date indicator,
+frosted dark backdrop, and `image=.../current.jpg` (the exact same file the
+desktop background itself uses, so the lock screen never shows a different
+wallpaper than what you were just looking at). Four places trigger it, all
+consistently pointing at this one file:
+
+- Manual keybind: `bindsym Mod1+Shift+semicolon exec swaylock -C
+  ~/.config/sway/lockconfig` (`sway/config`)
+- Idle timeout: `timeout 300 'swaylock -C ~/.config/sway/lockconfig'`
+  (`sway/idle/config`)
+- Before sleep/suspend: `before-sleep 'swaylock -C ~/.config/sway/lockconfig'`
+  (`sway/idle/config`)
+- The power menu's Lock button: `"exec": "swaylock -C
+  /home/yash/.config/sway/lockconfig"` (`nwg-bar/bar.json` -- absolute path
+  here specifically, not `~`, for the no-shell-expansion reason documented in
+  the `nwg-bar` row above)
+
+Auditing this for redundancy found a real one: `sway/.config/sway/scripts/lock.sh`
+existed as a second, completely different swaylock invocation (small 100px plain
+ring, no Catppuccin theming, no clock) -- and was referenced *nowhere* (confirmed
+with an exact, non-wildcarded grep for the literal filename across the whole repo,
+after an initial sloppier grep with an unescaped `.` falsely matched prose like
+"padlock shape"). Dead code left over from an earlier design, silently diverging
+from the one lock screen everything else actually uses. Deleted, and re-stowed to
+clean up the now-dangling `~/.config/sway/scripts/lock.sh` symlink it left behind.
 
 ## Volume and brightness: real controls, not nwg-bar buttons
 

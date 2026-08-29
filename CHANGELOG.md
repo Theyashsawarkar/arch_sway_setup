@@ -3,6 +3,47 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-29 (desktop audit: dead lock script removed, wallpaper boot race fixed)
+
+Asked to audit the wallpaper/lock screen setup specifically for redundancy and
+boot reliability. Two real, concrete findings, not just a general tidy-up:
+
+**Dead code**: `sway/.config/sway/scripts/lock.sh` was a second, completely
+different swaylock invocation (small plain ring, no theming, no clock) sitting
+next to the real one (`lockconfig`, Catppuccin-themed, used by all four actual
+lock trigger points: the manual keybind, the idle timeout, before-sleep, and the
+power menu's Lock button). Confirmed it was referenced nowhere with an exact grep
+for the literal filename -- an earlier sloppier attempt with an unescaped `.` in
+the pattern had falsely matched prose like "padlock shape" in this very
+CHANGELOG, which is exactly the kind of false-confidence a lazy grep produces.
+Deleted, re-stowed to clean up the dangling symlink it left in `~/.config/sway/
+scripts/`.
+
+**Wallpaper boot race**: `wallpaper.timer`'s `Persistent=true` catches up a
+missed daily run on boot, but `wallpaper.service` is only ordered `After=
+network-online.target` -- nothing ties it to sway actually being up yet.
+`graphical-session.target` looked like the fix, checked before assuming it'd
+help (`systemctl --user status graphical-session.target`): real loaded unit,
+stays `inactive (dead)` the entire session, since nothing in this sway config
+ever activates it -- would've been a no-op dependency. A boot-time catch-up run
+could genuinely race sway's own startup and hit `apply_background()`'s single
+instant socket check before the IPC socket exists -- `current.jpg` still gets
+updated on disk either way, but the live `swaymsg` apply would silently give up,
+leaving yesterday's wallpaper showing until a reload that never happens on its
+own. Fixed with a 20s retry loop instead of one check -- costs nothing in the
+normal case (manual click, or the timer's ordinary daily run well after login),
+where the socket's already there and it returns on the first try.
+
+Also traced whether a genuinely from-scratch install would work at all:
+`install.sh` enables the wallpaper timer before sway has ever started, but
+`Persistent=true`'s standard systemd semantics fire an immediate catch-up run in
+that case, which reaches `current.jpg`'s symlink creation regardless of whether
+the live apply succeeds -- so sway's static `output * bg current.jpg fill` line
+should find a real file on its very first startup, not a dangling reference. Not
+independently verified with an actual fresh install (same documented gap the
+rest of `install.sh` already has) -- rests on documented systemd behavior, not a
+fresh empirical test.
+
 ## 2026-08-29 (wallpaper button was always fetching the exact same image)
 
 Reported clicking the wallpaper icon repeatedly always produced the same

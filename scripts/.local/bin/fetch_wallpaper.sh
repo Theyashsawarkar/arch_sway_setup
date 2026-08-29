@@ -96,10 +96,33 @@ is_valid_image() {
 
 apply_background() {
   # $1 = image|color, $2 = path or hex color
-  local mode="$1" value="$2" swaysock
-  swaysock=$(ls /run/user/"$(id -u)"/sway-ipc.*.sock 2>/dev/null | head -n1)
+  #
+  # wallpaper.service's timer has Persistent=true (catches up a missed
+  # daily run on boot, systemd/.config/systemd/user/wallpaper.timer) --
+  # but that only orders it after network-online.target, nothing ties it
+  # to sway actually being up yet. systemd --user and sway can both start
+  # around the same moment at login, and depending on graphical-session.target
+  # for real ordering doesn't work here -- checked directly
+  # (`systemctl --user status graphical-session.target`): it's a real
+  # loaded unit, but stays "inactive (dead)" the whole session, since
+  # nothing in this sway config ever activates it. So a boot-time catch-up
+  # run can genuinely race sway's own startup and hit this function before
+  # the IPC socket exists yet -- previously a single instant check, which
+  # would silently give up and leave the *previous* wallpaper showing
+  # (current.jpg was still updated on disk, just never told to sway live)
+  # until the next manual reload, which doesn't happen on its own.
+  # Retries for up to 20s instead of checking once -- comfortably covers
+  # that startup race, and costs nothing in the normal case (manual click,
+  # scheduled run well after login) where the socket is already there and
+  # this returns on the very first check.
+  local mode="$1" value="$2" swaysock=""
+  for _ in $(seq 1 20); do
+    swaysock=$(ls /run/user/"$(id -u)"/sway-ipc.*.sock 2>/dev/null | head -n1)
+    [ -n "$swaysock" ] && break
+    sleep 1
+  done
   if [ -z "$swaysock" ]; then
-    log WARN "no sway IPC socket found -- not applying live (sway's own 'output * bg' config line will use current.jpg on next start/reload)"
+    log WARN "no sway IPC socket found after waiting -- not applying live (sway's own 'output * bg' config line will use current.jpg on next start/reload)"
     return 1
   fi
   export SWAYSOCK="$swaysock"
