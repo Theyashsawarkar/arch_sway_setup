@@ -14,6 +14,19 @@
 # only, which was fine for the daily timer but meant a manual click (the
 # waybar wallpaper-refresh icon) gave zero feedback that anything happened
 # for the several seconds a real download takes.
+#
+# WALLPAPER_URL used to be one fixed URL (index=0, mkt=en-US) -- confirmed
+# directly (curl'd it twice, compared md5sums: identical) that Bing's
+# "wallpaper of the day" for a given index+market is genuinely static for
+# the whole day, so every click within the same day fetched the exact same
+# bytes no matter how many times you asked. Also confirmed `index` (0-7ish,
+# recent past days) and `mkt` (country/locale) each independently vary the
+# actual image -- different markets often get a different photo for the
+# same day (tested en-US/de-DE/fr-FR shared one image, en-GB had a
+# different one, ja-JP/zh-CN shared a third, all on the same real day).
+# Now picks a random recent index and a random market on every run, so a
+# click is genuinely likely to differ from the last one instead of being
+# pinned to one fixed day+country.
 
 set -uo pipefail
 # Deliberately not `-e`: this script must always be able to reach its own
@@ -32,9 +45,23 @@ MAX_ARCHIVE_FILES=60  # ~2 months of daily wallpapers before pruning oldest
 FALLBACK_COLOR="1e1e2e"  # Catppuccin Mocha base -- last resort if there is no
                           # good wallpaper on disk at all (e.g. brand-new
                           # machine, first run ever, no network yet)
-WALLPAPER_URL="https://bing.biturl.top/?resolution=1920&format=image&index=0&mkt=en-US"
+# Markets confirmed to actually exist for this API; not all of them are
+# guaranteed to differ from each other on any given day (several share the
+# same underlying photo, seen directly while testing), but spreading
+# across this many real markets makes repeated fetches land on a
+# genuinely different image far more often than not.
+WALLPAPER_MARKETS=(en-US en-GB en-CA en-AU en-IN de-DE fr-FR fr-CA ja-JP zh-CN es-ES es-MX it-IT pt-BR ru-RU ko-KR nl-NL pl-PL tr-TR sv-SE)
+# 0-3 = today through 3 days ago -- stays "recent", not reaching deep into
+# Bing's archive, while still adding a second axis of variety alongside
+# the market choice.
+WALLPAPER_MAX_INDEX=3
 MAX_RETRIES=3
 RETRY_DELAY=5
+
+wallpaper_url() {
+  local idx="$1" mkt="$2"
+  printf 'https://bing.biturl.top/?resolution=1920&format=image&index=%s&mkt=%s' "$idx" "$mkt"
+}
 
 mkdir -p "$ACTIVE_DIR" "$ARCHIVE_DIR" "$LOG_DIR"
 
@@ -113,13 +140,20 @@ if command -v nmcli >/dev/null 2>&1; then
 fi
 
 # --- Download, with retries and real validation -----------------------------
-FILEPATH="$ACTIVE_DIR/wallpaper-$(date +%Y%m%d).jpg"
 TMP_FILE=$(mktemp "$ACTIVE_DIR/.download.XXXXXX")
 downloaded=false
+chosen_idx=""
+chosen_mkt=""
 
 for attempt in $(seq 1 "$MAX_RETRIES"); do
-  log INFO "download attempt $attempt/$MAX_RETRIES"
-  if curl -fsSL --connect-timeout 10 --max-time 20 -o "$TMP_FILE" "$WALLPAPER_URL"; then
+  # Re-rolled every attempt, not just once up front -- a retry after a
+  # validation failure gets a genuinely fresh index+market to try instead
+  # of hammering the same (possibly bad) combination three times.
+  chosen_idx=$((RANDOM % (WALLPAPER_MAX_INDEX + 1)))
+  chosen_mkt="${WALLPAPER_MARKETS[$((RANDOM % ${#WALLPAPER_MARKETS[@]}))]}"
+  url=$(wallpaper_url "$chosen_idx" "$chosen_mkt")
+  log INFO "download attempt $attempt/$MAX_RETRIES (index=$chosen_idx, mkt=$chosen_mkt)"
+  if curl -fsSL --connect-timeout 10 --max-time 20 -o "$TMP_FILE" "$url"; then
     if is_valid_image "$TMP_FILE"; then
       downloaded=true
       break
@@ -130,6 +164,12 @@ for attempt in $(seq 1 "$MAX_RETRIES"); do
   fi
   [ "$attempt" -lt "$MAX_RETRIES" ] && sleep "$RETRY_DELAY"
 done
+
+# Filename reflects what was actually fetched (day index + market) rather
+# than just today's date -- clicking twice in one day now legitimately
+# produces two different files instead of the second overwriting the
+# first in Active/ before archiving even sees it.
+FILEPATH="$ACTIVE_DIR/wallpaper-$(date +%Y%m%d)-idx${chosen_idx}-${chosen_mkt}.jpg"
 
 if [ "$downloaded" != true ]; then
   rm -f "$TMP_FILE"

@@ -217,6 +217,21 @@ pipeline either way — a manual click can't race the daily timer, and the scrip
 picking up `notify-send` calls (fetching / success / fallback / failure) benefits
 both paths, not just the button, since it used to be silent, log-file-only.
 
+**Every click used to fetch the exact same image, though** — confirmed directly
+(curled the same URL twice, compared md5sums: identical) that Bing's "wallpaper of
+the day" for a fixed index+market is genuinely static for the whole day, so
+`WALLPAPER_URL` being one hardcoded URL (`index=0`, `mkt=en-US`) meant every click
+within a day just re-downloaded the same bytes. Also confirmed both `index` (0-7ish,
+recent past days) and `mkt` (country/locale) each independently vary the actual
+photo — different markets often get a different image for the same real day (tested
+several: en-US/de-DE/fr-FR shared one image, en-GB had a different one, ja-JP/zh-CN
+shared a third). Now `wallpaper_url()` builds the request from a random recent index
+(0-3) and a random market out of ~20, re-rolled on every retry attempt too (not just
+once per run), so a click is genuinely likely to differ from the last one. Not every
+combination is guaranteed distinct — several markets do share images on any given
+day — but verified via three real consecutive runs producing three different
+md5sums, versus the old behavior's one fixed hash all day.
+
 It's built so that no single failure — API downtime, a malformed response, no network,
 or a totally fresh machine with no wallpaper history yet — can leave sway without a
 background or crash `swaybg` (the helper process sway delegates background rendering

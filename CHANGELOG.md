@@ -3,6 +3,37 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-29 (wallpaper button was always fetching the exact same image)
+
+Reported clicking the wallpaper icon repeatedly always produced the same
+wallpaper. Verified the actual cause rather than assuming the script was
+broken: curled the fixed API URL (`index=0`, `mkt=en-US`) twice a few seconds
+apart and compared md5sums -- identical. Bing's "wallpaper of the day" for a
+given index+market is genuinely static for the whole day; `WALLPAPER_URL`
+being one hardcoded URL meant every click just re-downloaded the same bytes
+no matter how many times it ran.
+
+Also verified what actually *does* vary it before building a fix around
+assumptions: `index` (0-7ish, recent past days) changes the photo, and so
+does `mkt` (country/locale) -- tested six real markets for the same real day
+and got three distinct images (en-US/de-DE/fr-FR shared one, en-GB had a
+different one, ja-JP/zh-CN shared a third). Matches what was actually asked
+for -- "wallpaper of the day... from other countries."
+
+Replaced the fixed URL with `wallpaper_url()`, called with a random recent
+index (0-3, stays fresh rather than reaching deep into Bing's archive) and a
+random market from a list of ~20 real ones. Re-rolled on every retry
+attempt too, not just once per run, so a validation failure doesn't waste
+three attempts hammering the same bad combination.
+
+Verified live with three real consecutive runs (not just reasoning about the
+code): got index=3/mkt=ja-JP, index=2/mkt=ja-JP, and index=2/mkt=it-IT --
+three different combinations producing three different md5sums between
+them, versus the old behavior's one fixed hash that would've stayed
+identical all day regardless of how many times it was clicked. Filenames
+now include the chosen index+market too, so multiple fetches in one day
+land as distinct archived files instead of colliding on a date-only name.
+
 ## 2026-08-28 (wallpaper icon padding: fa-image sits off-center in its own cell)
 
 Reported the icon had visibly more space on its left than its right. Measured
