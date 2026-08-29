@@ -141,9 +141,15 @@ window#waybar {
        1.2MB vs 999B), which was making the whole pill visibly grow and
        shrink every couple seconds. min-width doesn't stop it growing
        past this on a genuine burst, but covers the normal range without
-       jitter -- measured the actual live rendered width first (177px)
-       and left real headroom above that rather than guessing a number. */
-    min-width: 200px;
+       jitter -- measured the actual live rendered width first (177px,
+       back when the bar font was 15px) and left real headroom above
+       that rather than guessing a number. Scaled down to 160px when
+       asked to reduce it further, proportional to the font-size drop to
+       12px elsewhere in this pass (JetBrainsMono is monospace, so glyph
+       advance width scales ~linearly with font-size: 200 * 12/15 = 160) --
+       not a fresh pixel measurement, but a mathematically sound scaling
+       of one that was. */
+    min-width: 160px;
 }
 
 #backlight {

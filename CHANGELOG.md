@@ -30,6 +30,17 @@ finds all three plugins in the new location without re-cloning, and
 `tmux-resurrect`'s `save.sh` runs cleanly from it. See
 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the full writeup.
 
+## 2026-08-30 (network speed indicator narrowed to match the new smaller font)
+
+`#network.speed, #network-speed`'s `min-width: 200px` -> `160px`. That value was
+originally set by measuring the module's actual live rendered width at the bar's
+old 15px font (177px) and adding headroom to stop it jittering as digit counts
+change (12KB vs 1.2MB vs 999B). Rather than re-measuring from scratch, scaled it
+by the same ratio the font-size change in the previous pass introduced: JetBrains
+Mono is monospace, so glyph advance width scales ~linearly with font-size --
+200 * (12/15) = 160. Reloaded live (waybar's own file-watcher, same PID
+afterward, no crash) rather than assumed.
+
 ## 2026-08-30 (narrower workspace buttons, one font size across the whole desktop)
 
 - **`#workspaces button` padding**: `0 8px` -> `0 5px`. Same three states (idle
