@@ -458,6 +458,37 @@ if a fresh machine shows boxes, check the font first (`fc-query -f '%{charset}' 
 file>`, and confirm the codepoint tmux is using is actually in there) before assuming
 the config is wrong.
 
+## TPM's plugin path: pinned, not left to auto-detection
+
+`install.sh` clones TPM to `~/.tmux/plugins/tpm` and `tmux.conf` sources it from
+there (`run '~/.tmux/plugins/tpm/tpm'`), so `~/.tmux/plugins/` looks like the
+obvious place TPM manages `tmux-resurrect`/`tmux-continuum` too. It isn't, by
+default: TPM's own bootstrap script auto-detects an XDG-style `tmux.conf` (i.e.
+`~/.config/tmux/tmux.conf` existing, which it always will here, since that's
+exactly where this repo's stow layout puts it) and silently redirects plugin
+management to `~/.config/tmux/plugins/` instead -- a *different* directory that
+happens to sit inside the stowed repo tree itself, untracked, with each plugin's
+own nested `.git` dir. `install_plugins.sh` will happily report "Already
+installed" for plugins living there while `~/.tmux/plugins/` only ever has TPM
+itself in it -- confusing unless you know to check
+`tmux show-environment -g TMUX_PLUGIN_MANAGER_PATH` inside a live session.
+
+Fixed by pinning the path explicitly in `tmux.conf`, before the `@plugin` lines
+(TPM's own documented override):
+
+```
+set-environment -g TMUX_PLUGIN_MANAGER_PATH "$HOME/.tmux/plugins/"
+```
+
+`tmux-resurrect`/`tmux-continuum` were migrated from `~/.config/tmux/plugins/`
+(repo-tracked, via stow) to `~/.tmux/plugins/` (outside the repo, matching
+`install.sh`'s clone target) to match, and `systemd/tmux.service`'s
+`ExecStop` was updated to the new `tmux-resurrect/scripts/save.sh` path.
+Verified end-to-end with a live session: `TMUX_PLUGIN_MANAGER_PATH` now
+resolves to `~/.tmux/plugins/`, `install_plugins.sh` finds all three plugins
+already there without re-cloning, and `save.sh` runs cleanly from the new
+location.
+
 ## The one true font: JetBrainsMono Nerd Font
 
 Every config that renders text with icons — `kitty`, `tmux`, `sway` (window

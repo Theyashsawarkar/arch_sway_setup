@@ -3,6 +3,33 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-29 (full repo audit: tmux plugin path split fixed)
+
+Broadened the previous audit to the whole repo. First finding: `tmux/.config/
+tmux/plugins/` was sitting untracked in the repo tree (`tmux-continuum`,
+`tmux-resurrect`, and a second copy of `tpm`, each with their own nested `.git`
+dirs) even though `install.sh` clones TPM to `~/.tmux/plugins/tpm` and nothing
+in this repo ever mentions `~/.config/tmux/plugins/`. Almost deleted it outright
+as accidental vendored content, matching the `lock.sh` pattern from the previous
+audit -- caught the mistake by tracing *why* `install_plugins.sh` reported
+"Already installed" for plugins that didn't exist at `~/.tmux/plugins/`: TPM's
+own bootstrap script auto-redirects `TMUX_PLUGIN_MANAGER_PATH` to `~/.config/
+tmux/plugins/` whenever it detects an XDG-style `tmux.conf` -- which this repo's
+stow layout always produces. The content was real and live (`tmux.service`'s
+`ExecStop` was already correctly pointing at it), not dead code.
+
+Fixed at the source instead of papering over it: pinned `TMUX_PLUGIN_MANAGER_PATH`
+explicitly in `tmux.conf` (TPM's own documented override, placed before the
+`@plugin` lines) to `~/.tmux/plugins/`, migrated the real `tmux-resurrect`/
+`tmux-continuum` content there, discarded the redundant duplicate `tpm` clone
+(the real one already lives at `~/.tmux/plugins/tpm`), removed the now-empty
+`tmux/.config/tmux/plugins/` from the repo, and updated `systemd/.config/
+systemd/user/tmux.service`'s `ExecStop` path to match. Verified with a real
+tmux session: `TMUX_PLUGIN_MANAGER_PATH` resolves correctly, `install_plugins.sh`
+finds all three plugins in the new location without re-cloning, and
+`tmux-resurrect`'s `save.sh` runs cleanly from it. See
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the full writeup.
+
 ## 2026-08-29 (desktop audit: dead lock script removed, wallpaper boot race fixed)
 
 Asked to audit the wallpaper/lock screen setup specifically for redundancy and
