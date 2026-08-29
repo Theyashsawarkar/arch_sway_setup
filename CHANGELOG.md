@@ -30,6 +30,48 @@ finds all three plugins in the new location without re-cloning, and
 `tmux-resurrect`'s `save.sh` runs cleanly from it. See
 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the full writeup.
 
+## 2026-08-29 (docker cruft reclaimed; .pacnew/.pacsave files analyzed)
+
+Followed up on the two items flagged earlier.
+
+**Docker**, done directly (no sudo needed, `yash` is already in the `docker` group):
+inspected exactly which volumes each stopped container actually references before
+touching anything -- `postgres` -> named volume `postgres-data`, `pgadmin` -> one
+anonymous volume, both still "in use" from Docker's own point of view even while
+their containers are stopped, so neither `docker volume prune` nor manual removal
+would ever touch them. The other 5 volumes had zero container references at all
+(running or stopped) -- confirmed, then removed. Same check for images: `alpine`
+and `nginx` had zero containers referencing them (not even a stopped one), while
+`postgres:18`/`postgres:latest` (same image ID) and `dpage/pgadmin4:latest` are
+still the exact images the stopped containers point to. Removed `alpine`/`nginx`
+(~254MB) and the 5 orphaned volumes (~66MB). Containers, their real volumes, and
+the images they actually reference are all untouched -- `docker start postgres`/
+`docker start pgadmin` still works exactly as before.
+
+**`.pacnew`/`.pacsave` files**, diffed and analyzed (system has no `pacdiff` --
+`pacman-contrib` isn't installed -- so diffed each manually against its live
+counterpart):
+- `/etc/pacman.d/mirrorlist.pacnew` -- **do not apply**. The live file has real,
+  working, hand-picked India-region mirrors; the `.pacnew` is upstream's blank
+  template with every server commented out. Applying it would leave pacman with
+  zero usable mirrors. Recommendation: just delete the `.pacnew`.
+- `/etc/bluetooth/main.conf.pacnew` -- safe to apply. Only real live customization
+  is an explicit `AutoEnable=true`; the `.pacnew` comments that same line out, but
+  its own documented default is also `true`, so behavior is unchanged either way.
+  Everything else added is a new, fully-commented `[ChannelSounding]` section --
+  inert until someone opts in. Recommendation: adopt the `.pacnew`.
+- `/etc/locale.gen.pacnew` -- **do not apply**. It comments out `en_US.UTF-8`,
+  which the live file has active and generated. Applying it wouldn't break
+  anything immediately, but a future `locale-gen` run would stop regenerating
+  that locale. Recommendation: delete the `.pacnew`, keep the live file as-is.
+- `/etc/greetd/config.toml.pacsave` -- fully orphaned. `greetd` isn't even
+  installed anymore (`pacman -Q greetd` -- not found) and `sddm` is the actual
+  enabled display manager; the live `config.toml` this `.pacsave` was saved
+  alongside doesn't exist either. Recommendation: `sudo rm -rf /etc/greetd`.
+
+Handed off as exact commands (see below) rather than applied -- all four live
+under `/etc`, root-owned, outside this session's access.
+
 ## 2026-08-29 (verified: the handed-off sudo cleanup ran clean)
 
 User ran the two hand-off commands from the pass above (`pacman -Rns` on the 12
