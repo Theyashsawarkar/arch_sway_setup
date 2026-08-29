@@ -30,6 +30,39 @@ finds all three plugins in the new location without re-cloning, and
 `tmux-resurrect`'s `save.sh` runs cleanly from it. See
 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the full writeup.
 
+## 2026-08-30 (network speed indicator: real bug found in how I'd been "verifying" it)
+
+Reported the previous pass's 160px change hadn't actually changed anything visible.
+Investigated rather than re-guessing a number, and found a real process bug in my
+own verification, not just the CSS: **waybar had been running the same PID since
+23:27 the entire time** -- every earlier "reloaded live, same PID, no crash" claim
+in this session's changelog was actually confirming the *opposite* of what it
+said. Waybar does not hot-reload config/style.css from a file-watcher (that was
+an unverified assumption, stated as fact); it needs an actual process restart.
+Every style/font/padding change from the last two passes had been sitting correct
+in the files but never live on screen until now.
+
+With that fixed (`pkill waybar` + relaunch, confirmed via a fresh PID each time),
+re-measured the network speed module for real instead of estimating: temporarily
+forced its format to a literal `123.12KB` on both sides (the exact worst case
+asked for), screenshotted, and located the true rendered bounds by color-matching
+the format string's own Green (`#A6E3A1`)/Peach (`#FAB387`) span colors pixel-by-
+pixel rather than eyeballing -- download span 386-454px, upload span 470-538px,
+153px of real content between them. With the shared 12px/side padding this
+module's id also picks up, natural pill width at that exact worst case is
+12+153+12 = **177px** -- bigger than the previous 160px guess, meaning 160 was
+actually too narrow for "123.12" on both sides, not too generous.
+
+Set `min-width: 177px` -- fits the stated worst case exactly, no slack beyond it.
+Re-measured current *real* traffic the same way afterward: 124px of content right
+now (148px natural width), meaning there will still be visible empty space during
+normal/light traffic, since a fixed min-width is a floor that can't shrink below
+itself -- that's what reads as "too much padding" day-to-day, and it's the
+necessary cost of the pill never growing/jittering when traffic actually reaches
+three-digit KB values on both sides, which was the explicit requirement. Flagged
+this trade-off directly rather than picking a number that quietly abandoned one
+side of the request.
+
 ## 2026-08-30 (network speed indicator narrowed to match the new smaller font)
 
 `#network.speed, #network-speed`'s `min-width: 200px` -> `160px`. That value was

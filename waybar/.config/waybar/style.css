@@ -141,15 +141,27 @@ window#waybar {
        1.2MB vs 999B), which was making the whole pill visibly grow and
        shrink every couple seconds. min-width doesn't stop it growing
        past this on a genuine burst, but covers the normal range without
-       jitter -- measured the actual live rendered width first (177px,
-       back when the bar font was 15px) and left real headroom above
-       that rather than guessing a number. Scaled down to 160px when
-       asked to reduce it further, proportional to the font-size drop to
-       12px elsewhere in this pass (JetBrainsMono is monospace, so glyph
-       advance width scales ~linearly with font-size: 200 * 12/15 = 160) --
-       not a fresh pixel measurement, but a mathematically sound scaling
-       of one that was. */
-    min-width: 160px;
+       jitter.
+
+       Re-measured directly rather than guessed a second time: temporarily
+       forced the format to a literal "123.12KB" on both sides (the
+       explicit worst case asked for), restarted waybar for real (a prior
+       pass wrongly assumed waybar hot-reloads CSS/config on file change --
+       it doesn't; the running process needs an actual restart), and
+       located the exact rendered bounds by color-matching the format's
+       own Green/Peach span colors in a screenshot rather than eyeballing
+       pixels: download span 386-454px, upload span 470-538px, so real
+       content (icon+text, both spans, the 2-space gap between them) is
+       153px. Padding is 12px each side (see the shared `#network` rule
+       above, which this module's id also matches), so the pill's true
+       natural width at that exact worst case is 12+153+12 = 177px -- this
+       was *larger* than the previous 160px, meaning 160 was actually too
+       small for "123.12" on both sides, not too generous. The "too much
+       padding" this looked like was min-width forcing empty interior
+       space at everyday (much smaller) traffic values, not excess padding
+       at the worst case. 177px fits the stated worst case with the same
+       12px padding as everywhere else and no extra slack beyond it. */
+    min-width: 177px;
 }
 
 #backlight {
