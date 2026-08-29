@@ -30,6 +30,22 @@ finds all three plugins in the new location without re-cloning, and
 `tmux-resurrect`'s `save.sh` runs cleanly from it. See
 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the full writeup.
 
+## 2026-08-29 (verified: the handed-off sudo cleanup ran clean)
+
+User ran the two hand-off commands from the pass above (`pacman -Rns` on the 12
+orphans, `pacman -Sc`). Verified the result rather than assuming it went fine:
+`/var/log/pacman.log`'s transaction shows exactly the 12 flagged packages removed
+plus 4 of their own now-orphaned sub-dependencies (`wayland-protocols`,
+`python-tqdm`, `ninja`, `libmfx`), zero errors/warnings, clean completion. Disk
+38G -> 24G used. `pacman -Qdtq` (orphans), `pacman -Qk` (missing package files),
+and `pacman -T $(pacman -Qqe)` (unsatisfied deps) all come back clean. Confirmed
+the non-debug counterpart of every removed `-debug` package is still installed
+and actually running (`swayfx`, `swaylock-effects`, `sway-audio-idle-inhibit-git`,
+etc. -- `-debug` packages only ever contained split-out debug symbols, never the
+real binary). `systemctl --failed` clean at both system and `--user` scope. Repo/
+stow state unchanged. Docker was untouched, as recommended -- still needs a
+manual look before anything there gets pruned.
+
 ## 2026-08-29 (broader cleanup: empty repo dir, npm cache, system cruft surveyed)
 
 Asked to look at the whole setup for stability/reliability again and remove anything
