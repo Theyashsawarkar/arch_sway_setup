@@ -30,6 +30,55 @@ finds all three plugins in the new location without re-cloning, and
 `tmux-resurrect`'s `save.sh` runs cleanly from it. See
 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the full writeup.
 
+## 2026-08-29 (stability pass: missing symlink, dead archive symlinks, a false alarm chased down)
+
+Asked to check for "corrupt files" and confirm the whole system is stable. Checked
+systematically rather than guessing: `git status`, a repo-wide broken-symlink scan
+(`find ~ -xtype l`), every `systemctl --user` unit's actual state + journal, and
+system-level failed units / disk / memory. Two real, fixed issues, and one thing
+that looked broken but wasn't:
+
+- **`tmux.service`'s stow symlink was simply never created.** `~/.config/systemd/
+  user/tmux.service` didn't exist at all, even though `systemd/.config/systemd/user/
+  tmux.service` is a real, correct file in this repo (and got edited earlier today
+  for the plugin-path fix above) -- `stow -n -v -t ~ systemd` confirmed it as a
+  pending `LINK`, not a conflict, so it had just never been linked, probably because
+  `stow systemd` was last run before this particular unit file existed in the
+  package. Harmless while the unit stays intentionally un-enabled (per `install.sh`),
+  but `systemctl --user enable --now tmux.service` would have failed outright with
+  "unit not found" if anyone tried it. Fixed with `stow -R -t ~ systemd`; confirmed
+  `tmux.service` now shows `Loaded: loaded ... linked` (still correctly not
+  `enabled` -- the restow only fixes the missing symlink, doesn't opt it in).
+- **Five dead, broken symlinks inside `~/Pictures/Wallpapers/Archive/`** (dated Jun 7,
+  Jun 14, Jun 15, Aug 12, Aug 23 -- clearly debris from earlier iterations of
+  `fetch_wallpaper.sh`'s archiving logic, predating the current `-type f` guard in
+  the archive `find`/`mv` step, which correctly excludes symlinks going forward).
+  Each pointed at a plain-date-named file (`Active/wallpaper-20260607.jpg` etc.)
+  that no longer exists there, since `Active/` only ever holds the current day's
+  file. Confirmed genuinely dead via `readlink -f` before deleting, and confirmed
+  no *other* corruption in the wallpaper pipeline while at it: scanned every real
+  archived `.jpg` with `file --mime-type` for the historical "JSON blob saved as
+  .jpg" bug (documented above) -- none found, `is_valid_image()` is doing its job.
+  Deleted the 5 dead links; 55 genuine archived wallpapers untouched.
+- **False alarm, chased down rather than assumed**: `swayidle.service` showed as
+  crash-looped in the journal (`status=253`, "Unable to connect to the compositor")
+  right after this boot, then landed `inactive (dead)`. Looked like a real bug at
+  first glance. Traced it fully: the crash-loop itself is the already-documented,
+  harmless startup race (`swayidle.service` is `WantedBy=default.target` so systemd
+  auto-starts it before sway's own `dbus-update-activation-environment --all` has
+  run) -- and the reason it's *staying* stopped afterward isn't a bug at all:
+  `~/.local/state/caffeine/enabled` exists (caffeine mode has been ON since
+  2026-08-28 16:37), so `swayidle-startup.sh` is correctly stopping it every login,
+  exactly as designed. Confirmed via `WAYLAND_DISPLAY` being present in
+  `systemctl --user show-environment` and a clean manual `swayidle -C ...` run
+  succeeding outside the race window. **Not fixed, because it isn't broken** --
+  flagged to the user instead: caffeine mode has quietly been on for over a day,
+  meaning idle lock/dim/suspend have been off that whole time, which may or may not
+  be intentional.
+
+System-level check: no failed system units, 406G free disk, no swap pressure,
+9.6G RAM with 7.8G free. Nothing else needed attention.
+
 ## 2026-08-29 (full repo audit, continued: docs staleness, a second dead ordering directive)
 
 Read through every remaining config in the repo (mako, wofi, nwg-bar,

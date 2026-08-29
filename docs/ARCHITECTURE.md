@@ -254,6 +254,14 @@ gone, needs a reload to fix — reads the same from the outside):
    archive it away) → a plain solid color via `swaybg -c`/`solid_color` mode, which has
    no image to parse and therefore can't itself fail. Tier 3 is what makes a from-scratch
    machine safe on day one, before any fetch has ever succeeded.
+
+   The archiving step's `find "$ACTIVE_DIR" -maxdepth 1 -type f ...` deliberately
+   uses `-type f`, which excludes symlinks — found and cleaned up 5 dead broken
+   symlinks inside `Archive/` during a stability pass (dated across Jun–Aug 2026)
+   that had clearly been swept in by an older version of this logic before that
+   guard existed, each pointing at a plain-date `Active/wallpaper-YYYYMMDD.jpg`
+   that no longer exists there (`Active/` only ever holds the current day's file).
+   The current `-type f` guard means this specific kind of debris can't recur.
 5. **`flock`** so the timer and a manual run can't race each other.
 6. **Waits for sway's IPC socket instead of checking once** (`apply_background()`,
    up to 20s, polling every second). Found this auditing the wallpaper/lock setup
@@ -505,6 +513,16 @@ Verified end-to-end with a live session: `TMUX_PLUGIN_MANAGER_PATH` now
 resolves to `~/.tmux/plugins/`, `install_plugins.sh` finds all three plugins
 already there without re-cloning, and `save.sh` runs cleanly from the new
 location.
+
+**Gotcha worth remembering**: adding a new unit file to an already-stowed package
+doesn't retroactively symlink it — `stow` only acts when you run it. Found this
+during a later stability pass: `~/.config/systemd/user/tmux.service` didn't exist
+at all despite the repo's copy being correct, because `stow systemd` had last been
+run before `tmux.service` existed in the package. Harmless as long as the unit
+stays un-enabled, but `systemctl --user enable --now tmux.service` would fail
+outright with "unit not found" until a `stow -R -t ~ systemd` fixes it. If you add
+a file to an already-stowed package, restow it — don't assume the symlink appeared
+on its own.
 
 ## The one true font: JetBrainsMono Nerd Font
 
