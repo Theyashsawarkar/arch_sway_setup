@@ -30,6 +30,57 @@ finds all three plugins in the new location without re-cloning, and
 `tmux-resurrect`'s `save.sh` runs cleanly from it. See
 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the full writeup.
 
+## 2026-08-29 (broader cleanup: empty repo dir, npm cache, system cruft surveyed)
+
+Asked to look at the whole setup for stability/reliability again and remove anything
+unnecessary. Repo/stow/systemd health re-checked clean (no regression since the
+stability pass above). Widened the sweep to actual disk/package cruft this time,
+not just config correctness:
+
+**Fixed directly (safe, no data loss possible):**
+- `zed/.config/zed/themes/` was an empty directory sitting in the repo tree,
+  genuinely untracked by git (git can't represent empty dirs, so `git status` never
+  showed it) -- a fresh clone + stow would never recreate it, meaning it did
+  nothing for anyone; almost certainly leftover from Zed's own first-run config
+  scaffold getting vendored wholesale when the `zed` package was created. Removed.
+- `~/.npm` cache was 312M, entirely regenerable. Cleared with `npm cache clean
+  --force`, down to 124K.
+
+**Surveyed, not touched -- needs `sudo` (outside this session's access) or a
+judgment call about real data this session can't make safely:**
+- **12 orphaned pacman packages** (`pacman -Qdtq`): `bruno-bin-debug`, `ffmpeg4.4`,
+  `go`, `meson`, `mongosh-bin-debug`, `scdoc`, `sway-audio-idle-inhibit-git-debug`,
+  `swayfx-debug`, `swaylock-effects-debug`, `wlogout-debug`, `wlroots0.20`,
+  `yay-debug` -- installed as dependencies, nothing currently requires them.
+  `sudo pacman -Rns $(pacman -Qdtq)` removes them; worth a quick skim of the list
+  first since "orphaned" means "nothing depends on it right now," not "definitely
+  never wanted."
+- **`/var/cache/pacman/pkg/` is 8.6G**, including a couple dozen `download-*`
+  temp directories this session couldn't even read (root-owned) -- normal pacman
+  cache accumulates every version ever installed, not just the current one.
+  `sudo pacman -Sc` clears everything except currently-installed versions; `yay
+  -Sc` for the AUR cache too. Installing `pacman-contrib` gets you `paccache -d`
+  (dry-run preview) if a look-before-you-leap pass is preferred over pacman's
+  built-in prompt.
+- **Docker has real reclaimable space, but some of it may be wanted data**:
+  `docker system df` shows 2 stopped containers (`postgres`, exited 2 weeks ago;
+  `pgadmin`, exited 2 months ago -- both clean exits, not crashes) and 2 fully
+  dangling images (`alpine`, `nginx` -- zero containers using either). `docker
+  image prune` is safe (only removes untagged/dangling images, and none of the
+  5 images here are actually dangling in that sense -- so it'd be a no-op; the
+  reclaimable size docker reports is against currently-unused-but-tagged images,
+  which needs `-a` and is exactly the kind of thing worth a manual look first).
+  Deliberately did **not** run `docker container prune` or `docker volume prune`:
+  5 of 7 docker volumes are unattached, and at least one is very likely the
+  `postgres` container's actual database files -- pruning containers/volumes
+  blindly could permanently delete a real local database with no backup. Left
+  for the user to review with `docker volume ls` / `docker inspect postgres`
+  before deciding.
+
+Journal (322.7M total, 103.5M user-level) and the wallpaper archive (60/60 files,
+self-capped at `MAX_ARCHIVE_FILES`, 20M total) were both already within normal,
+self-managed bounds -- nothing to do there.
+
 ## 2026-08-29 (stability pass: missing symlink, dead archive symlinks, a false alarm chased down)
 
 Asked to check for "corrupt files" and confirm the whole system is stable. Checked
