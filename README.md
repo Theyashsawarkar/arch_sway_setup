@@ -86,6 +86,7 @@ Each directory represents an independent package managed by GNU Stow.
 ├── gtk/             # GTK 3/4 settings.ini (Catppuccin Mocha theme)
 ├── kitty/
 ├── mako/
+├── networkmanager-dmenu/  # wofi-backed Wi-Fi picker (scan/connect/toggle)
 ├── nvim/
 ├── nwg-bar/         # power menu (lock/logout/suspend/reboot/shutdown)
 ├── scripts/         # ~/.local/bin utilities used by sway keybindings
@@ -138,7 +139,7 @@ Install individual packages:
 
 ```bash
 stow kitty tmux nvim zed zsh scripts systemd gtk xdg
-stow sway waybar mako wofi nwg-bar
+stow sway waybar mako wofi nwg-bar networkmanager-dmenu
 ```
 
 Or install everything (`packages/` and `docs/` aren't stow packages, so they're excluded):

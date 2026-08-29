@@ -272,6 +272,23 @@ gone, needs a reload to fix — reads the same from the outside):
    normal daily run well after login) -- the socket's already there, so it
    returns on the very first check.
 
+7. **`After=network-online.target` in `wallpaper.service` is itself a no-op** —
+   found while auditing the rest of the repo for uncoordinated config. Checked
+   rather than assumed: `systemctl --user list-unit-files network-online.target`
+   returns **zero unit files** on this machine — `network-online.target` is a
+   system-level target, never instantiated inside the `--user` manager's own
+   namespace, so ordering a user unit `After=` it is syntactically accepted but
+   has nothing to actually order against (same class of silent-no-op as the
+   `graphical-session.target` finding just above, different unit). Left the line
+   in place rather than deleting it outright — it costs nothing and documents
+   the *intent* even though it doesn't enforce it — but the real "don't run
+   before the network's up" protection is entirely carried by step 1's own
+   `nmcli` check plus the download's own timeouts and three-tier fallback, not
+   by systemd ordering. Worth knowing if you're ever debugging why a boot-time
+   catch-up run fetched a wallpaper before the network was actually ready:
+   nothing was stopping it from trying, by design of this unit file, not by
+   accident.
+
 Also relevant to "does this survive a truly fresh install": `install.sh` does
 `systemctl --user enable --now wallpaper.timer` *before* sway has ever started
 (it's run from setup, not from inside a running session). `Persistent=true`'s

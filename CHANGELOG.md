@@ -30,6 +30,36 @@ finds all three plugins in the new location without re-cloning, and
 `tmux-resurrect`'s `save.sh` runs cleanly from it. See
 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the full writeup.
 
+## 2026-08-29 (full repo audit, continued: docs staleness, a second dead ordering directive)
+
+Read through every remaining config in the repo (mako, wofi, nwg-bar,
+networkmanager-dmenu, zed, gtk, xdg, docker security docs, all systemd units, every
+script under `scripts/.local/bin/` and `sway/.config/sway/scripts/`) looking for the
+same two things as the tmux fix above: redundant/uncoordinated config, and stale docs.
+Most of it checked out clean -- well-commented, internally consistent, no dead code.
+Two real findings:
+
+- **README.md's repository-structure tree and manual `stow` command example were
+  missing `networkmanager-dmenu`** -- a fully-wired package (confirmed correct in
+  `docs/ARCHITECTURE.md`'s package-map table and `packages/pacman.txt` already), just
+  never added to these two illustrative lists when the package was introduced. The
+  "stow everything" catch-all command in the same section already picks up new
+  packages automatically (`find . -maxdepth 1 -mindepth 1 -type d ! -name packages
+  ! -name docs ...`), so this was cosmetic/doc-only, not a functional gap -- but a
+  reader following the manual per-package example would've missed it. Added it to
+  both lists.
+- **`wallpaper.service`'s `After=network-online.target` is itself a no-op** for the
+  same underlying reason `graphical-session.target` was found to be one in the
+  previous audit pass: `systemctl --user list-unit-files network-online.target`
+  returns zero unit files -- it's a system-level target never instantiated in the
+  `--user` manager's namespace, so ordering against it is accepted but enforces
+  nothing. Not a functional bug in practice -- `fetch_wallpaper.sh`'s own `nmcli`
+  connectivity check, download timeouts, and three-tier fallback already fully cover
+  "network isn't up yet" -- but the unit file's own ordering directive was
+  misleading about where that protection actually comes from. Documented in
+  `docs/ARCHITECTURE.md` rather than deleted, since it costs nothing and still states
+  the intent even though it doesn't enforce it.
+
 ## 2026-08-29 (desktop audit: dead lock script removed, wallpaper boot race fixed)
 
 Asked to audit the wallpaper/lock screen setup specifically for redundancy and
