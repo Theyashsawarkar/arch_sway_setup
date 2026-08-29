@@ -32,7 +32,7 @@ bindsym $mod+period exec wofi-emoji
 # Core border style for windows
 default_border pixel 2
 default_floating_border pixel 2
-font pango:JetBrainsMono Nerd Font 10
+font pango:JetBrainsMono Nerd Font 12
 
 # --- Window Geometry (Margins / Gaps) ---
 # Inner gaps separate adjacent windows from each other

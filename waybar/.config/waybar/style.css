@@ -1,6 +1,6 @@
 * {
     font-family: "JetBrainsMono Nerd Font", "Noto Color Emoji", "sans-serif";
-    font-size: 15px;
+    font-size: 12px;
     font-weight: 600;
     min-height: 0;
     border: none;
@@ -342,7 +342,7 @@ window#waybar {
    just sit directly in the one shared container. Colors, spacing,
    hover/focused underline accent all unchanged otherwise. */
 #workspaces button {
-    padding: 0 8px;
+    padding: 0 5px;
     color: #6C7086; /* Dim inactive — matches capslock/numlock's unlocked gray */
     margin: 1px;
     /* Transparent border reserves the same 2px of vertical space idle,

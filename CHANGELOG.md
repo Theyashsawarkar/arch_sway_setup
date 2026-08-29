@@ -30,6 +30,47 @@ finds all three plugins in the new location without re-cloning, and
 `tmux-resurrect`'s `save.sh` runs cleanly from it. See
 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the full writeup.
 
+## 2026-08-30 (narrower workspace buttons, one font size across the whole desktop)
+
+- **`#workspaces button` padding**: `0 8px` -> `0 5px`. Same three states (idle
+  gray / hover Lavender / focused Red underline) and layout-jump guard
+  (transparent `border-bottom` reserving space so nothing shifts on hover),
+  just narrower chips -- the ask was width, not anything else about them.
+- **One font size (12) across every config that sets one explicitly**, instead
+  of each app carrying whatever its own default happened to be:
+  - `kitty` 15 -> 12 (this one was already sitting as live, uncommitted drift
+    from before this session touched anything -- formalized it into the repo
+    rather than fighting it, since it's exactly the value being standardized
+    on anyway)
+  - `waybar` (global bar text) 15px -> 12px
+  - `zed` `ui_font_size`/`buffer_font_size`/terminal `font_size` 15.0 -> 12.0
+  - `wofi` 16px -> 12px
+  - `nwg-bar` (power menu) 15px -> 12px
+  - `mako` (notifications) 10 -> 12
+  - `sway` (`font pango:`, window title text) 10 -> 12
+
+  **Deliberately left untouched**: `sway/.config/sway/lockconfig`'s
+  `font-size=80`. That's swaylock's big on-screen clock/PIN-attempt display,
+  not body text -- a fundamentally different UI role (glanceable from a few
+  feet away, not read up close), and normalizing it to 12 would make the lock
+  screen's whole reason for a large font pointless. No GTK-wide font-name
+  override exists in this repo for either `gtk-3.0`/`gtk-4.0` `settings.ini`,
+  so nothing there needed changing.
+
+  12 isn't an unreasonable size on its own -- it's a common, legible terminal/
+  UI size and matches what was already live in kitty -- but it is on the
+  smaller side for extended reading specifically in `zed`'s buffer font and
+  the waybar text glanced at across a room; worth a quick look after this
+  lands and bumping just those two back up first if it feels cramped, rather
+  than assuming the whole set needs to move together again.
+
+Reloaded live to verify nothing crashed: `swaymsg reload` (font pango line),
+waybar (auto-reloads config/style.css via its own file-watcher, still running
+same PID afterward), `makoctl reload`. No visual regression tooling available
+in this session to pixel-verify beyond that, but every change here is a plain
+numeric font-size/padding value, not a codepoint or anything else with a
+history of silent corruption in this repo.
+
 ## 2026-08-29 (docker cruft reclaimed; .pacnew/.pacsave files analyzed)
 
 Followed up on the two items flagged earlier.
