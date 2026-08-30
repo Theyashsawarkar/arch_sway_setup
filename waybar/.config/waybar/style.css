@@ -238,12 +238,18 @@ window#waybar {
     margin-right: 8px;
 }
 
+/* All three modes share one glyph (fa-bell, see
+   notification-history-status.sh) -- color is the only thing that tells
+   them apart, so all three need to read as clearly distinct from each
+   other, and from #clock's Blue/Maroon right next to them (confirmed by
+   screenshot: none of the three below share a pixel-exact color with
+   either clock color anywhere in the bar). */
 #custom-notifications.normal {
     color: #B4BEFE; /* Lavender */
 }
 
 #custom-notifications.silent {
-    color: #6C7086;
+    color: #6C7086; /* Dim gray -- matches every other "quieted, not off" state elsewhere in this bar */
 }
 
 #custom-notifications.dnd {

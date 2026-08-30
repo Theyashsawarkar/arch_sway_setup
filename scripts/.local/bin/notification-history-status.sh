@@ -21,23 +21,16 @@ esac
 count=$(makoctl history -j 2>/dev/null | python3 -c "import json,sys; print(len(json.load(sys.stdin)))" 2>/dev/null)
 count="${count:-0}"
 
-ICON_NORMAL=''       # fa-bell
-ICON_SILENT=''       # fa-bell-slash
-ICON_DND='󰪡'          # md-minus-circle
+# One glyph for all three modes -- fa-bell only. Distinguishing the
+# modes is the color's job (see #custom-notifications.normal/.silent/
+# .dnd in style.css), not the shape -- a changing icon shape stacked on
+# top of a changing color was more to parse at a glance, not less.
+icon=''       # fa-bell
 
 case "$mode" in
-    normal)
-        icon="$ICON_NORMAL"
-        label="Normal"
-        ;;
-    silent)
-        icon="$ICON_SILENT"
-        label="Silent"
-        ;;
-    dnd)
-        icon="$ICON_DND"
-        label="Do Not Disturb"
-        ;;
+    normal) label="Normal" ;;
+    silent) label="Silent" ;;
+    dnd)    label="Do Not Disturb" ;;
 esac
 
 tooltip="$label -- $count notification(s) in history -- click to view, scroll to change mode"

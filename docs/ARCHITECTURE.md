@@ -845,12 +845,23 @@ extra, always still landing in history either way.
 persisted state file, not `makoctl mode` directly, keeping this the same
 single source of truth every other part of this feature already treats
 as authoritative rather than a second one that could theoretically read
-racy live daemon state mid-switch. Three distinct icons + colors --
-`fa-bell` (Lavender) for normal, `fa-bell-slash` (dim gray, matching
-every other "quieted, not fully off" state elsewhere in this bar) for
-silent, `md-minus-circle` (Red -- the one state here that's an active,
-deliberate choice to suppress everything, worth a real attention color)
-for dnd.
+racy live daemon state mid-switch. One glyph, `fa-bell`, shared by all
+three modes -- color alone (Lavender/normal, dim gray matching every
+other "quieted, not fully off" state elsewhere in this bar/silent, Red
+-- the one state here that's an active, deliberate choice to suppress
+everything, worth a real attention color/dnd) is what distinguishes them.
+This was originally three different glyphs (`fa-bell`/`fa-bell-slash`/
+`md-minus-circle`); asked to go bell-only with color doing the work
+instead, after briefly considering (and dropping) plain white icons for
+all three -- white gave up the at-a-glance mode signal color already
+provides, plain colored bells with no glyph change reads cleaner. Picked
+colors specifically checked against `#clock`'s own colors (Blue for the
+time, Maroon for the date, right next to this module) so the mode color
+doesn't get lost against or mistaken for the clock -- confirmed with an
+exact-pixel-color screenshot count per mode: each mode's own color is
+the dominant exact match in the bar while active, and none of the three
+notification colors share a single exact pixel match with either clock
+color in any mode.
 
 **Not independently mouse-tested**: same disclosed limitation as
 `notification-history.py`'s own waybar click a few passes back --

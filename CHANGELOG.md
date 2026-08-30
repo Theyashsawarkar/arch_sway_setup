@@ -3,6 +3,22 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-30 (notification bell: one glyph, color-only mode signal)
+
+Follow-up to the three-mode notification feature above. Asked for
+white-only bell icons, then reconsidered mid-request and asked for
+color instead, kept clear of the clock's own colors right next to it.
+
+Dropped the three different glyphs (`fa-bell`/`fa-bell-slash`/
+`md-minus-circle`) for a single `fa-bell` shared by all three modes --
+color is now the only thing distinguishing normal/silent/dnd, kept from
+the same three colors already in place (Lavender/dim gray/Red).
+Confirmed with an exact-pixel-color screenshot count per mode that each
+mode's own color actually dominates the bar while it's active, and that
+none of the three share a single exact pixel match with `#clock`'s Blue
+(time) or Maroon (date) in any mode -- not just eyeballed as "looks
+different enough".
+
 ## 2026-08-30 (three notification modes: normal/silent/dnd)
 
 Asked for three notification modes -- normal (popup + sound), silent
