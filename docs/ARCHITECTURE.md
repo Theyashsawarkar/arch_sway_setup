@@ -472,6 +472,61 @@ documented elsewhere in this file -- that one is wofi's own dmenu list
 never requesting a cursor-shape change at all, which is unrelated to how
 waybar's own pill modules behave.
 
+## Wofi color-palette consistency audit
+
+Asked to make sure every wofi popup follows the same color palette, plus a
+general look for bugs/improvements. Audited every script that invokes wofi
+or embeds Pango markup in what it feeds to wofi
+(`wifi-picker.py`, `bluetooth-picker.py`, `keybind-search.py`,
+`wofi-calc.sh`) and the shared `style.css`/`config` themselves.
+
+Most of it already checked out: `wifi-picker.py` and `bluetooth-picker.py`
+already share the exact same three-color Catppuccin Mocha system (Sky
+`#89DCEB` for a connectable/primary entity, Teal `#94E2D5` for known-but-
+passive, Peach `#FAB387` for a command/action) and the exact same
+`#313244` surface color wofi's own `#input` CSS uses (`rgba(49,50,68,...)`
+== `#313244` -- same underlying color, just expressed differently in each
+place) -- confirmed by reading through both scripts fully rather than
+just grepping for hex codes and assuming they matched.
+
+Two real things found and fixed:
+
+- **A duplicate color, not just a stylistic one**: `bluetooth-picker.py`'s
+  "Enable Bluetooth" entry (the only one shown when Bluetooth is powered
+  off) used a hardcoded `foreground="#FAB387"` span instead of `markup(...,
+  "command")` -- the same value CATEGORY_COLORS already defines, just
+  copied instead of referenced. Harmless today, but exactly the kind of
+  second copy of a value that silently drifts out of sync if the palette
+  ever changes, the same failure mode documented for the TPM plugin-path
+  split earlier in this file. Fixed to read from the shared dict.
+- **`keybind-search.py` had zero color-coding at all** -- the one wofi
+  popup in this desktop with real, distinct categories (Sway vs. Tmux
+  entries) and no visual way to tell them apart at a glance, unlike every
+  other multi-category picker. Added `SOURCE_COLORS` (Sky for Sway, Teal
+  for Tmux, same hues as the other two pickers) coloring just the source
+  tag, plus Peach for the `[scope]` suffix (matching Peach's established
+  "this needs an extra step/context" meaning from the other pickers'
+  command category) -- colored only the tag, not the whole line like
+  the free-text pickers do, since this tool's structured columns
+  (tag/keys/description/scope) would lose readability if everything were
+  tinted at once.
+
+  This addition carried a real risk worth verifying properly rather than
+  assuming: `keybind-search.py` is the only wofi popup in this desktop
+  using `--matching fuzzy` (the others use wofi's default "contains"),
+  and fuzzy matching against a string that now contains literal
+  `<span foreground="...">` markup tags could plausibly search against the
+  tag text itself, not just what's visually shown. Verified this doesn't
+  happen with a controlled, unambiguous test rather than eyeballing a
+  screenshot: piped a small set of markup-containing dmenu entries
+  directly into wofi, typed a query that only matches one entry's visible
+  (non-markup) text via `ydotool`, and confirmed via the actual selected/
+  copied output that wofi picked the right entry -- fuzzy matching
+  operates on the rendered text, markup tags don't leak into the search
+  space. Reconfirmed against the real script afterward (`ydotool`-typed
+  "reload tmux", correctly selected and copied the Tmux reload entry with
+  its Teal tag intact).
+
 ## keybind-search.py: truncating descriptions, since wofi can't wrap or ellipsize them
 
 Reported the keybind search popup's right side overflows. Real cause: a

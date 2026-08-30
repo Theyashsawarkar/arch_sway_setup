@@ -107,7 +107,13 @@ def build_menu():
     entries = []
 
     if not is_powered():
-        entries.append(("<span foreground=\"#FAB387\" >Enable Bluetooth</span>", enable_bluetooth))
+        # Was a hardcoded "#FAB387" span here, duplicating CATEGORY_COLORS
+        # instead of reading from it -- happened to be the same value,
+        # but a second copy of a color this repo already keeps one source
+        # of truth for is exactly the kind of thing that quietly drifts
+        # out of sync if the palette ever changes (the same class of bug
+        # documented for the TPM plugin-path split in ARCHITECTURE.md).
+        entries.append((markup("Enable Bluetooth", "command"), enable_bluetooth))
         return entries
 
     entries.append((markup("Disable Bluetooth", "command"), disable_bluetooth))

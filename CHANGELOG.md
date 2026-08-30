@@ -3,6 +3,29 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-30 (wofi color-palette consistency audit: one bug fixed, one gap filled)
+
+Audited every wofi-invoking script for palette consistency plus a general
+bug/improvement look. Most already matched (`wifi-picker.py`/`bluetooth-
+picker.py` already share the exact Sky/Teal/Peach system and wofi's own
+`#313244` surface color). Two real fixes:
+
+- `bluetooth-picker.py`'s "Enable Bluetooth" entry had a hardcoded
+  `#FAB387` span instead of reading `CATEGORY_COLORS["command"]` -- same
+  value, but a second copy that would silently drift if the palette ever
+  changed. Fixed to read from the shared dict.
+- `keybind-search.py` had zero color-coding despite having two real
+  categories (Sway/Tmux) to distinguish -- the one wofi popup in this
+  desktop without it. Added Sky/Teal source-tag coloring (same hues as
+  the other pickers) plus Peach for the `[scope]` suffix. Verified this
+  doesn't break `--matching fuzzy` (the one flag none of the other
+  pickers use) with a controlled test: piped markup-containing entries
+  into wofi directly, searched a query that only matches one entry's
+  visible text, confirmed via the actual selected output that fuzzy
+  matching operates on rendered text, not the raw `<span>` tags.
+
+See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the full writeup.
+
 ## 2026-08-30 (keybind-search.py: truncate descriptions, fixing right-side overflow)
 
 Reported the keybind search popup's right side overflows. Real cause: a

@@ -39,6 +39,16 @@ import sys
 SWAY_CONFIG = "/home/yash/.config/sway/config"
 TMUX_CONFIG = "/home/yash/.config/tmux/tmux.conf"
 
+# Same Catppuccin Mocha palette wifi-picker.py/bluetooth-picker.py already
+# use for their own category colors (Sky/Teal/Peach) -- one source tag per
+# color, not a semantic reuse of their exact categories (there's no
+# "command"-vs-"connectable" distinction here), just the same two hues for
+# visual consistency across every wofi popup in this desktop.
+SOURCE_COLORS = {
+    "Sway": "#89DCEB",  # Sky
+    "Tmux": "#94E2D5",  # Teal
+}
+
 
 def parse_sway():
     with open(SWAY_CONFIG) as f:
@@ -254,7 +264,21 @@ def format_line(e):
     if len(desc) > MAX_DESC_LEN:
         desc = desc[: MAX_DESC_LEN - 1].rstrip() + "…"
     scope = f"  [{e['table']}]" if e["table"] else ""
-    return f"{e['source']:5s} {e['keys']:22s} {desc}{scope}"
+    # Same Catppuccin Mocha category-color convention wifi-picker.py and
+    # bluetooth-picker.py already use (Sky/Teal/Peach) -- this tool had
+    # none at all until now, the one wofi popup in this desktop with
+    # zero color-coding despite having two clearly distinct categories
+    # (Sway/Tmux) to tell apart at a glance. Colors just the source tag,
+    # not the whole line like the other two pickers do -- their entries
+    # are one free-text label each, this one has structured columns
+    # (tag/keys/description/scope) where tinting everything would hurt
+    # readability rather than help it.
+    source_color = SOURCE_COLORS.get(e["source"])
+    tag = f'<span foreground="{source_color}">{e["source"]:5s}</span>' if source_color else f'{e["source"]:5s}'
+    line = f"{tag} {e['keys']:22s} {desc}"
+    if scope:
+        line += f'<span foreground="#FAB387">{scope}</span>'
+    return line
 
 
 def main():
