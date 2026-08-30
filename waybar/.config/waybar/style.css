@@ -283,32 +283,18 @@ window#waybar {
    in the opposite group on the far side of the bar, so no adjacency
    clash the way Pink/Flamingo had.
 
-   font-size bumped here, on the whole module, not just the icon --
-   the volume icon measured out at only ~4-5px of actual ink at the
-   bar's 12px base size (cropped a real screenshot down to just the
-   glyph and measured its exact bounding box), reported as "hard to
-   notice". First attempt wrapped only {icon} in its own inline Pango
-   span (waybar/config) to grow just the icon and leave the percent
-   text alone -- broke visibly: the icon went invisible and the muted
-   icon + "Muted" text landed on different lines. Mixing one oversized
-   run with normal-size text in the same Pango label drags the whole
-   line's baseline/ascent unpredictably, and this font's icon glyphs
-   already carry unusual internal metrics vs normal characters
-   (established elsewhere in this repo) -- between the two, the icon's
-   actual ink ended up pushed outside the module's fixed-height row
-   instead of just rendering bigger in place.
-   A uniform font-size on the whole module is the safer fix: icon,
-   percent digits, and "Muted" text are all one single run at one
-   consistent size, so Pango has nothing to misalign between runs.
-   Modest bump (12px -> 15px), well within this bar's 41px height with
-   comfortable headroom either side -- confirmed no bar-height pop,
-   same discipline as the state-conditional font-size mistake made once
-   already elsewhere in this bar (#custom-capslock.locked's own
-   comment) -- this one's static from the first frame, nothing to jump
-   from. */
+   No text-shadow/font-size tricks here anymore -- both were tried as
+   ways to make the volume icon more noticeable, both asked to be
+   reverted (the shadow read as an unwanted glow once actually seen
+   live; the font-size bump broke three of the four glyphs outright, see
+   ARCHITECTURE.md's "Volume icon" entries for the full story of what
+   was tried and why). The icon's real visibility problem turned out to
+   be a genuine waybar bug (format-icons' threshold-object form
+   silently not rendering an icon at all, not a size issue) -- fixed at
+   the source in volume_osd.sh/waybar/config instead, so this module
+   just needs its resting color like everything else in the bar. */
 #pulseaudio {
     color: #EBA0AC; /* Maroon */
-    text-shadow: 0 0 3px rgba(235, 160, 172, 0.9), 0 0 6px rgba(235, 160, 172, 0.6);
 }
 
 /* Docker: Blue when containers are actually running (matches Docker's

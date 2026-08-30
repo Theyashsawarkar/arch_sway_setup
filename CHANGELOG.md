@@ -3,6 +3,18 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-30 (volume icon, third pass: dropped the glow)
+
+Asked directly, once the icon was genuinely rendering again: why the
+glow, make it normal. Fair -- the text-shadow was added to make an
+*invisible* icon more noticeable, back when the problem looked like
+"too small" rather than "not rendering at all". Once the real cause
+(waybar's broken format-icons threshold form, previous entry) was fixed
+properly, the glow had nothing left to justify. Removed it --
+#pulseaudio is back to a plain resting color like every other module.
+Verified with the same ASCII-dump method as the previous entry: icon
+still renders fine at 80%, just without the shadow now.
+
 ## 2026-08-30 (volume icon, second correction: a real waybar bug, verification method overhauled)
 
 Reported again after the text-shadow fix: "only when its muted does it

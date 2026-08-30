@@ -744,6 +744,27 @@ left border at the same row: both sides now render the same color
 consistently (e.g. `(70,62,88)` on both, at multiple rows) -- symmetric,
 not just "present."
 
+## Volume icon, third pass: dropped the glow -- the real fix didn't need it
+
+Asked directly, after the format-icons bug was fixed and the icon was
+genuinely rendering again: why does it have a glow, make it normal. Fair
+question -- the `text-shadow` on `#pulseaudio` was added specifically to
+make an *invisible* icon more noticeable, back when the actual problem
+was believed to be "too small" rather than "not rendering at all". Once
+the real cause turned out to be waybar's broken `format-icons`
+threshold-object form (previous entry) and the fix moved to
+`volume_osd.sh` setting real PulseAudio mute at 0%, the glow's original
+justification was already gone -- it was solving a problem ("small/hard
+to notice") that had already been fully addressed by the icon simply
+rendering correctly again. Removed it; `#pulseaudio` is back to a plain
+resting color like every other module in this bar, nothing left to
+explain away.
+
+Verified live with the same ASCII-dump method as the previous two
+entries (not the color-tolerance sampling that misled the earlier
+passes on this exact feature): the icon at 80% renders as a tighter,
+crisper glyph shape with the shadow gone, still clearly present.
+
 ## Volume icon, second correction: waybar's threshold-object format-icons is broken here; a real bug, not a config mistake
 
 Reported again, still after the text-shadow fix: "only when its muted
