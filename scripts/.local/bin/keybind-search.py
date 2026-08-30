@@ -251,7 +251,7 @@ def main():
     result = subprocess.run(
         [
             "wofi", "--dmenu", "--insensitive", "--matching", "fuzzy",
-            "--prompt", "Search keybindings...", "--lines", "15",
+            "--prompt", "Search keybindings...", "--width", "60%", "--lines", "12",
         ],
         input=menu_input, capture_output=True, text=True,
     )

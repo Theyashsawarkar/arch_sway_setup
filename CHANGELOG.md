@@ -3,6 +3,31 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-30 (wifi/bluetooth pickers get keybindings; keybind search resized; app launcher grid)
+
+Three follow-ups to the wofi glass work above:
+
+- `$mod+Shift+w` (Wi-Fi picker) and `$mod+Shift+b` (Bluetooth picker) --
+  both scripts already existed and worked fine, just had zero keyboard
+  path, waybar-click-only. Automatically shows up in `keybind-search.py`
+  with no extra work (the whole point of reading live config), but hit
+  the same multi-line-comment gotcha its own entry did earlier -- fixed
+  the same way, clean one-line description directly above each `bindsym`.
+- `keybind-search.py`'s wofi popup: `--width 60%` (percentage width is
+  real, confirmed via `swaymsg -t get_outputs` echoing back the literal
+  pixel math, 1152 on this 1920px output) and `--lines 15` -> `12`
+  (measured extent 647px -> 536px tall, ~17% shorter).
+- `$mod+d`'s app launcher: `--columns 4`, added only to `sway/config`'s
+  `$menu` variable, not the shared `wofi/config` -- every other
+  wofi-backed tool in this desktop is a single-column list and a grid
+  would break it. Confirmed live that wofi's grid genuinely reads as
+  uneven/organic (GtkFlowBox sizes each entry to its own content, not a
+  fixed cell) rather than a uniform card grid, by screenshotting and
+  checking for real gaps between discrete content blocks at multiple row
+  heights.
+
+See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the full writeup.
+
 ## 2026-08-30 (wofi: real glass -- compositor blur, not just a tinted box)
 
 Asked to make wofi look more "glass", better UI/UX generally. Recognized

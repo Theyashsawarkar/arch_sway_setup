@@ -472,6 +472,40 @@ documented elsewhere in this file -- that one is wofi's own dmenu list
 never requesting a cursor-shape change at all, which is unrelated to how
 waybar's own pill modules behave.
 
+## Wi-Fi/Bluetooth pickers, keybind search sizing, and an "uneven" app grid
+
+Three follow-up requests on the wofi work above:
+
+- **Wi-Fi and Bluetooth pickers had no keyboard path at all** -- both
+  `wifi-picker.py` and `bluetooth-picker.py` existed only as waybar
+  `on-click` handlers (mouse-only). Added `$mod+Shift+w` / `$mod+Shift+b`
+  in `sway/config`, same scripts, no changes to either picker itself.
+  Automatically picked up by `keybind-search.py` with no extra work, which
+  is the entire point of that tool reading live config instead of a
+  maintained list -- but caught the same comment-structure gotcha its own
+  keybinding hit earlier: a multi-line comment's *last* line is what
+  becomes the search description, so leading with the "why" ("previously
+  only reachable by clicking...") and trailing with a clean one-line
+  description right above the `bindsym` (matching the fix already
+  documented for `keybind-search.py`'s own entry) rather than the reverse.
+- **Keybind search widened to 60% of screen width, height trimmed
+  moderately**: `--width 60%` (wofi does support percentage width/height
+  values -- confirmed via `swaymsg -t get_outputs`'s `layer_shell_surfaces`
+  extent reporting back exactly `1152` on a 1920px output, not assumed
+  from a docs description) and `--lines 15` -> `12` (measured extent
+  647px -> 536px tall, roughly a 17% reduction -- "not much but some").
+- **`$mod+d`'s app launcher in a grid, not a plain list**: `--columns 4`,
+  added only to `sway/config`'s `$menu` variable, not the shared
+  `wofi/config` every *other* wofi-backed tool in this desktop also reads
+  -- a grid would break the readability of a single-column list like the
+  Wi-Fi picker or calculator. wofi's grid mode is a GtkFlowBox under the
+  hood, which sizes each entry to its own icon+label content rather than
+  a fixed cell width -- confirmed this reads as a genuinely uneven,
+  organic grid rather than a uniform card layout by screenshotting and
+  checking for discrete content blocks with real gaps between them at
+  multiple row heights, not just trusting the "columns" name meant what
+  it sounded like.
+
 ## Wofi's "glass" look: real compositor blur, not just a tinted box
 
 Asked to make wofi look more like glass. The honest first step was

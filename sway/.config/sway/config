@@ -17,7 +17,15 @@ set $right l
 set $term kitty
 
 # application opener
-set $menu wofi --show drun,run
+# --columns is only set here, not in the shared wofi/config -- every
+# other wofi-backed tool in this desktop (wifi/bluetooth pickers,
+# calculator, keybind search, emoji picker, cliphist) is a plain
+# single-column list, and a grid would break their readability. GtkFlowBox
+# (what wofi's grid mode actually is under the hood) sizes each entry to
+# its own icon+label content rather than a fixed cell width, so this
+# genuinely reads as an uneven, organic grid -- not a uniform card layout
+# -- confirmed live via screenshot before trusting the docs' description.
+set $menu wofi --show drun,run --columns 4
 
 # calculator
 set $calc ~/.local/bin/wofi-calc.sh
@@ -27,6 +35,15 @@ bindsym $mod+m exec cliphist list | wofi --dmenu | cliphist decode | wl-copy
 
 # Launch Wofi Emoji Picker
 bindsym $mod+period exec wofi-emoji
+
+# Previously only reachable by clicking waybar's network module, no
+# keyboard path existed at all
+# Wi-Fi picker: scan, connect, toggle
+bindsym $mod+Shift+w exec ~/.local/bin/wifi-picker.py
+
+# Previously waybar-click-only, same gap as Wi-Fi above
+# Bluetooth picker: pair, connect, toggle
+bindsym $mod+Shift+b exec ~/.local/bin/bluetooth-picker.py
 
 # $mod+? matches the near-universal "show shortcuts" convention (Slack,
 # Discord, GitHub, GNOME all use ? or Ctrl+/) rather than inventing a new
