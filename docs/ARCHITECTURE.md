@@ -472,6 +472,91 @@ documented elsewhere in this file -- that one is wofi's own dmenu list
 never requesting a cursor-shape change at all, which is unrelated to how
 waybar's own pill modules behave.
 
+## System-wide dark mode, a waybar toggle, and Papirus (+ Catppuccin folders)
+
+Asked to make sure the desktop is dark by default, add a waybar toggle for
+light/dark, and add a well-regarded icon pack. Checked before building
+anything: dark mode was already substantially in place --
+`gtk-application-prefer-dark-theme=1` in both `gtk/.config/gtk-{3,4}.0/
+settings.ini`, and `install.sh` already wrote `color-scheme=prefer-dark` +
+the dark `catppuccin-mocha-mauve-standard+default` GTK theme to dconf.
+What was actually missing: no icon theme was ever set at all (falls back
+to whatever the system default resolves to), and there was no way to
+switch modes without hand-running `dconf write` commands.
+
+**Icon pack**: `papirus-icon-theme` (`packages/pacman.txt`, official
+`extra` repo -- genuinely the most widely-used general-purpose Linux icon
+theme, not just an assumption; it's the one most distros that ship a
+curated icon set default to). Paired with `papirus-folders-catppuccin-git`
+(`packages/aur.txt`) to recolor its folder icons to match this desktop's
+existing Mauve accent -- verified this is the real package name and a
+legitimate, actively-maintained one before adding it: an earlier guess
+("catppuccin-papirus-folders") doesn't exist on the AUR at all, found by
+querying the AUR RPC API directly (`aur.archlinux.org/rpc/v5/search/...`)
+rather than trusting memory; the real package
+(`papirus-folders-catppuccin-git`) is maintained by the official
+`catppuccin` AUR account, matching the upstream
+`github.com/catppuccin/papirus-folders` project.
+
+`papirus-folders`'s actual color-switch command needs root *every time it
+runs* -- confirmed by reading its own source (`_is_root_user`, re-execs
+itself via `sudo` when not already root) before assuming it'd work as a
+casual click-to-toggle action. So folder recoloring happens once, for
+both palettes, in `install.sh` (`sudo papirus-folders -C cat-mocha-mauve
+--theme Papirus-Dark` and the `cat-latte-mauve`/`Papirus-Light`
+equivalent), right where `sudo` is already in use for other steps --
+never at runtime. `catppuccin-gtk-theme-latte` also added to
+`packages/aur.txt`, the light-flavor counterpart to the already-installed
+`-mocha` package -- without it, "Papirus-Light"/`prefer-light` would have
+nothing but Adwaita to fall back to, and the toggle below would be real in
+name only.
+
+**The toggle**: `scripts/.local/bin/theme-status.sh` (waybar `custom/
+theme` module, positioned left of the wallpaper button in
+`modules-right`) + `theme-toggle.sh` (its `on-click`). Pure `dconf`
+reads/writes -- no state file, unlike `caffeine-toggle.sh`'s pattern,
+deliberately: dconf already persists across reboots on its own (it's a
+real database), so a second copy of "which mode is active" here would
+just be one more thing that could silently drift from the truth, the
+same reasoning already applied to `keybind-search.py`'s live-parsed
+config over a maintained list. Verified the actual toggle, not just that
+it runs without error: ran it, confirmed via `dconf read` that
+`color-scheme`/`gtk-theme`/`icon-theme` all flipped to the light-mode
+values, screenshotted and found the waybar icon's color actually changed
+(Sapphire moon -> Yellow sun), then toggled back and confirmed dark
+again -- left the real system in dark mode (the intended default)
+afterward, not mid-test.
+
+**Scope, stated plainly rather than left implicit**: this covers every
+app that reads the standard GNOME/GTK dconf keys automatically -- file
+managers, browsers' native GTK chrome, settings dialogs, most GTK3/GTK4
+apps -- which is the actual mechanism behind "apps detect OS dark mode."
+It deliberately does **not** touch this desktop's own bar/launcher/
+notification styling: waybar, wofi, and mako's `style.css` files, and
+sway's window border colors, are all hand-built throughout this entire
+repo to one specific Catppuccin Mocha palette. That's a deliberate design
+choice already made and extensively worked on in this session (the wofi
+"glass" pass, the notification icon pass, etc.), not an oversight --
+making all of it respond to a generic light/dark toggle would mean
+maintaining a full parallel light variant of every custom stylesheet in
+this repo, well beyond what was asked here. Also disclosed rather than
+silently assumed away: dconf changes apply live to already-running apps
+that subscribe to `gsettings-changed` (most modern GTK apps do), but some
+only read theme state once at their own startup and won't visibly change
+until relaunched -- a standard limitation of this whole mechanism, not
+something this script can fix.
+
+Not wired up: Qt app theming (`QT_QPA_PLATFORMTHEME`/`qt6ct`). `qt6ct` is
+in `packages/pacman.txt`, but checked and found nothing in this repo
+actually exports `QT_QPA_PLATFORMTHEME` or has a `qt6ct.conf` -- and
+neither `beekeeper-studio-bin` nor `bruno-bin` (the only two GUI apps in
+`packages/aur.txt` that might plausibly be Qt) are actually Qt apps, both
+are Electron. The installed `qt6-*` packages are almost certainly pulled
+in as dependencies for something else, not for a Qt app in regular use.
+Given no real Qt app to verify against, left this alone rather than
+hand-configure `qt6ct.conf` blind -- a real, disclosed gap if a Qt app is
+ever added to this setup later, not something silently papered over.
+
 ## Wofi text readability: two dead ends before the real fix
 
 Asked again to make wofi text more readable against the glass background

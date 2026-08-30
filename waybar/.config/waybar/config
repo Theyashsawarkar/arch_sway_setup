@@ -10,6 +10,7 @@
 	"modules-right": [
 		"custom/capslock",
 		"custom/numlock",
+		"custom/theme",
 		"custom/wallpaper",
 		"custom/docker",
 		"custom/caffeine",
@@ -70,6 +71,13 @@
 	"clock#time": {
 	"format": "{:%I:%M %p}",
 	"tooltip": false
+	},
+
+	"custom/theme": {
+		"exec": "/home/yash/.local/bin/theme-status.sh",
+		"interval": 5,
+		"return-type": "json",
+		"on-click": "/home/yash/.local/bin/theme-toggle.sh"
 	},
 
 	"custom/wallpaper": {

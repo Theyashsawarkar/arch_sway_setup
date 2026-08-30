@@ -3,6 +3,47 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-30 (system-wide dark mode confirmed + waybar toggle + Papirus icon pack)
+
+Asked to make sure dark mode is the default everywhere, add a waybar
+toggle, and add a well-regarded icon pack. Dark mode itself was already
+mostly in place (`gtk-application-prefer-dark-theme=1`, dconf
+`color-scheme=prefer-dark` from an earlier `install.sh` pass) -- the real
+gaps were no icon theme ever being set, and no way to switch modes
+without hand-typed `dconf write` commands.
+
+Added `papirus-icon-theme` (official `extra` repo -- the most widely-used
+general-purpose Linux icon theme) + `papirus-folders-catppuccin-git` to
+recolor its folders to this desktop's existing Mauve accent. Verified the
+real AUR package name first -- an initial guess doesn't exist on the AUR
+at all, found by querying the AUR RPC API directly rather than trusting
+memory; the real package is maintained by the official `catppuccin` AUR
+account. Also confirmed (by reading its own source) that
+`papirus-folders`'s color-switch needs root *every single run*, so
+folder recoloring happens once for both palettes in `install.sh` (where
+`sudo` is already in use), never at runtime. Added
+`catppuccin-gtk-theme-latte` too -- the light counterpart to the
+already-installed `-mocha` package, without which the toggle would have
+nothing real to switch to.
+
+New waybar `custom/theme` module (left of the wallpaper button):
+`theme-status.sh` + `theme-toggle.sh`, pure `dconf` reads/writes, no
+state file (dconf already persists on its own). Verified the actual
+toggle end-to-end: ran it, confirmed via `dconf read` that
+color-scheme/gtk-theme/icon-theme all flipped, screenshotted and found
+the waybar icon's color genuinely changed (Sapphire moon -> Yellow sun),
+toggled back, left the system in dark mode afterward.
+
+Scope stated plainly: this covers every app that reads the standard
+GNOME/GTK dconf keys (file managers, browser GTK chrome, most GTK3/GTK4
+apps) -- the actual mechanism behind "apps detect OS dark mode." Does
+**not** touch this desktop's own hand-built waybar/wofi/mako/sway
+styling, a deliberate scope decision, not an oversight. Qt theming
+(qt6ct) left unconfigured -- no actual Qt GUI app in this setup to verify
+against (`beekeeper-studio-bin`/`bruno-bin` are both Electron), disclosed
+as a real gap rather than blind-configured. See
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the full writeup.
+
 ## 2026-08-30 (wofi text readability: two dead ends, then the real fix)
 
 Asked again to make text more readable ("black instead of white") after

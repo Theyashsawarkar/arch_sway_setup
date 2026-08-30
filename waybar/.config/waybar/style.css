@@ -25,6 +25,7 @@ window#waybar {
 #custom-capslock,
 #custom-numlock,
 #custom-wallpaper,
+#custom-theme,
 #network,
 #backlight,
 #bluetooth,
@@ -44,7 +45,7 @@ window#waybar {
     transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
-#clock, #custom-capslock, #custom-numlock, #custom-wallpaper, #custom-docker, #network, #bluetooth, #backlight, #pulseaudio, #battery, #custom-power {
+#clock, #custom-capslock, #custom-numlock, #custom-theme, #custom-wallpaper, #custom-docker, #network, #bluetooth, #backlight, #pulseaudio, #battery, #custom-power {
     padding: 0 12px;
 }
 
@@ -65,6 +66,27 @@ window#waybar {
 
 #custom-docker {
     margin-right: 2px; /* tight pairing with caffeine right after it */
+}
+
+/* Theme toggle: light/dark mode for every app that reads the standard
+   dconf gtk-theme/color-scheme/icon-theme keys (see theme-toggle.sh for
+   what that does and doesn't cover -- this bar's own styling stays
+   Catppuccin Mocha regardless of the toggle, by design). Sun/moon
+   convention: warm Yellow for the sun (light mode active), cool Sapphire
+   for the moon (dark mode active) -- same warm/cool pairing logic as
+   caffeine's off/on colors elsewhere in this file, just flipped since
+   here *dark* is the expected default rather than the exception. */
+#custom-theme {
+    margin-right: 2px; /* tight pairing before the wallpaper button, same device-controls cluster */
+}
+
+#custom-theme.dark {
+    color: #74C7EC; /* Sapphire */
+}
+
+#custom-theme.light {
+    color: #F9E2AF; /* Yellow */
+    text-shadow: 0 0 8px rgba(249, 226, 175, 0.5);
 }
 
 /* Wallpaper refresh button: Rosewater -- genuinely unused anywhere else in
@@ -106,7 +128,7 @@ window#waybar {
 
 /* One consistent accent (Mauve) for "you're pointing at something
    interactive" everywhere, instead of a different color per module */
-#clock:hover, #custom-docker:hover, #custom-capslock:hover, #custom-numlock:hover, #custom-wallpaper:hover, #network:hover, #bluetooth:hover, #custom-caffeine:hover, #backlight:hover, #pulseaudio:hover, #battery:hover {
+#clock:hover, #custom-docker:hover, #custom-capslock:hover, #custom-numlock:hover, #custom-theme:hover, #custom-wallpaper:hover, #network:hover, #bluetooth:hover, #custom-caffeine:hover, #backlight:hover, #pulseaudio:hover, #battery:hover {
     border-color: rgba(203, 166, 247, 0.4);
 }
 
