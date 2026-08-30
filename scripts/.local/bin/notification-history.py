@@ -108,7 +108,14 @@ def main():
     history = get_history()
     if not history:
         subprocess.run([
-            "notify-send", "-u", "low", "-i", "dialog-information-symbolic",
+            # Absolute path, not a theme name -- mako has no GTK-style
+            # theme resolution, and Papirus's "-symbolic" icons use
+            # `fill:currentColor`, near-invisible on this desktop's dark
+            # notification background (see brightness_osd.sh / mako/config
+            # for the full story). Papirus's `status` category ships a
+            # real blue-filled dialog-information instead.
+            "notify-send", "-u", "low",
+            "-i", "/usr/share/icons/Papirus/48x48/status/dialog-information.svg",
             "Notifications", "No notification history yet",
         ])
         return
@@ -139,7 +146,15 @@ def main():
     proc.stdin.write(clip)
     proc.stdin.close()
     subprocess.run([
-        "notify-send", "-u", "low", "-i", "edit-copy-symbolic",
+        # org.kde.plasma.clipboard's own app icon -- a real, light-filled
+        # clipboard illustration, not edit-copy-symbolic, which uses
+        # `fill:currentColor` and was rendering as good as invisible on
+        # this dark notification background (this exact notify-send call
+        # is what was reported as "shows the text but not the clipboard
+        # icon" -- see brightness_osd.sh / mako/config for the full story
+        # on why bare theme names don't work here).
+        "notify-send", "-u", "low",
+        "-i", "/usr/share/icons/Papirus/48x48/apps/org.kde.plasma.clipboard.svg",
         "Notification (copied)", n.get("summary") or "",
     ])
 

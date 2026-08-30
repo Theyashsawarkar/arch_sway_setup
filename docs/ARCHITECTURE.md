@@ -744,6 +744,89 @@ left border at the same row: both sides now render the same color
 consistently (e.g. `(70,62,88)` on both, at multiple rows) -- symmetric,
 not just "present."
 
+## Notification toast icons, round two: currentColor makes symbolic icons invisible on dark backgrounds
+
+Follow-up to "Notification toast icons" below: reported directly after
+that fix, specifically about the notification-history.py copy action --
+"it fires the notification that the notification is copied but it does
+not show the clipboard icon only text". The `icon-path` fix below was
+real and necessary, but its own writeup's claim that it "covers all of
+them" was wrong -- it fixed *resolution* (mako can now find every icon
+name), not *visibility* (whether the resolved icon is actually
+perceptible once drawn). Those turned out to be two separate bugs.
+
+**Root cause, found by reading the actual SVG, not assumed**: every
+single `-symbolic`-suffixed icon in Papirus (and several of its plain
+`actions`-category icons too, e.g. `edit-copy`, `audio-volume-high`,
+`media-record`, `process-stop` -- the *symbolic style*, just without the
+`-symbolic` suffix on the name) uses `fill:currentColor` with a `<style>`
+block declaring `.ColorScheme-Text { color:#444444; }` as the default --
+a dark charcoal gray, designed for GTK's own symbolic-icon recoloring
+convention on *light* UI chrome (toolbars, panels). mako just renders
+the raw SVG with no theme-aware recoloring -- there's no mechanism in
+mako to override `currentColor`. On this desktop's near-black
+(`#11111B`) notification background, a `#444444` icon is barely
+distinguishable from the background it's sitting on: verified directly
+by diffing two real screenshots pixel-by-pixel in the icon's own region
+(one with `edit-copy-symbolic`, one with a deliberately nonexistent icon
+name as a control) -- 7114 pixels genuinely differed between them, so
+something was drawing, just not anything a person would actually notice
+at a glance. This is almost certainly the real shape of "shows the text
+but not the icon": not a missing icon, an invisible one.
+
+**Fix**: swapped every affected icon reference, across every script in
+this repo, from a symbolic/action-style name to Papirus's `status` or
+`apps` category equivalent instead -- those use real, hardcoded
+`style="fill:#hexcolor"` values (confirmed per-icon with
+`grep -c currentColor` returning 0 before using any of them), the same
+"regular", full-contrast style Docker's own icon already used
+successfully in the first pass. Two icons (`process-stop`, `media-record`)
+have no real-fill equivalent anywhere in Papirus at all -- only ever
+defined in the `actions` category, always `currentColor` -- swapped for
+the closest real-fill concept instead: `dialog-warning` (real amber) for
+"cancelled" actions, `audio-input-microphone` (real fill, `devices`
+category) for "recording".
+
+Also switched every one of these to an **absolute file path** rather
+than a bare theme name, even where a real-fill icon does exist under a
+plain name -- several names (e.g. `weather-clear`, `audio-volume-high`)
+resolve to *multiple* files across different Papirus categories, one
+`currentColor` and one real-fill, and mako's own search algorithm picks
+by size-match, not by category -- nothing in the name itself lets you
+choose the good one. An absolute path removes that ambiguity entirely,
+matching how this repo's own wallpaper/screenshot notifications already
+pass a real file path rather than a theme name.
+
+**Verified live**, not just reasoned about, for the two most visually
+distinct cases: fired the exact notify-send call
+`notification-history.py`'s copy action uses, screenshotted it, and
+found 617/413 pixels at the clipboard icon's own known fill colors
+(`#e4e4e4`/`#d3d3d3` from the SVG source) in the icon region -- a
+deliberately nonexistent-icon control notification, diffed pixel-by-
+pixel against the same region, differed by 4194 pixels, confirming this
+wasn't incidental. Separately fired a critical-urgency notification with
+the new `dialog-error` icon and found 1082 pixels of its own real red
+fill (`#f44336`) in the same region. Every other icon across every
+other script in this repo shares the exact same `status`/`apps`-category,
+real-fill, absolute-path pattern -- not independently screenshot-tested
+one by one (would be the same test repeated a dozen times for the same
+already-proven mechanism), but each one's source SVG was individually
+confirmed `currentColor`-free with `grep` before being chosen, the same
+discipline as every icon-existence check already established this
+session.
+
+**One file left untouched on purpose**: `notification-history.py`'s
+`FALLBACK_ICON` (`dialog-information-symbolic`, used for the small icon
+shown next to each row inside the history *list* itself, via
+`resolve_icon()`+GTK's own `Gtk.IconTheme.lookup_icon()`, not mako) is a
+genuinely different rendering surface -- wofi's own background is the
+light "glass" one from an earlier pass in this session (`wofi text
+color: black, not white -- hard to notice on the glass background`), not
+mako's dark one, so a dark `#444444` default there is plausibly *correct*
+contrast rather than the same bug. Left as-is rather than fixing a
+problem that may not actually exist there without directly verifying it
+first -- out of scope for what was actually reported this round.
+
 ## Notification toast icons: a real mako icon-path bug, not a per-icon problem
 
 Asked for every notification toast to show the associated tool's own

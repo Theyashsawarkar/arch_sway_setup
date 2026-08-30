@@ -92,13 +92,19 @@ if [ "$scheme" = "prefer-light" ]; then
     apply_gtk_theme "catppuccin-mocha-mauve-standard+default" || missing="${missing}GTK theme, "
     apply_icon_theme "Papirus-Dark" || missing="${missing}icon theme, "
     label="dark"
-    icon="weather-clear-night-symbolic"
+    # Absolute path, not a theme name -- mako has no GTK-style theme
+    # resolution, and Papirus's "-symbolic" weather icons use
+    # `fill:currentColor`, near-invisible on this desktop's dark
+    # notification background (see brightness_osd.sh / mako/config for
+    # the full story). Papirus's `status` category ships real-fill
+    # versions of both under the plain (non-symbolic) name.
+    icon="/usr/share/icons/Papirus/48x48/status/weather-clear-night.svg"
 else
     dconf write "$DCONF_IFACE/color-scheme" "'prefer-light'"
     apply_gtk_theme "catppuccin-latte-mauve-standard+default" || missing="${missing}GTK theme, "
     apply_icon_theme "Papirus-Light" || missing="${missing}icon theme, "
     label="light"
-    icon="weather-clear-symbolic"
+    icon="/usr/share/icons/Papirus/48x48/status/weather-clear.svg"
 fi
 
 if [ -n "$missing" ]; then

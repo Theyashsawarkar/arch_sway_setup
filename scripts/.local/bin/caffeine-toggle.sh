@@ -21,12 +21,20 @@ STATE_DIR="$HOME/.local/state/caffeine"
 STATE_FILE="$STATE_DIR/enabled"
 mkdir -p "$STATE_DIR"
 
+# Absolute paths, not bare theme names -- both exist in more than one
+# Papirus category (a currentColor `panel` version and a real-fill
+# `status` version share the same name), and mako doesn't let us pick a
+# category, only a name -- pointing straight at the real-fill status
+# variant removes any doubt about which one actually gets picked.
+ICON_ON=/usr/share/icons/Papirus/48x48/status/weather-few-clouds-night.svg
+ICON_OFF=/usr/share/icons/Papirus/48x48/status/weather-clear.svg
+
 if systemctl --user is-active --quiet swayidle.service; then
     systemctl --user stop swayidle.service
     touch "$STATE_FILE"
-    notify-send -i weather-few-clouds-night "Caffeine on" "Screen will stay on, laptop won't sleep or lock until you turn this off"
+    notify-send -i "$ICON_ON" "Caffeine on" "Screen will stay on, laptop won't sleep or lock until you turn this off"
 else
     systemctl --user start swayidle.service
     rm -f "$STATE_FILE"
-    notify-send -i weather-clear "Caffeine off" "Screen will dim, lock, and suspend normally again"
+    notify-send -i "$ICON_OFF" "Caffeine off" "Screen will dim, lock, and suspend normally again"
 fi

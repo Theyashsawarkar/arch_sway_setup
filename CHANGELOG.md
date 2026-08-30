@@ -3,6 +3,44 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-30 (notification toast icons round two: invisible symbolic icons)
+
+Reported right after the icon-path fix below: the notification-history
+copy action "does not show the clipboard icon only text". The icon-path
+fix was real and needed, but only fixed *resolution* -- this is a
+second, separate bug about *visibility*.
+
+Root cause, found by reading the actual SVG: every `-symbolic` icon in
+Papirus (plus several plain `actions`-category ones like `edit-copy`,
+`audio-volume-high`, `media-record`) uses `fill:currentColor` with a
+`#444444` dark-gray default, meant for light UI chrome -- on this
+desktop's near-black notification background that's barely
+distinguishable from the background itself. Confirmed directly: diffed
+two real screenshots pixel-by-pixel in the icon's own region (one with
+`edit-copy-symbolic`, one with a deliberately nonexistent icon as
+control) -- 7114 pixels genuinely differed, so something *was* drawing,
+just nothing anyone would notice.
+
+Fix: swapped every affected icon across every script in this repo for
+Papirus's `status`/`apps`-category equivalent instead -- those use real
+hardcoded fill colors (`grep -c currentColor` == 0, checked per icon
+before using it), same style Docker's icon already used successfully.
+Two (`process-stop`, `media-record`) have no real-fill version anywhere
+in Papirus -- swapped for the closest real concept instead
+(`dialog-warning` for "cancelled", `audio-input-microphone` for
+"recording"). Also switched every one of these to an absolute file path
+rather than a bare name -- several names resolve to more than one file
+across Papirus categories (one currentColor, one real-fill) and mako
+picks by size match, not category, so a bare name can't guarantee which
+one wins.
+
+Verified live: fired the exact copy-notification call, found
+617/413 pixels of the clipboard icon's own real fill colors
+(`#e4e4e4`/`#d3d3d3`) in the icon region, 4194 pixels different from a
+no-icon control in the same spot. Separately confirmed a critical-icon
+swap (`dialog-error`) with 1082 pixels of its real red fill
+(`#f44336`).
+
 ## 2026-08-30 (notification toast icons: real mako icon-path bug fixed)
 
 Asked for every toast's title to show the associated tool's icon

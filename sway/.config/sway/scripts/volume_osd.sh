@@ -15,20 +15,28 @@
 LOCK="/tmp/volume_osd.lock"
 
 # Same tiering convention as waybar's own battery icons elsewhere in this
-# desktop (different icon per range, not one static speaker glyph) --
-# names confirmed present in the installed Adwaita icon theme first
-# (find /usr/share/icons/Adwaita -iname '*volume*'), same discipline as
-# verifying a Nerd Font codepoint exists before using it.
+# desktop (different icon per range, not one static speaker glyph).
+#
+# Absolute paths, not theme names -- see brightness_osd.sh for the full
+# story: mako has no GTK-style theme resolution, and Papirus's
+# "-symbolic"/`actions` names all use `fill:currentColor` (defaults to a
+# near-invisible dark #444444 on this desktop's near-black notification
+# background). Papirus's `status` category ships these same four as real,
+# hardcoded-fill icons instead (confirmed `grep -c currentColor` is 0 on
+# all four before using them) -- only at 32x32 though, no 48x48 status
+# variant exists for these specifically, so they render a bit smaller
+# than this repo's other 48x48 notification icons. Real and slightly
+# small beats invisible and technically full-size.
 volume_icon() {
     local pct="$1"
     if [ "$pct" -eq 0 ]; then
-        echo "audio-volume-muted-symbolic"
+        echo "/usr/share/icons/Papirus/32x32/status/audio-volume-muted.svg"
     elif [ "$pct" -lt 34 ]; then
-        echo "audio-volume-low-symbolic"
+        echo "/usr/share/icons/Papirus/32x32/status/audio-volume-low.svg"
     elif [ "$pct" -lt 67 ]; then
-        echo "audio-volume-medium-symbolic"
+        echo "/usr/share/icons/Papirus/32x32/status/audio-volume-medium.svg"
     else
-        echo "audio-volume-high-symbolic"
+        echo "/usr/share/icons/Papirus/32x32/status/audio-volume-high.svg"
     fi
 }
 
@@ -50,7 +58,7 @@ adjust_volume() {
 if [ "$1" = "mute-toggle" ]; then
     pactl set-sink-mute @DEFAULT_SINK@ toggle
     if pactl get-sink-mute @DEFAULT_SINK@ | grep -q yes; then
-        notify-send -h string:x-canonical-private-synchronous:sys-notify -u low -i audio-volume-muted-symbolic "Volume" "Muted"
+        notify-send -h string:x-canonical-private-synchronous:sys-notify -u low -i "$(volume_icon 0)" "Volume" "Muted"
     else
         percentage=$(pactl get-sink-volume @DEFAULT_SINK@ | grep -Po '\d+(?=%)' | head -n 1)
         [ -n "$percentage" ] && notify-send -h string:x-canonical-private-synchronous:sys-notify -u low -h int:value:"$percentage" -i "$(volume_icon "$percentage")" "Volume" "${percentage}%"

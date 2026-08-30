@@ -51,7 +51,17 @@ def notify(message, urgency="low"):
     # every other themed icon on this system goes through, not assumed
     # from the filename alone (a bare "docker" name doesn't resolve to
     # anything in this theme, "docker-desktop" does).
-    icon = "dialog-error-symbolic" if urgency == "critical" else "docker-desktop"
+    # dialog-error-symbolic used `fill:currentColor`, near-invisible on
+    # this desktop's dark notification background (see brightness_osd.sh
+    # / mako/config for the full story) -- Papirus's `status` category
+    # ships a real red-filled dialog-error instead. docker-desktop is
+    # unaffected (only exists in Papirus's `apps` category, real fill,
+    # already confirmed rendering live via a Docker-blue pixel check).
+    icon = (
+        "/usr/share/icons/Papirus/48x48/status/dialog-error.svg"
+        if urgency == "critical"
+        else "docker-desktop"
+    )
     subprocess.run(["notify-send", "-u", urgency, "-i", icon, "Docker", message], check=False)
 
 

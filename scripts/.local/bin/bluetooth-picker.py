@@ -59,9 +59,19 @@ def notify(message, urgency="low"):
     # Icon follows urgency rather than being static -- this repo's own
     # convention elsewhere (mako's [urgency=high] border override, the
     # battery/lock waybar states) of using urgency as the actual signal,
-    # not just a mako-internal detail. Both names confirmed present in
-    # the installed Adwaita icon theme.
-    icon = "dialog-error-symbolic" if urgency == "critical" else "bluetooth-active-symbolic"
+    # not just a mako-internal detail.
+    #
+    # Absolute paths, not theme names -- mako has no GTK-style theme
+    # resolution, and Papirus's "-symbolic" icons use `fill:currentColor`,
+    # near-invisible on this desktop's dark notification background (see
+    # brightness_osd.sh / mako/config for the full story). Papirus's
+    # `status` category ships real-fill versions of both under the plain
+    # (non-symbolic) name.
+    icon = (
+        "/usr/share/icons/Papirus/48x48/status/dialog-error.svg"
+        if urgency == "critical"
+        else "/usr/share/icons/Papirus/48x48/status/bluetooth-active.svg"
+    )
     subprocess.run(
         ["notify-send", "-u", urgency, "-i", icon, "Bluetooth", message],
         check=False,

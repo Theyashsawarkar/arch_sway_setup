@@ -27,13 +27,20 @@ case "$KEY" in
     *) echo "unknown key: $KEY" >&2; exit 1 ;;
 esac
 
+# Absolute path, not a theme name -- mako has no GTK-style theme
+# resolution, and Papirus's dialog-error-symbolic uses `fill:currentColor`,
+# near-invisible on this desktop's dark notification background (see
+# brightness_osd.sh / mako/config for the full story). Papirus's `status`
+# category ships a real red-filled dialog-error instead.
+ICON_ERROR=/usr/share/icons/Papirus/48x48/status/dialog-error.svg
+
 if ! command -v ydotool >/dev/null 2>&1; then
-    notify-send -u critical -i dialog-error-symbolic "$LABEL" "ydotool isn't installed -- run: sudo pacman -S ydotool"
+    notify-send -u critical -i "$ICON_ERROR" "$LABEL" "ydotool isn't installed -- run: sudo pacman -S ydotool"
     exit 1
 fi
 
 if ! systemctl --user is-active --quiet ydotool.service; then
-    notify-send -u critical -i dialog-error-symbolic "$LABEL" "ydotoold isn't running -- run: systemctl --user enable --now ydotool.service"
+    notify-send -u critical -i "$ICON_ERROR" "$LABEL" "ydotoold isn't running -- run: systemctl --user enable --now ydotool.service"
     exit 1
 fi
 

@@ -285,7 +285,14 @@ def main():
     entries = parse_sway() + parse_tmux()
     if not entries:
         subprocess.run([
-            "notify-send", "-u", "critical", "-i", "dialog-error-symbolic", "Keybindings",
+            # Absolute path, not a theme name -- mako has no GTK-style
+            # theme resolution, and Papirus's "-symbolic" icons all use
+            # `fill:currentColor`, near-invisible on this desktop's dark
+            # notification background (see brightness_osd.sh / mako/config
+            # for the full story). Papirus's `status` category ships a
+            # real red-filled dialog-error instead.
+            "notify-send", "-u", "critical",
+            "-i", "/usr/share/icons/Papirus/48x48/status/dialog-error.svg", "Keybindings",
             "Couldn't parse any keybindings -- check sway/tmux configs are readable",
         ])
         sys.exit(1)
@@ -317,7 +324,11 @@ def main():
     proc.stdin.close()
 
     subprocess.run([
-        "notify-send", "-u", "low", "-i", "edit-copy-symbolic",
+        # org.kde.plasma.clipboard's own app icon -- a real, light-filled
+        # clipboard illustration, not a theme name (see the note on the
+        # dialog-error notify-send above for why bare names don't work).
+        "notify-send", "-u", "low",
+        "-i", "/usr/share/icons/Papirus/48x48/apps/org.kde.plasma.clipboard.svg",
         "Keybinding (copied)", selection,
     ])
 
