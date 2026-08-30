@@ -744,6 +744,86 @@ left border at the same row: both sides now render the same color
 consistently (e.g. `(70,62,88)` on both, at multiple rows) -- symmetric,
 not just "present."
 
+## Notification history viewer, and a real docker-picker.py icon bug
+
+Asked for two things: a real docker-branded icon on Docker notifications
+(reported directly -- "only has the docker name in it not the icon of
+it"), and a notification history viewer (waybar bell, left of the clock,
+newest-first, showing full details).
+
+**The icon bug**: `docker-picker.py`'s `notify()` used `utilities-
+terminal` for its non-critical case -- a generic terminal glyph with no
+connection to Docker at all. Papirus (installed since the icon-pack
+pass) ships a real `docker-desktop` icon -- confirmed it actually
+resolves via the same GTK icon theme lookup every other themed icon on
+this system goes through (`Gtk.IconTheme.get_default().lookup_icon(...)`)
+before using it, not assumed from the filename (a bare `"docker"` name
+does *not* resolve to anything in Papirus, `"docker-desktop"` does).
+Fixed; verified live by firing a real notification and confirming
+substantial non-background pixel content actually renders in the icon's
+expected screen position, the same discipline already used for every
+other icon audit in this repo.
+
+**`notification-history.py`**: mako already has a real history buffer
+(`makoctl history -j`) -- just needed `history=1`/`max-history=200`
+turned on in `mako/config` (off by default, nothing to show without it).
+Reads it, resolves each entry's `app_icon` through the same GTK icon
+theme lookup as above (works for both theme-name icons and the couple of
+this desktop's own notify-send calls that pass an actual image path,
+e.g. the wallpaper/screenshot success notifications), and shows it as a
+wofi list.
+
+Two real bugs found and fixed while building this, both by testing the
+actual behavior rather than trusting assumptions:
+
+1. **mako's own history ordering isn't reliable.** One `makoctl history
+   -j` call came back newest-first, a later one (same kind of data, same
+   machine) came back oldest-first. `id` increments monotonically
+   regardless, so the script now explicitly sorts on it descending
+   rather than trusting whatever order the command hands back --
+   "newest first" was an explicit requirement, not something to leave to
+   chance.
+2. **wofi's dmenu input splits on newline into separate entries** --
+   found by testing the actual selection round-trip, not assumed from
+   "labels wrap" alone (which is real, but is about one long *single*
+   line wrapping at the window edge, a completely different thing from
+   an embedded `\n` staying inside one logical entry). An embedded `\n`
+   between a notification's summary and body silently produced two
+   *separate* dmenu items instead of one two-line one -- confirmed
+   directly by piping a two-line `img:...:text:` value in and checking
+   exactly what came back on selection: only the first line, as its own
+   entry. Fixed by keeping one line per notification (summary and body
+   joined with a visible separator, same pattern already used for
+   `docker-picker.py`/`wifi-picker.py`'s own single-line info rows) --
+   long ones still wrap naturally within that one entry, which was
+   confirmed working separately.
+
+**"Shows full details on focus", the literal ask, isn't architecturally
+available in wofi's dmenu mode** -- confirmed rather than assumed:
+there's no focus-change hook or live preview pane in how wofi's own
+dmenu list works, just a single "output the selected line on Enter"
+model. The honest equivalent built instead: every entry already shows
+its full summary and body up front (relying on the confirmed-real label
+wrapping for long ones), so there's nothing further to reveal on focus
+in the first place. Selecting an entry copies its text to the clipboard,
+matching the same pattern already used elsewhere in this desktop
+(`wofi-calc.sh`, `keybind-search.py`) instead of being a no-op.
+
+Added `$mod+Shift+n` (`sway/config`), matching the same keyboard-path
+convention as every other waybar-click picker in this repo, and
+confirmed live via a real `ydotool`-simulated keypress. The waybar
+`on-click` path itself uses the identical JSON structure as every other
+already-verified picker module in this config (`docker-picker.py`,
+`theme-toggle.sh`) -- **not independently re-verified via a real mouse
+click this pass**, disclosed rather than silently assumed: `ydotool`'s
+absolute mouse positioning has a documented calibration requirement
+("disable mouse speed acceleration for correct absolute movement") not
+met in this environment, and clicking at a pixel-sampled icon position
+reliably landed on a different module instead (confirmed by checking
+waybar's own log for which script actually fired). The keyboard path is
+fully verified; the on-click path rests on it being the same proven JSON
+pattern as its siblings, not an independent click test.
+
 ## Theme toggle robustness: verified the whole chain, found a real gap
 
 Reported the toggle fires notifications but Zen Browser (set to follow

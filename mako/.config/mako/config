@@ -40,6 +40,15 @@ progress-color=over #313244
 default-timeout=5000
 ignore-timeout=0
 
+# Keep dismissed/expired notifications so scripts/.local/bin/
+# notification-history.py (the waybar bell icon, left of the clock) has
+# something real to show -- off by default, mako drops notifications
+# permanently otherwise. 200 is generous headroom without being
+# unbounded; makoctl history/list both return JSON (`-j`), which is what
+# that script actually parses.
+history=1
+max-history=200
+
 # --- High Urgency Alerts ---
 # Overrides the border to a warm peach tone if a system-critical event occurs
 [urgency=high]

@@ -42,7 +42,16 @@ def run(*args, timeout=10):
 
 
 def notify(message, urgency="low"):
-    icon = "dialog-error-symbolic" if urgency == "critical" else "utilities-terminal"
+    # Was "utilities-terminal" for the non-critical case -- a generic
+    # terminal glyph with no connection to Docker at all, reported
+    # directly: "if the notification is about docker then it only has
+    # the docker name in it not the icon of it". Papirus (installed since
+    # this repo's icon-pack pass) ships a real docker-desktop icon --
+    # confirmed it actually resolves via the same GTK icon theme lookup
+    # every other themed icon on this system goes through, not assumed
+    # from the filename alone (a bare "docker" name doesn't resolve to
+    # anything in this theme, "docker-desktop" does).
+    icon = "dialog-error-symbolic" if urgency == "critical" else "docker-desktop"
     subprocess.run(["notify-send", "-u", urgency, "-i", icon, "Docker", message], check=False)
 
 

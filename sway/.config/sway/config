@@ -69,6 +69,11 @@ bindsym $mod+Shift+b exec ~/.local/bin/bluetooth-picker.py
 # Docker picker: view running containers, restart, stop
 bindsym $mod+Shift+d exec ~/.local/bin/docker-picker.py
 
+# Matches the same keyboard-path convention as every other waybar-click
+# picker above -- notification bell was waybar-click-only otherwise
+# Notification history: view past notifications, sorted newest first
+bindsym $mod+Shift+n exec ~/.local/bin/notification-history.py
+
 # $mod+? matches the near-universal "show shortcuts" convention (Slack,
 # Discord, GitHub, GNOME all use ? or Ctrl+/) rather than inventing a new
 # one. Excludes Neovim on purpose -- it already has its own keymap search.

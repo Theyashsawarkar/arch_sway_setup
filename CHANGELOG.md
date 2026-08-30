@@ -3,6 +3,48 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-30 (notification-history.py: new feature, plus a real docker-picker.py icon bug)
+
+Asked for a real docker-branded icon on Docker notifications (reported
+directly: "only has the docker name in it not the icon of it") and a
+notification history viewer (waybar bell left of the clock, newest
+first, full details).
+
+Fixed `docker-picker.py`'s `notify()`: was `utilities-terminal` (a
+generic terminal glyph, no connection to Docker) for its non-critical
+case. Now `docker-desktop`, a real icon Papirus ships -- confirmed it
+actually resolves via GTK's own icon theme lookup before using it, not
+assumed from the filename.
+
+`notification-history.py`: mako already has a real history buffer, just
+needed `history=1`/`max-history=200` turned on (`mako/config`, off by
+default). Two real bugs found and fixed while building this: mako's own
+`makoctl history -j` ordering isn't reliable (one call came back
+newest-first, a later one oldest-first) -- now explicitly sorts on `id`
+descending rather than trusting it. And wofi's dmenu input splits on
+newline into *separate entries* -- an embedded `\n` between a
+notification's summary and body silently produced two unrelated dmenu
+items instead of one two-line one, confirmed by testing the actual
+selection round-trip. Fixed by keeping one line per entry (summary and
+body joined with a separator, same pattern as `docker-picker.py`'s own
+info rows) -- long ones still wrap naturally within that one entry.
+
+"Shows full details on focus" isn't architecturally available in wofi's
+dmenu mode (no focus-change hook exists) -- confirmed rather than
+assumed, and built the honest equivalent instead: every entry already
+shows its full summary and body up front. Selecting one copies it to the
+clipboard.
+
+Added `$mod+Shift+n`, matching every other waybar-click picker's keyboard
+path, verified live via a real keypress. The waybar on-click itself
+wasn't independently re-verified with a real mouse click this pass --
+disclosed rather than assumed: `ydotool`'s absolute positioning has an
+unmet calibration requirement in this environment, and a pixel-sampled
+click reliably landed on a different module instead. It uses the
+identical JSON pattern as every other already-verified picker, but that's
+inference from precedent, not an independent click test. See
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the full writeup.
+
 ## 2026-08-30 (Zen Browser confirmed not reacting to the portal signal -- fixed in its profile)
 
 Reported Zen still stayed dark after the packages were actually
