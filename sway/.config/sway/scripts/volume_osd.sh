@@ -14,6 +14,24 @@
 #      overdrive well past 100%.
 LOCK="/tmp/volume_osd.lock"
 
+# Same tiering convention as waybar's own battery icons elsewhere in this
+# desktop (different icon per range, not one static speaker glyph) --
+# names confirmed present in the installed Adwaita icon theme first
+# (find /usr/share/icons/Adwaita -iname '*volume*'), same discipline as
+# verifying a Nerd Font codepoint exists before using it.
+volume_icon() {
+    local pct="$1"
+    if [ "$pct" -eq 0 ]; then
+        echo "audio-volume-muted-symbolic"
+    elif [ "$pct" -lt 34 ]; then
+        echo "audio-volume-low-symbolic"
+    elif [ "$pct" -lt 67 ]; then
+        echo "audio-volume-medium-symbolic"
+    else
+        echo "audio-volume-high-symbolic"
+    fi
+}
+
 adjust_volume() {
     # $1 like "+5%" or "-5%" (as passed by sway/waybar bindings)
     (
@@ -32,10 +50,10 @@ adjust_volume() {
 if [ "$1" = "mute-toggle" ]; then
     pactl set-sink-mute @DEFAULT_SINK@ toggle
     if pactl get-sink-mute @DEFAULT_SINK@ | grep -q yes; then
-        notify-send -h string:x-canonical-private-synchronous:sys-notify -u low "Volume" " Muted"
+        notify-send -h string:x-canonical-private-synchronous:sys-notify -u low -i audio-volume-muted-symbolic "Volume" "Muted"
     else
         percentage=$(pactl get-sink-volume @DEFAULT_SINK@ | grep -Po '\d+(?=%)' | head -n 1)
-        [ -n "$percentage" ] && notify-send -h string:x-canonical-private-synchronous:sys-notify -u low -h int:value:"$percentage" "Volume" "${percentage}%"
+        [ -n "$percentage" ] && notify-send -h string:x-canonical-private-synchronous:sys-notify -u low -h int:value:"$percentage" -i "$(volume_icon "$percentage")" "Volume" "${percentage}%"
     fi
     exit 0
 fi
@@ -49,4 +67,4 @@ adjust_volume "$1"
 percentage=$(pactl get-sink-volume @DEFAULT_SINK@ | grep -Po '\d+(?=%)' | head -n 1)
 
 # Fire the notification with a progress bar
-[ -n "$percentage" ] && notify-send -h string:x-canonical-private-synchronous:sys-notify -u low -h int:value:"$percentage" "Volume" "${percentage}%"
+[ -n "$percentage" ] && notify-send -h string:x-canonical-private-synchronous:sys-notify -u low -h int:value:"$percentage" -i "$(volume_icon "$percentage")" "Volume" "${percentage}%"

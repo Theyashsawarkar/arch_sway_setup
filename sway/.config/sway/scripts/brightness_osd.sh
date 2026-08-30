@@ -19,4 +19,4 @@ LOCK="/tmp/brightness_osd.lock"
 
 percentage=$(brightnessctl -m | cut -d, -f4 | tr -d '%')
 
-[ -n "$percentage" ] && notify-send -h string:x-canonical-private-synchronous:sys-notify -u low -h int:value:"$percentage" "Brightness" "${percentage}%"
+[ -n "$percentage" ] && notify-send -h string:x-canonical-private-synchronous:sys-notify -u low -h int:value:"$percentage" -i display-brightness-symbolic "Brightness" "${percentage}%"

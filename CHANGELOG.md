@@ -3,6 +3,41 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-30 (notification beautification: real icons on every notify-send call)
+
+Asked to make notifications more aesthetic, specifically with icons for
+whatever triggered them. Audited every `notify-send` call in the repo
+(`grep -rn notify-send scripts/ sway/`) -- several already had one (docker,
+caffeine, the wallpaper/screenshot success cases use the actual resulting
+image), most didn't, including two that fire constantly: volume and
+brightness OSDs had no icon at all.
+
+Added a real freedesktop icon-theme name to every remaining call, each
+confirmed present in the actually-installed icon theme first (only
+`adwaita-icon-theme`/`hicolor-icon-theme` are installed here -- no
+Papirus/Catppuccin icon pack, so stuck to what's real rather than assuming
+a name exists). Volume got the same "tiered by actual state" treatment as
+waybar's battery icons (`audio-volume-{muted,low,medium,high}-symbolic`
+by percentage) instead of one static glyph; also dropped a redundant inline
+Nerd Font mute glyph from the notification body now that a real icon
+carries that signal. Bluetooth's icon follows urgency (error vs. active).
+Wallpaper's fallback/failure notifications now visually distinguish soft
+warnings from hard failures, matching their actual urgency levels which
+were already different but only readable in the text before.
+
+`mako/.config/mako/config` got `max-icon-size=48` + `icon-border-radius=8`
+to match the rounded-pill look used everywhere else in this desktop --
+mako's icons render sharp-cornered at native size by default otherwise.
+
+Verified live, not just by reading mako's docs: fired real test
+notifications after each change, screenshotted, and confirmed real
+non-background pixel content actually appears in the icon's expected
+position -- an icon name that fails theme lookup fails silently (blank
+space, no error), which is exactly the kind of thing that looks fine in
+the config file and wrong on screen. See
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the full icon-by-icon
+breakdown.
+
 ## 2026-08-30 (new feature: fuzzy keybinding search, `$mod+Shift+slash`)
 
 Asked for a wofi popup to fuzzy-search every keybinding on the system (sway +

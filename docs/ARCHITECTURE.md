@@ -472,6 +472,58 @@ documented elsewhere in this file -- that one is wofi's own dmenu list
 never requesting a cursor-shape change at all, which is unrelated to how
 waybar's own pill modules behave.
 
+## Notification icons: every notify-send call, one real icon each
+
+Every `notify-send` call across this desktop's own scripts (`scripts/.local/
+bin/`, `sway/.config/sway/scripts/`) now passes a real icon -- either a
+freedesktop icon-theme name (looked up through whatever GTK icon theme is
+active; this system only has `adwaita-icon-theme`/`hicolor-icon-theme`
+installed, so every name used was confirmed present there first --
+`find /usr/share/icons/Adwaita -iname '*volume*'` and the same for every
+other icon used, same discipline as verifying a Nerd Font codepoint exists
+before using it elsewhere in this repo) or, for the two that have one, the
+actual resulting image (`fetch_wallpaper.sh`'s success notification uses the
+new wallpaper itself; `screenshot.sh`'s uses the screenshot itself -- both
+already existed, untouched here).
+
+Icon choice generally follows the same "urgency/state carries real meaning"
+convention already established elsewhere in this desktop (mako's own
+`[urgency=high]` border-color override; the battery/lock waybar CSS states):
+
+- **Volume** (`volume_osd.sh`): tiered like waybar's own battery icons --
+  `audio-volume-{muted,low,medium,high}-symbolic` depending on the actual
+  percentage, not one static speaker glyph regardless of level. The mute
+  toggle's notification body also lost a redundant inline Nerd Font glyph
+  it had before (`" Muted"`) now that a real icon carries that signal --
+  showing the same information twice looked cluttered once the icon existed.
+- **Brightness** (`brightness_osd.sh`): `display-brightness-symbolic`.
+- **Bluetooth** (`bluetooth-picker.py`): icon follows urgency in the shared
+  `notify()` helper -- `dialog-error-symbolic` for the `critical` failure
+  cases, `bluetooth-active-symbolic` otherwise.
+- **Wallpaper** (`fetch_wallpaper.sh`): `preferences-desktop-wallpaper-
+  symbolic` for the in-progress states (fetching / already fetching),
+  `dialog-warning-symbolic` for soft failures (kept last-good, couldn't
+  apply live), `dialog-error-symbolic` for the no-previous-wallpaper hard
+  failure -- severity now visible in the icon, not just readable in the
+  text.
+- **Everything else** (keylock-toggle's ydotool setup errors,
+  wf-recorder/screenshot's "cancelled" notifications, keybind-search.py's
+  own error/copied notifications): `dialog-error-symbolic` for genuine
+  errors, `process-stop-symbolic` for a cancelled action, `edit-copy-
+  symbolic` for the clipboard-copy confirmation.
+
+`mako/.config/mako/config` also got `max-icon-size=48` and `icon-border-
+radius=8` -- mako's icons render sharp-cornered and whatever size the source
+image happens to be by default, which didn't match the rounded-pill look
+used everywhere else in this desktop (waybar's 16px, mako's own 12px outer
+`border-radius`). Verified all of this live, not just by reading the mako
+docs: fired real test notifications, screenshotted, and confirmed real
+non-background pixel content actually renders in the icon's expected
+on-screen position (mako anchors `top-right`, so the icon sits in the
+bubble's top-left corner) -- catches the same class of "icon name typo'd,
+theme lookup silently fails, notification just looks blank" issue this
+whole exercise was about avoiding in the first place.
+
 ## Keybinding search: `$mod+Shift+slash`, a fuzzy wofi popup over live config
 
 `scripts/.local/bin/keybind-search.py`. Deliberately excludes Neovim -- it

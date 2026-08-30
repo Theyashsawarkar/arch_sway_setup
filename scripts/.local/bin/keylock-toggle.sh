@@ -28,12 +28,12 @@ case "$KEY" in
 esac
 
 if ! command -v ydotool >/dev/null 2>&1; then
-    notify-send -u critical "$LABEL" "ydotool isn't installed -- run: sudo pacman -S ydotool"
+    notify-send -u critical -i dialog-error-symbolic "$LABEL" "ydotool isn't installed -- run: sudo pacman -S ydotool"
     exit 1
 fi
 
 if ! systemctl --user is-active --quiet ydotool.service; then
-    notify-send -u critical "$LABEL" "ydotoold isn't running -- run: systemctl --user enable --now ydotool.service"
+    notify-send -u critical -i dialog-error-symbolic "$LABEL" "ydotoold isn't running -- run: systemctl --user enable --now ydotool.service"
     exit 1
 fi
 

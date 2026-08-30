@@ -79,11 +79,11 @@ fi
 exec 9>"$LOCK_FILE"
 if ! flock -n 9; then
   log INFO "another fetch_wallpaper.sh is already running, exiting"
-  notify-send -u low "Wallpaper" "Already fetching one -- hang tight"
+  notify-send -u low -i preferences-desktop-wallpaper-symbolic "Wallpaper" "Already fetching one -- hang tight"
   exit 0
 fi
 
-notify-send -u low "Wallpaper" "Fetching a new one..."
+notify-send -u low -i preferences-desktop-wallpaper-symbolic "Wallpaper" "Fetching a new one..."
 
 is_valid_image() {
   local f="$1"
@@ -139,13 +139,13 @@ use_fallback() {
     ln -sf "$LAST_GOOD" "$CURRENT"
     if apply_background image "$CURRENT"; then
       log INFO "applied last known-good wallpaper ($LAST_GOOD)"
-      notify-send -u normal "Wallpaper" "Couldn't fetch a new one ($1) -- kept the last good wallpaper"
+      notify-send -u normal -i dialog-warning-symbolic "Wallpaper" "Couldn't fetch a new one ($1) -- kept the last good wallpaper"
     fi
   else
     log WARN "no last known-good wallpaper on disk yet either -- using a solid color"
     if apply_background color "$FALLBACK_COLOR"; then
       log INFO "applied solid-color fallback (#$FALLBACK_COLOR)"
-      notify-send -u critical "Wallpaper" "Couldn't fetch a new one ($1), and no previous wallpaper on disk -- using a solid color"
+      notify-send -u critical -i dialog-error-symbolic "Wallpaper" "Couldn't fetch a new one ($1), and no previous wallpaper on disk -- using a solid color"
     fi
   fi
 }
@@ -224,5 +224,5 @@ if apply_background image "$CURRENT"; then
   notify-send -u low -i "$CURRENT" "Wallpaper" "New wallpaper applied"
 else
   log WARN "couldn't reach sway IPC to apply immediately; current.jpg is updated and will show on next sway start/reload"
-  notify-send -u normal "Wallpaper" "Fetched a new one, but couldn't apply it live -- will show on next sway reload"
+  notify-send -u normal -i dialog-warning-symbolic "Wallpaper" "Fetched a new one, but couldn't apply it live -- will show on next sway reload"
 fi

@@ -33,7 +33,7 @@ OUTFILE="$RECORDINGS_DIR/$(date +%Y%m%d_%H%M%S).mp4"
 if [[ "$MODE" == "region" ]]; then
   GEOMETRY=$(slurp 2>/dev/null)
   if [[ -z "$GEOMETRY" ]]; then
-    notify-send -u low "Recording cancelled"
+    notify-send -u low -i process-stop-symbolic "Recording cancelled"
     exit 0
   fi
   wf-recorder --geometry "$GEOMETRY" -f "$OUTFILE" &

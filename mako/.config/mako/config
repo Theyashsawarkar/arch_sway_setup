@@ -15,6 +15,17 @@ font=JetBrainsMono Nerd Font 12
 markup=1
 format=<b>%s</b>\n%b
 
+# --- Icons ---
+# Every notify-send call across this desktop's own scripts now passes a
+# real icon (freedesktop icon-theme name, or an actual image path for the
+# few that have one -- the wallpaper/screenshot success notifications use
+# the actual new image as their icon). Sized and rounded to match the
+# rest of the desktop's rounded-pill aesthetic (waybar's 16px, this
+# notification's own 12px outer radius) rather than mako's sharp-cornered
+# default.
+max-icon-size=48
+icon-border-radius=8
+
 # --- Elegant Colors ---
 # Deep Midnight background with smooth translucency
 background-color=#11111Bfa

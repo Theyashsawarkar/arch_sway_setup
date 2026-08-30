@@ -12,7 +12,7 @@ mkdir -p "$DIR"
 if [[ "$MODE" == "region" ]]; then
   GEOMETRY=$(slurp 2>/dev/null)
   if [[ -z "$GEOMETRY" ]]; then
-    notify-send -u low "Screenshot cancelled"
+    notify-send -u low -i process-stop-symbolic "Screenshot cancelled"
     exit 0
   fi
   grim -g "$GEOMETRY" "$FILE"

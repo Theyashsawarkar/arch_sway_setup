@@ -241,7 +241,7 @@ def main():
     entries = parse_sway() + parse_tmux()
     if not entries:
         subprocess.run([
-            "notify-send", "-u", "critical", "Keybindings",
+            "notify-send", "-u", "critical", "-i", "dialog-error-symbolic", "Keybindings",
             "Couldn't parse any keybindings -- check sway/tmux configs are readable",
         ])
         sys.exit(1)
@@ -272,7 +272,10 @@ def main():
     proc.stdin.write(selection)
     proc.stdin.close()
 
-    subprocess.run(["notify-send", "-u", "low", "Keybinding (copied)", selection])
+    subprocess.run([
+        "notify-send", "-u", "low", "-i", "edit-copy-symbolic",
+        "Keybinding (copied)", selection,
+    ])
 
 
 if __name__ == "__main__":

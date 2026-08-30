@@ -56,8 +56,14 @@ def run(*args, timeout=10):
 
 
 def notify(message, urgency="low"):
+    # Icon follows urgency rather than being static -- this repo's own
+    # convention elsewhere (mako's [urgency=high] border override, the
+    # battery/lock waybar states) of using urgency as the actual signal,
+    # not just a mako-internal detail. Both names confirmed present in
+    # the installed Adwaita icon theme.
+    icon = "dialog-error-symbolic" if urgency == "critical" else "bluetooth-active-symbolic"
     subprocess.run(
-        ["notify-send", "-u", urgency, "Bluetooth", message],
+        ["notify-send", "-u", urgency, "-i", icon, "Bluetooth", message],
         check=False,
     )
 
