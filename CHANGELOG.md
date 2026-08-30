@@ -5,6 +5,31 @@ along the way. Newest first. Version markers (`## vX.Y.Z`) mark release
 boundaries on top of the dated entries -- see `docs/VERSIONING.md` for the
 full branch/release process.
 
+## 2026-08-30 (power menu, corrected: color on the pill not the icon, glass+border per button, real CSS bug fixed)
+
+Direct feedback right after the entry below: wrong layer for color
+("by colors i don't mean those icons"), and the card was missing
+glass/border on every button, not just the outer frame.
+
+Reverted icons to plain stock appearance -- color now lives on the
+button itself instead, mirroring waybar's own per-module coloring: a
+low-opacity border tint per action, brighter plus a glow on hover, keyed
+off :nth-child since nwg-bar gives buttons no name/class to target
+directly. Gave every button its own resting glass pill too (waybar's
+exact rgba/radius/border formula), not just on hover -- the outer card
+already had glass+border, individual buttons didn't, which is almost
+certainly what read as missing entirely.
+
+Real bug hit along the way: the first attempt at this silently failed
+to apply at all -- nwg-bar's own log said "style.css file erroneous...
+using GTK styling", falling back to bare default chrome. Diagnosed with
+GTK's own CssProvider parsing-error signal: a comment mentioning
+"icons/*.svg" broke CSS's no-nested-comments rule (`/*` inside prose
+closes early). Fixed the wording, re-verified zero parse errors before
+trusting it. Verified live end to end: log confirms style actually
+loads now, zero pixels match the old icon-fill colors, all five button
+border colors present and distinct in the card region.
+
 ## 2026-08-30 (power menu icons: invisible colors fixed, meaningful per-action palette)
 
 Asked for the nwg-bar power menu to show meaningful, colored icons,

@@ -52,7 +52,8 @@
      cx="8"
      cy="8"
      r="8"
-     id="circle2" />
+     id="circle2"
+     style="fill:none;fill-opacity:1" />
   <g
      aria-label=""
      id="text830"

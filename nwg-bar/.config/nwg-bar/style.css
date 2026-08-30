@@ -9,12 +9,20 @@
    that cancels if you dart back in -- not tied to sway's focus model at
    all, so it doesn't have the "closes mid-hover" problem wofi had.
 
-   Buttons get no individual CSS name/class in nwg-bar's own source (checked
-   before relying on it), so per-action accent colors can't be done via
-   CSS here the way every other module in this bar does it -- text/label
-   color below stays one consistent Mauve-ish silver. Per-action color
-   lives in the icons themselves instead (icons/*.svg, bar.json) -- see
-   that directory's own note for why. */
+   Rebuilt to actually match waybar's own pill language instead of just
+   gesturing at it -- an earlier version painted per-action color
+   straight into the icon SVGs (icons/ directory), which was the wrong layer
+   entirely: reported back directly that "colors" meant follow the
+   status bar's own palette treatment, not repaint the glyphs. Icons are
+   back to plain (icons/README.md has that half of the story). Color now
+   lives exactly where it lives everywhere else in this desktop -- a
+   colored border on the pill itself, at low opacity at rest and full
+   strength on hover, the same two-strength pattern waybar already uses
+   for its own hover states -- not the icon. Buttons get no individual
+   CSS name/class in nwg-bar's own source (confirmed from it directly),
+   so per-action selectors below key off `nth-child` (bar.json's own
+   fixed order: Lock, Logout, Suspend, Reboot, Shutdown) instead of a
+   name waybar-style CSS would normally use. */
 
 window {
     background-color: transparent;
@@ -24,9 +32,8 @@ window {
     margin: 0px;
 }
 
-/* The single floating card -- same "glass" material as everywhere else
-   in this desktop: kitty's 0.85 opacity, Mauve hairline border, rounded
-   corners matching the waybar pills. */
+/* The outer card -- unchanged, already matched waybar's glass material
+   (kitty's 0.85 opacity, Mauve hairline border, rounded corners). */
 #inner-box {
     background-color: rgba(17, 17, 27, 0.85);
     border: 2px solid #CBA6F7;
@@ -35,13 +42,19 @@ window {
     margin: 0px;
 }
 
-button,
 image {
     background: none;
     border: none;
     box-shadow: none;
 }
 
+/* Each button is now its own glass pill at rest, not just plain text
+   that happens to sit inside the outer card -- exactly waybar's own
+   module-pill formula (#workspaces/#pulseaudio/etc. in waybar's own
+   style.css): rgba(17,17,27) fill, 16px radius, a subtle low-opacity
+   Mauve hairline border. Previously no background/border at all until
+   hover -- reported back directly as needing "the background glass
+   like" and "a damn border there", not just on interaction. */
 button {
     color: #CDD6F4;
     font-family: "JetBrainsMono Nerd Font";
@@ -49,14 +62,59 @@ button {
     font-weight: 600;
     padding: 18px 26px;
     margin: 6px;
-    border-radius: 14px;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
-    border: 1px solid transparent;
+    border-radius: 16px;
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    background-color: rgba(17, 17, 27, 0.6);
+    border: 1.5px solid rgba(203, 166, 247, 0.18);
+    box-shadow: none;
 }
 
-button:hover {
-    background-color: rgba(203, 166, 247, 0.15);
-    border-color: rgba(203, 166, 247, 0.4);
+/* Per-action color, waybar-style: a subtle tint of that action's own
+   accent at rest (barely-there, same "hairline" weight as the Mauve
+   default above), full strength plus a soft glow on hover -- matching
+   the low-opacity-at-rest -> high-opacity-on-interaction pattern every
+   other hover state in this desktop already follows, not a new
+   convention invented just for this menu. Same five Catppuccin Mocha
+   colors as the icon attempt, just moved to the right layer: Sapphire
+   (Lock, calm/protective) -> Peach (Logout, ending the session, not
+   destructive) -> Teal (Suspend, restful/reversible) -> Yellow (Reboot,
+   in progress/caution) -> Red (Shutdown, the one genuinely final,
+   hard-to-reverse action here -- same Red used for every other
+   destructive/final state in this desktop). nth-child order matches
+   bar.json's own fixed action order exactly. */
+button:nth-child(1) { border-color: rgba(116, 199, 236, 0.25); } /* Lock -- Sapphire */
+button:nth-child(1):hover {
+    background-color: rgba(116, 199, 236, 0.12);
+    border-color: rgba(116, 199, 236, 0.6);
+    box-shadow: 0 0 10px rgba(116, 199, 236, 0.25);
+}
+
+button:nth-child(2) { border-color: rgba(250, 179, 135, 0.25); } /* Logout -- Peach */
+button:nth-child(2):hover {
+    background-color: rgba(250, 179, 135, 0.12);
+    border-color: rgba(250, 179, 135, 0.6);
+    box-shadow: 0 0 10px rgba(250, 179, 135, 0.25);
+}
+
+button:nth-child(3) { border-color: rgba(148, 226, 213, 0.25); } /* Suspend -- Teal */
+button:nth-child(3):hover {
+    background-color: rgba(148, 226, 213, 0.12);
+    border-color: rgba(148, 226, 213, 0.6);
+    box-shadow: 0 0 10px rgba(148, 226, 213, 0.25);
+}
+
+button:nth-child(4) { border-color: rgba(249, 226, 175, 0.25); } /* Reboot -- Yellow */
+button:nth-child(4):hover {
+    background-color: rgba(249, 226, 175, 0.12);
+    border-color: rgba(249, 226, 175, 0.6);
+    box-shadow: 0 0 10px rgba(249, 226, 175, 0.25);
+}
+
+button:nth-child(5) { border-color: rgba(243, 139, 168, 0.35); } /* Shutdown -- Red, the one destructive action here, a touch more present even at rest */
+button:nth-child(5):hover {
+    background-color: rgba(243, 139, 168, 0.14);
+    border-color: rgba(243, 139, 168, 0.7);
+    box-shadow: 0 0 12px rgba(243, 139, 168, 0.35);
 }
 
 label {

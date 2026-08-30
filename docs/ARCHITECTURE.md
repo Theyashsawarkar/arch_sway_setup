@@ -748,6 +748,61 @@ left border at the same row: both sides now render the same color
 consistently (e.g. `(70,62,88)` on both, at multiple rows) -- symmetric,
 not just "present."
 
+## Power menu, corrected: color moved to the pill, glass+border on every button, and a real CSS bug
+
+Direct, blunt feedback right after the entry below: the icon-recoloring
+approach was wrong ("by colors i don't mean those icons"), and the card
+itself was missing the glass background/border it was supposed to
+already have on every button, not just the outer frame.
+
+**Color, moved to the right layer**: reverted every icon back to plain
+(stock `fill:none`, matching nwg-bar's own upstream appearance -- see
+`icons/README.md`). Per-action color now lives on the button itself,
+mirroring exactly how waybar colors its own modules -- a colored border
+at low opacity, brighter plus a soft glow on hover, the same two-
+strength pattern waybar's own hover states already use everywhere else.
+nwg-bar gives buttons no individual CSS name/class (confirmed from its
+own source), so the five per-action rules key off `:nth-child(N)`
+against `bar.json`'s own fixed action order instead of a name selector.
+
+**Glass + border on every button, not just on hover**: previously
+`button { background: none; border: none; }` until hover added them --
+technically the outer card *did* have its own glass+border the whole
+time, but each individual button had no chrome of its own at rest,
+which is almost certainly what read as "no glass, no border" even
+though the outer frame was there. Gave every button waybar's own exact
+module-pill formula (`rgba(17,17,27,...)` fill, 16px radius, a subtle
+low-opacity Mauve-family hairline border) as its resting state, not just
+its hover state -- "follow the theme of the status bar" taken literally,
+copying the actual formula rather than a vague gesture at "glassy".
+
+**A real bug found in the process, not just a design miss**: the very
+first attempt at this fix (which added `:nth-child` selectors and new
+per-action comments) silently failed to apply *at all* -- `nwg-bar`'s
+own log said outright: `style.css file erroneous or not found, using
+GTK styling`, meaning every single change in that pass rendered as bare
+default GTK chrome instead, worse than before either fix. Diagnosed
+precisely with GTK's own `Gtk.CssProvider` `parsing-error` signal
+(connected to it directly from Python rather than guessing) --
+`style.css:14:38 '/*' in comment block`. The cause: a comment's own
+prose mentioned `icons/*.svg`, and CSS comments can't nest -- the literal
+`/*` inside that path broke out of the comment early and confused
+everything after it. Fixed by rewording the one line; re-checked with
+the same `parsing-error` signal afterward and got zero errors before
+trusting it further. Worth remembering for any future CSS comment in
+this repo: never write a literal `/*` inside prose, even referring to a
+glob pattern -- GTK's CSS parser (and CSS in general) has no escape for
+it inside a comment.
+
+Verified live end to end, not just "parses now": launched `nwg-bar`
+directly, confirmed the log now says `Using style: ...` instead of the
+erroneous-fallback message, screenshotted the real card, confirmed zero
+pixels matching any of the old icon-fill colors (icons genuinely back to
+plain), and found substantial, distinct pixel counts for all five
+button-border colors at their expected low-opacity blend within the
+card region. Read the Shutdown icon's own glyph back as ASCII art too --
+a clean ring outline with no fill behind it, matching stock exactly.
+
 ## Power menu icons: invisible colored circles, no per-action distinction
 
 Asked for the power-menu icons (nwg-bar, `custom/power`'s waybar

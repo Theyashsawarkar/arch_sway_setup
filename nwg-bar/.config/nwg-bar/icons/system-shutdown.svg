@@ -51,7 +51,8 @@
      cx="8"
      cy="8"
      r="8"
-     id="circle2" />
+     id="circle2"
+     style="fill:none;fill-opacity:1" />
   <path
      fill="#fff"
      d="m8 3a5 5 0 0 0 -5 5 5 5 0 0 0 5 5 5 5 0 0 0 5 -5 5 5 0 0 0 -5 -5zm0 1a4 4 0 0 1 4 4 4 4 0 0 1 -4 4 4 4 0 0 1 -4 -4 4 4 0 0 1 4 -4z"
