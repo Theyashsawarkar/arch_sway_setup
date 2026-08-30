@@ -744,6 +744,50 @@ left border at the same row: both sides now render the same color
 consistently (e.g. `(70,62,88)` on both, at multiple rows) -- symmetric,
 not just "present."
 
+## Workspace indicator: occupancy as its own signal, separate from focus
+
+Asked for the workspace numbers in waybar to show which workspaces hold
+at least one window, everywhere -- not just at the currently-focused
+one. Concretely: the focused workspace keeps both its number colored
+*and* underlined (unchanged from before); any other workspace holding a
+window gets its number colored too, just without the underline, so
+"you are here" (underline) and "something's running there" (number
+color) read as two independent signals rather than one conflated one.
+
+waybar's `sway/workspaces` module already tracks exactly this itself --
+confirmed straight from its own source
+(`src/modules/sway/workspaces.cpp`): every workspace button gets an
+`.empty` CSS class toggled live, added whenever that workspace's
+`nodes` + `floating_nodes` are both empty. No IPC polling or extra
+script of our own needed -- waybar was already computing "does this
+workspace hold a window" every single update, just never exposing it as
+a distinct visual state in this stylesheet.
+
+New rule: `#workspaces button:not(.empty):not(.focused)` -- number-color
+only, explicitly `:not(.focused)` so the existing `.focused` rule always
+wins outright on the one workspace that's both occupied and current
+(solid color + underline), rather than the two rules fighting over the
+same element. Colored the same Red as `.focused`, just translucent
+(`rgba(243, 139, 168, 0.7)`) rather than solid -- deliberately not a
+fourth unrelated hue: one color family read at two strengths says
+"these are the same *kind* of signal, at different degrees" far more
+clearly than reaching for e.g. Peach or Teal would, and keeps the
+underline as the one and only "current" signal instead of also having
+to double as an occupancy signal. Placed *before* the existing `:hover`
+rule in the stylesheet on purpose -- same selector specificity as
+`:hover`, so on a tie the later rule wins; hovering an occupied,
+unfocused workspace needs to still show hover's Lavender, not lose to
+this new rule.
+
+Verified live, not just reasoned about: two real workspaces existed at
+test time, one focused with a window (workspace "2", kitty) and one
+unfocused with a window (workspace "1", zen) -- confirmed via
+`swaymsg -t get_tree` first, then screenshotted the actual bar and
+searched for both the solid-Red and translucent-Red-over-background
+colors specifically: 42 pixels matched solid Red (the focused number),
+25 matched the translucent blend (the unfocused-but-occupied number) --
+two distinct numbers, two distinct intensities, exactly as designed.
+
 ## Notification toast icons, round two: currentColor makes symbolic icons invisible on dark backgrounds
 
 Follow-up to "Notification toast icons" below: reported directly after

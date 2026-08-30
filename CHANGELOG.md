@@ -3,6 +3,29 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-30 (workspace indicator: occupancy shown separately from focus)
+
+Asked for workspace numbers to show which workspaces hold a window, not
+just the focused one -- focused keeps number color + underline, any
+other occupied workspace gets number color only, no underline.
+
+waybar's sway/workspaces module already computes this itself: `.empty`
+is its own class (confirmed from waybar's own source), toggled live
+whenever a workspace's nodes+floating_nodes are both empty -- no
+polling or extra script needed. New rule:
+`#workspaces button:not(.empty):not(.focused)`, colored the same Red as
+`.focused` but translucent rather than solid -- one hue at two
+strengths reads as "same kind of signal, different degree" rather than
+a fourth unrelated color, and keeps the underline as the sole "current"
+signal. Placed before the existing `:hover` rule so hovering an
+occupied-but-unfocused workspace still shows hover's Lavender on the
+specificity tie.
+
+Verified live: two real workspaces existed, one focused-with-a-window,
+one unfocused-with-a-window -- screenshotted the bar and found 42 pixels
+of solid Red (focused) and 25 of the translucent-Red blend (occupied,
+unfocused), confirming both states render distinctly.
+
 ## 2026-08-30 (notification toast icons round two: invisible symbolic icons)
 
 Reported right after the icon-path fix below: the notification-history
