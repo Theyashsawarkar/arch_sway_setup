@@ -28,6 +28,12 @@ bindsym $mod+m exec cliphist list | wofi --dmenu | cliphist decode | wl-copy
 # Launch Wofi Emoji Picker
 bindsym $mod+period exec wofi-emoji
 
+# $mod+? matches the near-universal "show shortcuts" convention (Slack,
+# Discord, GitHub, GNOME all use ? or Ctrl+/) rather than inventing a new
+# one. Excludes Neovim on purpose -- it already has its own keymap search.
+# Search all keybindings (sway + tmux) in a fuzzy wofi popup
+bindsym $mod+Shift+slash exec ~/.local/bin/keybind-search.py
+
 ### Window Look & Feel (Classy Minimalist)
 # Core border style for windows
 default_border pixel 2

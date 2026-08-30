@@ -3,6 +3,47 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-30 (new feature: fuzzy keybinding search, `$mod+Shift+slash`)
+
+Asked for a wofi popup to fuzzy-search every keybinding on the system (sway +
+tmux, deliberately excluding Neovim -- it already has its own keymap search)
+by name/keyword, case-insensitive.
+
+`scripts/.local/bin/keybind-search.py`, bound to `$mod+Shift+slash` (matches
+the near-universal ? / Ctrl+/ "show shortcuts" convention -- Slack, Discord,
+GitHub, GNOME). Both sources are re-parsed from the real live config on every
+run rather than a separate hand-maintained list -- picked this over the
+alternative specifically because a second list is exactly the kind of thing
+that quietly drifts out of sync with reality, the same failure mode as the
+TPM plugin-path split found in an earlier audit pass. See
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the full design writeup,
+including two real parsing bugs found and fixed by checking actual command
+output instead of trusting the documented format (tmux's `-N` compact view
+mislabeling root-table binds as needing the prefix; an early version's
+custom-note lookup bleeding a prefix-table note into an unrelated same-letter
+copy-mode binding), a fuzzy-search gap fixed along the way (bare-comment
+descriptions like "Switch to workspace" couldn't match a query typed as
+"workspace 1" since the "1" only existed *before* the word in that entry --
+now every entry appends its actual command for exactly this reason), and why
+the final `wl-copy` call is a detached `Popen` rather than `subprocess.run`
+(confirmed directly: wl-copy sets the clipboard instantly but the process
+itself lingers afterward by design, to keep serving the selection -- waiting
+on it would hang the script pointlessly after every use).
+
+Gave tmux.conf's own custom binds real `-N` notes as part of this (was `bind
+s display-popup ...`, now `bind -N "Fuzzy-find and switch tmux session" s
+...`) -- a genuine side benefit, not just plumbing for this script: tmux's
+own `prefix + ?` (list key bindings) now describes this repo's custom binds
+too, not just its stock ones.
+
+Also fixed, unrelated but found along the way while testing: this repo's
+`~/.local/bin/wl-paste --type text --watch cliphist store` background
+watcher had been killed (by an earlier debugging step in this same session,
+chasing what turned out to be the wl-copy lingering-process behavior above,
+not a real bug) and not restarted -- caught and fixed immediately, since it's
+a real, already-established feature ($mod+m clipboard history) this
+shouldn't have been left broken.
+
 ## 2026-08-29 (full repo audit: tmux plugin path split fixed)
 
 Broadened the previous audit to the whole repo. First finding: `tmux/.config/

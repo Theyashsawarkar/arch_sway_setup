@@ -472,6 +472,62 @@ documented elsewhere in this file -- that one is wofi's own dmenu list
 never requesting a cursor-shape change at all, which is unrelated to how
 waybar's own pill modules behave.
 
+## Keybinding search: `$mod+Shift+slash`, a fuzzy wofi popup over live config
+
+`scripts/.local/bin/keybind-search.py`. Deliberately excludes Neovim -- it
+already has its own built-in keymap search -- and covers sway + tmux.
+
+Both sources are re-parsed from the real, live config on every invocation
+rather than kept in a separate hand-maintained cheat-sheet file, which would
+just be one more thing to remember to update (see the TPM section right
+below for what happens when two things that should describe the same state
+drift apart):
+
+- **Sway**: reads `~/.config/sway/config`'s own `bindsym` lines directly,
+  paired with whatever comment sits above each one -- this file's own
+  existing convention already, not something invented for this script.
+  `$mod`/`$left`/`$down`/`$up`/`$right` are expanded to their real key names.
+  A comment covering a whole group (one comment above 4 arrow-key binds, for
+  instance) is reused for each key in that group, with the actual command
+  appended in parens to disambiguate which does what -- also fixes a real
+  fuzzy-search gap: matching is a subsequence match in query order, so
+  typing "workspace 1" wouldn't match an entry whose only "1" appeared
+  *before* the word "workspace" (as `Super+1`'s bare comment would have,
+  with no command shown).
+- **Tmux**: reads `tmux list-keys` (the raw form, explicit `-T <table>` per
+  line -- unambiguous about which key-table a binding is actually on) for
+  the key inventory, and sources descriptions from two places: this repo's
+  own tmux.conf, which now gives every custom bind an explicit `-N "note"`
+  (tmux's own built-in per-binding description mechanism, added specifically
+  for this -- see tmux.conf's own comment on it), and tmux's stock built-in
+  notes via `tmux list-keys -N` for anything not explicitly customized here.
+  A `tmux-resurrect`-installed binding (`C-a C-r`, restore) shows up
+  automatically with no special-casing needed, which is exactly the point of
+  reading live state instead of a maintained list.
+
+  Two real bugs found and fixed while building this, both from checking
+  actual output instead of trusting the format: `list-keys -N`'s compact
+  view prefixes *every* line with `C-a`, even root-table binds like `-n
+  M-Left` that need no prefix at all -- confirmed via the raw dump's
+  explicit `-T root` before trusting it, since taking the compact view at
+  face value would have made this tool actively lie about which keys need
+  the prefix. And an early version keyed custom notes by bare key name
+  alone, which let this repo's prefix-table `r` note ("Reload tmux config")
+  incorrectly relabel tmux's *unrelated* stock `copy-mode` binding for the
+  same letter (`refresh-from-pane`) -- fixed by keying on `(table, key)`
+  instead. Mouse bindings (`Mouse*`/`Wheel*`/`*Click*`) are filtered out
+  entirely -- not keybindings, and their commands can run to ~2000
+  characters (one wofi/waybar-style menu built from `display-menu`), which
+  would both clutter the list and render as one absurd line.
+
+  `wl-copy`, on selecting an entry: written as `Popen` + close stdin,
+  deliberately not waited on. Confirmed directly (cliphist picked up a test
+  string the instant it was sent) that `wl-copy` sets the clipboard
+  immediately but the process itself lingers afterward, since it has to
+  stay alive to keep serving that selection to whoever reads it next --
+  `subprocess.run`/`.communicate()` both block until the child exits, which
+  would hang this script after every single use for no reason.
+
 ## The tmux status bar's dependency chain
 
 Worth calling out on its own, since it broke in layers (see changelog): the rounded
