@@ -3,6 +3,45 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-30 (incident: stow symlinks broken desktop-wide, recovered clean; docker gets a keybinding)
+
+Reported the docker waybar click had stopped working, and asked for a
+keybinding matching the other pickers. Chasing the click found something
+much bigger: `~/.config/waybar/config`, both wofi files, sway, mako,
+nwg-bar, kitty, tmux, every tracked `nvim`/`zed` file, and
+`~/.config/systemd/user/tmux.service` had all silently stopped being
+symlinks -- real disconnected files instead, `tmux.service` missing
+outright (the exact symlink fixed in an earlier pass, broken again).
+Almost certainly a well-known dotfiles-via-symlink gotcha, not specific
+to this repo: any tool that saves "atomically" (write-temp-then-rename)
+replaces a symlink with a real file the instant something saves a
+symlinked config directly rather than through the repo path -- explains
+why files this session never touched (`nvim`, `zed`) were affected too.
+
+Checked before fixing anything: every affected file was content-identical
+to its repo counterpart, safe to just re-link. A second, more serious
+mistake happened while fixing it, disclosed in full: tried to fix several
+packages at once with one combined `stow -R` call, which **deleted the
+repository's own source files** for all of them (confirmed via `git
+status` showing 32 files deleted in the working tree) -- GNU Stow's
+directory-folding logic behaving unpredictably when several targets are
+simultaneously in an inconsistent state within one combined restow.
+**No data was lost** -- git history was untouched throughout, `git
+restore .` recovered everything in one command, verified by checking
+actual file content afterward (not just a clean `git status`). Fixed
+properly the second time, one package at a time with verification after
+each. Final state confirmed three ways: every `~/.config/<pkg>` is a real
+symlink, `git status` clean, `stow -n` (dry-run) across every package
+reports zero pending actions.
+
+With everything reconnected, the docker click started working
+immediately. Added `$mod+Shift+d` (`sway/config`) too, matching the exact
+convention already used for Wi-Fi/Bluetooth -- `docker-picker.py` had
+been waybar-click-only, the same gap those two had before their own
+keybindings. Picked up by `keybind-search.py` automatically. See
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the full incident
+writeup and the lesson worth keeping in mind going forward.
+
 ## 2026-08-30 (docker-picker.py: tree-connector prefix so multiple containers don't blur together)
 
 Asked whether multiple running containers would get confusing in a flat

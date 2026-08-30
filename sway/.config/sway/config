@@ -65,6 +65,10 @@ bindsym $mod+Shift+w exec ~/.local/bin/wifi-picker.py
 # Bluetooth picker: pair, connect, toggle
 bindsym $mod+Shift+b exec ~/.local/bin/bluetooth-picker.py
 
+# Previously waybar-click-only, same gap as Wi-Fi/Bluetooth above
+# Docker picker: view running containers, restart, stop
+bindsym $mod+Shift+d exec ~/.local/bin/docker-picker.py
+
 # $mod+? matches the near-universal "show shortcuts" convention (Slack,
 # Discord, GitHub, GNOME all use ? or Ctrl+/) rather than inventing a new
 # one. Excludes Neovim on purpose -- it already has its own keymap search.

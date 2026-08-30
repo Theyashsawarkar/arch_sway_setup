@@ -744,6 +744,85 @@ left border at the same row: both sides now render the same color
 consistently (e.g. `(70,62,88)` on both, at multiple rows) -- symmetric,
 not just "present."
 
+## A real incident: stow symlinks silently broken across the whole desktop
+
+Reported the docker waybar module's click had stopped opening the wofi
+popup, and asked for a keybinding matching the other pickers. Chasing the
+click issue found something much bigger: `~/.config/waybar/config` was a
+**real file**, not the symlink stow is supposed to maintain -- and
+checking further, so were `~/.config/sway/config`, both wofi files, mako,
+nwg-bar, kitty's `kitty.conf`, tmux's `tmux.conf`, every tracked file
+under `~/.config/nvim/` and `~/.config/zed/`, and
+`~/.config/systemd/user/tmux.service` was missing outright (the exact
+symlink fixed earlier in an unrelated pass -- gone again).
+
+**What almost certainly caused it**: this is a well-known dotfiles-via-
+symlink gotcha, not something specific to this repo's own scripts.
+Editors and tools that save "atomically" (write a temp file, then
+`rename()` it over the target, to avoid partial writes) replace whatever
+is at that path -- which, for a symlink, means the symlink itself gets
+replaced by a real file containing the new content, permanently
+disconnecting it from the repo. This happens the moment *anything* saves
+a symlinked config file directly rather than through the repo path, and
+explains why files this session never touched (all of `nvim`, `zed`) were
+affected too -- not unique to anything done in this conversation.
+
+**Checked before touching anything**: diffed every affected file against
+its repo counterpart. All content-identical (except the two `nvim` files
+already tracked as long-standing local drift, also identical to the
+repo's own uncommitted copy) -- confirmed safe to just re-link, not a
+case of real unsaved state that would need reconciling first.
+
+**A second, more serious mistake made while fixing this, disclosed in
+full rather than glossed over**: fixed a few files individually, then
+tried to fix the rest faster with one bulk call --
+`stow -R -t ~ sway waybar wofi mako nwg-bar kitty tmux nvim zed
+networkmanager-dmenu systemd` covering every affected package at once.
+This **deleted the repository's own source files** for all of them --
+confirmed via `git status --short` afterward showing 32 files as
+deleted in the working tree. Root cause: GNU Stow's directory-folding
+logic, when several of its targets are simultaneously real files instead
+of the symlinks it expects, can behave unpredictably on a combined
+restow across many packages at once -- exactly the situation this bulk
+call created by design (mixing several inconsistent live-target states
+into a single stow invocation).
+
+**No data was actually lost**: git history is the real source of truth
+here, and none of this touched it -- `git log` was intact throughout,
+and `git restore .` brought every file back exactly as committed in one
+command. Verified thoroughly before considering this closed, not just
+trusting a clean `git status`: re-checked file line counts and grepped
+for the most recent real content (`custom/theme`/`docker-picker`
+references in `waybar/config`) to confirm actual restoration, not just
+an empty diff.
+
+**Fixed properly the second time**, one package at a time instead of a
+combined bulk call, verifying after each: `rm` the broken real files, a
+single `stow -R -t ~ <one-package>`, confirm the result is a real
+symlink before moving to the next package. Final state verified three
+ways -- every `~/.config/<pkg>` directory is a genuine whole-directory
+symlink (`ls -la` showing `lrwxrwxrwx`), `git status --short` clean, and
+`stow -n -v -t ~` (dry-run) across every package in the repo reporting
+zero pending actions.
+
+**The lesson, worth keeping in mind going forward**: never edit a
+symlinked dotfile at its live `~/.config/...` path directly -- always
+through the repo path (`~/dotfiles/...`), which this session has done
+consistently, but doesn't protect against *other* tools (editors, plugin
+managers, anything with "safe save" behavior) doing it. A periodic
+"are all my stow symlinks still symlinks" check (exactly the loop used
+to discover this) would catch this early next time, before it silently
+accumulates across an entire desktop's worth of configs.
+
+With everything actually reconnected, the docker click started working
+immediately -- confirmed live via `ydotool`-simulated `\$mod+d`-style
+keypresses on the new keybinding below, not just a manual script
+invocation. Also added `\$mod+Shift+d` (`sway/config`), matching the
+exact convention already used for `\$mod+Shift+w`/`\$mod+Shift+b` --
+`docker-picker.py` had been waybar-click-only, the same gap Wi-Fi and
+Bluetooth had before their own keybindings were added. Automatically
+picked up by `keybind-search.py` with no further work, confirmed live.
+
 ## Gutters between wofi entries
 
 Asked to increase the gap between rows/columns. wofi has no dedicated
