@@ -5,6 +5,27 @@ along the way. Newest first. Version markers (`## vX.Y.Z`) mark release
 boundaries on top of the dated entries -- see `docs/VERSIONING.md` for the
 full branch/release process.
 
+## 2026-08-30 (power menu: keybinding, verified Tab nav without ever pressing Enter)
+
+Added $mod+Shift+p to open the power menu (same gap every other
+waybar-click-only picker already had fixed), and verified Tab/Shift+Tab
+move focus between its buttons as expected.
+
+Every action here (Lock/Logout/Suspend/Reboot/Shutdown) is disruptive or
+hard to reverse -- couldn't safely press Enter just to check where focus
+landed. Used nwg-bar's own AT-SPI accessibility tree instead (it's
+already registered on the bus) to read back which button reports itself
+focused after each simulated Tab/Shift+Tab -- read-only, same mechanism
+screen readers use, zero risk of triggering anything. Confirmed the full
+cycle both directions with wraparound.
+
+Found a real gap doing this: focus was genuinely moving the whole time,
+but nothing was styled to show it -- a before/after screenshot diff read
+zero changed pixels. Fixed by giving :focus the same treatment as :hover
+on every per-action border rule. Re-verified: the same diff now reads
+35936 changed pixels for one Tab press, and AT-SPI confirms the actually-
+focused button matches the one that visibly glows.
+
 ## 2026-08-30 (power menu, corrected: color on the pill not the icon, glass+border per button, real CSS bug fixed)
 
 Direct feedback right after the entry below: wrong layer for color

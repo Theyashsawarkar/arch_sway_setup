@@ -74,6 +74,26 @@ bindsym $mod+Shift+d exec ~/.local/bin/docker-picker.py
 # Notification history: view past notifications, sorted newest first
 bindsym $mod+Shift+n exec ~/.local/bin/notification-history.py
 
+# Same gap as every picker above -- the power menu (nwg-bar) was only
+# ever reachable by clicking waybar's custom/power module, no keyboard
+# path. Tab/Shift+Tab already move focus between its buttons on their
+# own -- nwg-bar requests exclusive layer-shell keyboard focus itself
+# (LAYER_SHELL_KEYBOARD_MODE_EXCLUSIVE, confirmed in its own source),
+# and real GtkButtons in a GtkBox get Tab-chain navigation from GTK for
+# free on top of that -- nothing this repo had to wire up. Verified
+# safely without ever actually pressing Enter (every one of these five
+# actions is disruptive/hard to reverse -- lock, logout, suspend,
+# reboot, shutdown -- not something to trigger just to test a
+# keybinding): queried nwg-bar's own AT-SPI accessibility tree directly
+# (read-only, can't activate anything) after each simulated Tab/
+# Shift+Tab and read back which button actually reports itself focused.
+# Confirmed the full cycle both directions with wraparound: Lock ->
+# Logout -> Suspend -> Reboot -> Shutdown -> (wraps) -> Lock forward,
+# and Lock -> (wraps) -> Shutdown going back with Shift+Tab. No visible
+# focus-ring styling on top of this yet -- works correctly, just not
+# obvious to the eye which button Tab landed on.
+bindsym $mod+Shift+p exec nwg-bar
+
 # Cycle notification mode (normal -> silent -> dnd -> normal) -- same
 # script and same three-state cycle the waybar bell's scroll wheel uses
 # (on-scroll-up/-down in waybar/config), just the keyboard path. Only

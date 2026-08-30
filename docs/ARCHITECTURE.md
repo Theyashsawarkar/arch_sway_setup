@@ -748,6 +748,53 @@ left border at the same row: both sides now render the same color
 consistently (e.g. `(70,62,88)` on both, at multiple rows) -- symmetric,
 not just "present."
 
+## Power menu: keybinding, and verifying Tab navigation without ever pressing Enter
+
+Asked for a keybinding to open the power menu (same gap every other
+waybar-click-only picker in this repo already had fixed --
+`$mod+Shift+p`, matching the established `$mod+Shift+<letter>`
+convention for exactly this class of fix) and for Tab to move between
+its buttons.
+
+**A real constraint shaped how this got tested**: every single action in
+this menu -- Lock, Logout, Suspend, Reboot, Shutdown -- is disruptive or
+outright hard to reverse. Pressing Enter to check "did Tab land on the
+right button" risks actually locking, logging out, suspending,
+rebooting, or shutting down the remote session being worked in, which
+this whole session has held as a hard line to never do for testing
+purposes. Screenshotting for a visible focus indicator wasn't reliable
+either at first -- zero pixels differed before Tab was actually styled
+for `:focus` (below), which would have read as "Tab doesn't work" when
+it actually did, just invisibly.
+
+Solved with something genuinely safe and precise instead: nwg-bar
+already registers itself on the AT-SPI accessibility bus (confirmed
+directly -- `Atspi.get_desktop(0)` lists it alongside waybar and the
+system tray applets). Queried its own accessibility tree read-only after
+each simulated Tab/Shift+Tab press and asked which button reports
+itself `FOCUSED` -- no risk of activating anything, this is the same
+mechanism screen readers use, purely observational. Confirmed the full
+cycle, both directions, with wraparound: Lock -> Logout -> Suspend ->
+Reboot -> Shutdown -> (wraps) -> Lock forward, and the same in reverse
+with Shift+Tab. This works because nwg-bar requests exclusive layer-
+shell keyboard focus itself (`LAYER_SHELL_KEYBOARD_MODE_EXCLUSIVE`,
+confirmed straight from its own Go source) and real GtkButtons in a
+GtkBox get Tab-chain navigation from GTK for free on top of that --
+nothing this repo had to build, just verify.
+
+**Found a real gap while verifying, not something asked for directly**:
+focus was genuinely moving the whole time, but nothing was styled to
+show it -- confirmed by screenshotting before/after a Tab press and
+finding the card region byte-for-byte identical. Fixed by giving
+`:focus` the exact same treatment as `:hover` on every per-action rule
+(same `nth-child` selectors, `style.css`) -- keyboard nav and mouse
+hover now read as the same "this one's about to activate" state, which
+is also just the more honest model of what's actually true. Re-verified
+after the style fix: the same before/after screenshot diff that read 0
+now reads 35936 differing pixels for a single Tab press, and AT-SPI
+confirms the button that's actually focused matches which one visibly
+glows.
+
 ## Power menu, corrected: color moved to the pill, glass+border on every button, and a real CSS bug
 
 Direct, blunt feedback right after the entry below: the icon-recoloring
