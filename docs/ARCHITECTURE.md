@@ -472,6 +472,31 @@ documented elsewhere in this file -- that one is wofi's own dmenu list
 never requesting a cursor-shape change at all, which is unrelated to how
 waybar's own pill modules behave.
 
+## A real bug: the left border was invisible on every entry, always
+
+Reported that left and right edges of rows/cells weren't visible properly.
+Real bug, not a perception issue: an earlier revision (the one that first
+added a border to every entry) also added `border-left: 2px solid
+transparent;`, declared *after* the main `border` shorthand specifically
+so it would win on just that one edge -- reserving 2px of space for a
+selected-state accent bar without a layout jump when it appeared. That
+made the left edge invisible on *every* entry at rest, not just
+unselected ones, which is the actual bug: in the app launcher's grid, one
+cell's visible right border sitting next to the adjacent cell's invisible
+left border reads as a broken, asymmetric gutter rather than a clean
+framed gap -- exactly "can't see left and right edges properly."
+
+Fixed by removing the border-left override entirely and keeping border
+*width* constant (1px) across idle/hover/selected -- selected state now
+differentiates by color alone (full-strength `#CBA6F7` instead of a raised
+alpha), which needs no layout-jump guard at all since nothing changes
+size, only color. Simpler than what it replaced, not just a bug fix.
+
+Verified by pixel-comparing a cell's right border against its neighbor's
+left border at the same row: both sides now render the same color
+consistently (e.g. `(70,62,88)` on both, at multiple rows) -- symmetric,
+not just "present."
+
 ## Gutters between wofi entries
 
 Asked to increase the gap between rows/columns. wofi has no dedicated

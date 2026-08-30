@@ -96,14 +96,21 @@ window {
        tool's single-column list -- this is the one shared style.css
        every one of them reads, so it has to hold up in both layouts, not
        just the grid. */
+    /* All four sides equal and visible at rest -- a real, previously
+       unnoticed bug: an earlier revision force-set border-left to
+       transparent here specifically (reserving space for a selected-
+       state accent bar without a layout jump when it appeared), which
+       silently made the left edge invisible on every entry at idle,
+       not just selected ones. Reported as "can't see the left and right
+       edges properly" -- the right edge alone, next to an invisible left
+       edge on the adjacent cell, read as a broken/asymmetric gutter in
+       the grid rather than a clean framed gap. Fixed by dropping the
+       left-specific override entirely and keeping border width constant
+       (1px) across every state below -- differentiating hover/selected
+       by color and background alone avoids the layout-jump problem the
+       old approach was solving, without sacrificing a visible border on
+       any side at rest. */
     border: 1px solid rgba(203, 166, 247, 0.28);
-    /* Reserve the same 2px left accent bar space at idle, hover, and
-       selected alike -- same layout-jump guard already used for the
-       waybar workspace buttons' hover/focused underline elsewhere in
-       this desktop, so the accent appearing on selection doesn't shift
-       every row's text over by 2px when it shows up. Declared after the
-       shorthand border above so it wins on just that one edge. */
-    border-left: 2px solid transparent;
     transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
@@ -124,8 +131,13 @@ window {
 
 #entry:selected {
     background-color: rgba(203, 166, 247, 0.18);
-    border-color: rgba(203, 166, 247, 0.45);
-    border-left: 2px solid #CBA6F7;
+    /* Full-strength border color (not just a raised alpha like :hover's)
+       is the selected-state accent now, at the same 1px width as every
+       other state -- was previously a separate 2px border-left override,
+       which both caused the left-edge visibility bug fixed above and
+       added complexity (a whole layout-jump guard) this simpler
+       same-width approach doesn't need at all. */
+    border-color: #CBA6F7;
 }
 
 #entry:selected #text {

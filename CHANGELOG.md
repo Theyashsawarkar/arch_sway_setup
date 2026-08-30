@@ -3,6 +3,21 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-30 (wofi: fixed -- left border was invisible on every entry, always)
+
+Reported left/right edges of rows/cells weren't visible properly. Real
+bug: an earlier revision force-set `border-left: 2px solid transparent`
+on every entry (reserving space for a selected-state accent bar without a
+layout jump), which made the left edge invisible at rest on *every*
+entry, not just unselected ones -- in the grid, one cell's visible right
+border next to the next cell's invisible left border read as a broken,
+asymmetric gutter. Fixed by dropping the override and keeping border
+width constant (1px) in every state, differentiating selected by color
+alone (`#CBA6F7`, full strength) instead of width -- simpler than what it
+replaced, and needs no layout-jump guard since nothing changes size.
+Verified by comparing a cell's right border against its neighbor's left
+border pixel-for-pixel: now symmetric, not just present.
+
 ## 2026-08-30 (wofi: real gutters between entries, for every wofi tool)
 
 wofi has no dedicated row/column-spacing option, so this is `margin: 5px`
