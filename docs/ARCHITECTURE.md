@@ -744,6 +744,82 @@ left border at the same row: both sides now render the same color
 consistently (e.g. `(70,62,88)` on both, at multiple rows) -- symmetric,
 not just "present."
 
+## Volume icon, second correction: waybar's threshold-object format-icons is broken here; a real bug, not a config mistake
+
+Reported again, still after the text-shadow fix: "only when its muted
+does it show the icon" -- the size/glow problem was actually fixed, but
+the icon was invisible at every *regular* volume level the whole time,
+not just small. My two previous verification passes on this exact
+feature (color-tolerance pixel matching, both times) missed it -- worth
+being honest about a third time getting this feature's diagnosis wrong
+before it landed correctly.
+
+**Stopped trusting color-heuristic sampling entirely this time** and
+switched to a fundamentally more reliable method: dump the actual
+screenshot region as raw ASCII art (luminance-thresholded, `#` for
+"clearly brighter than background", `.` otherwise) and read the glyph
+shapes directly, the way a person would look at the bar itself, instead
+of pre-supposing a hue to filter for. This immediately showed the real
+picture: at 80% volume, the bar rendered `<backlight icon>  80%` with
+*nothing* between the two spaces and the digits -- no icon at all, not
+a small one. Toggling actual mute, the exact same technique showed a
+genuinely new glyph appearing in that same gap. So the earlier
+"verified 20x9px glow at every level" and "consistent 12x9px footprint"
+claims from the previous two entries were both artifacts of the sampling
+method itself -- likely picking up backlight's own nearby icon or
+antialiasing noise that happened to pass a Maroon-ish color filter, not
+the pulseaudio icon actually rendering. A hard lesson in this session
+about verification methods that can *look* rigorous (measuring exact
+pixel counts and bounding boxes) while still being wrong at the premise
+level (matching the wrong thing entirely).
+
+**Root cause, isolated properly this time**: `format-icons`'s
+threshold-object form (`{"icon": ..., "max": N}`, added specifically to
+give 0% its own icon separate from "just quiet") is real and documented
+-- straight from waybar's own source, `src/ALabel.cpp`. Reverted it back
+to the plain 3-item array with nothing else changed, re-ran the same
+ASCII-dump test: the icon reappeared immediately, correctly, at every
+level. Re-applied the threshold-object form alone, nothing else changed:
+gone again. This isolates it cleanly -- the threshold-object array
+genuinely does not render an icon for the pulseaudio module's regular
+(non-muted) format string in this waybar build (v0.15.0), while the
+exact same array shape and the exact same source code path works for
+every other reported case in this repo (e.g. `format-muted`, which
+never used `format-icons` at all -- it's a fully hardcoded string, which
+is *why* the muted case kept working the whole time and looked like
+proof the feature worked). Concluded this is a genuine bug or version-
+specific incompatibility in waybar itself, not a JSON mistake -- filed
+under "don't rely on this" rather than fought further blind.
+
+**Fix, moved to where it can actually be guaranteed to work**: instead
+of trying to make waybar's icon selection distinguish 0% from "just
+quiet" (the broken path), made 0% and *actual* mute the same real
+PulseAudio state instead. `volume_osd.sh`'s `adjust_volume()` now sets
+the real mute flag whenever a scroll/keypress lands exactly on 0%, and
+clears it the moment volume moves back above 0% -- so `format-muted`
+(the one path already proven correct this whole time) picks it up
+naturally. This also happens to be a more honest model of reality: 0%
+and muted really are the same silence to the ear, so making them the
+same underlying PulseAudio state is more correct than trying to fake
+the same *look* via two independent, divergent code paths.
+
+**Verified with the ASCII-dump method throughout, not the old color
+sampling**: 15/50/90% each render a real, distinct icon shape again.
+Scrolling down to 0% via the actual `volume_osd.sh -5%` path (not raw
+`pactl`) confirmed `Mute: yes` at the PulseAudio level and the expected
+new glyph + "Muted" text appearing in the bar. Scrolling back up
+confirmed `Mute: no` and the normal icon+percent display returning.
+
+**One known, accepted gap**: this only auto-mutes when 0% is reached
+through `volume_osd.sh` itself (the OSD script all of this repo's own
+scroll/keybinding paths already go through). Setting volume to exactly
+0% through some other tool entirely (`pavucontrol`'s own slider, a
+different script) bypasses this and would still show the old "just
+quiet" look rather than "muted" -- an accepted gap matching this
+session's general practice of solving the primary, actually-used
+interaction path robustly rather than chasing every possible external
+tool that could also touch the same PulseAudio state.
+
 ## Volume icon, correction: the span-size fix broke rendering; text-shadow is what actually worked
 
 Reported right after the entry below: the volume icon wasn't visible at

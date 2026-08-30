@@ -3,6 +3,42 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-30 (volume icon, second correction: a real waybar bug, verification method overhauled)
+
+Reported again after the text-shadow fix: "only when its muted does it
+show the icon" -- the icon was invisible at every regular volume level
+the whole time, not just small. My previous two verification passes
+(color-tolerance pixel matching, both times) missed this entirely --
+worth stating plainly rather than letting a third wrong "verified"
+claim stand.
+
+Stopped trusting color-heuristic sampling and switched to dumping the
+actual screenshot as luminance-thresholded ASCII art, reading the glyph
+shapes directly like a person would look at the bar. Immediately showed
+the real picture: nothing between the icon's space and the percent
+digits at any regular volume level; a genuinely new glyph appearing only
+when actually muted.
+
+Root cause, isolated by testing one variable at a time: waybar's
+format-icons threshold-object form ({"icon":...,"max":N}, added to give
+0% its own icon) -- real and documented, straight from waybar's source
+-- silently renders no icon at all for pulseaudio's regular format
+string in this waybar build (v0.15.0), confirmed by reverting to a
+plain array (icon reappeared) and reapplying the threshold form alone
+(gone again). format-muted kept "working" the whole time because it
+never used format-icons at all -- a fully hardcoded string, unaffected
+by the bug, which is exactly what made it look like proof the feature
+worked.
+
+Fixed by not depending on the broken path: volume_osd.sh now sets the
+real PulseAudio mute flag whenever a scroll/keypress lands exactly on
+0%, clearing it the moment volume moves back up -- so format-muted (the
+one path already proven correct) picks it up naturally. 0% and muted
+really are the same silence to the ear, so this is also just a more
+honest model of the actual state, not a workaround. Known gap: only
+covers 0% reached through volume_osd.sh itself, not pavucontrol or other
+external tools touching the sink directly.
+
 ## 2026-08-30 (volume icon correction: span-size broke it, text-shadow fixed it)
 
 Reported right after the entry below: icon not visible at all, muted

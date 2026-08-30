@@ -158,40 +158,36 @@
 	},
 
 	"pulseaudio": {
-		// Icon size handled entirely in style.css (#pulseaudio font-size),
-		// not here -- an earlier version of this wrapped just {icon} in its
-		// own inline Pango span (size='16384') to grow only the icon,
-		// leaving the percent text alone. Reported back directly: the icon
-		// became invisible, and the muted icon + "Muted" text weren't on
-		// the same line anymore. That's a real, known Pango behavior --
-		// mixing one oversized inline run with normal-size text in the same
-		// label drags the line's baseline/ascent metrics unpredictably, and
-		// this font's PUA icon glyphs are already known (elsewhere in this
-		// repo) to carry unusual internal metrics compared to normal
-		// characters, compounding it -- almost certainly what pushed the
-		// icon's actual ink outside the module's fixed-height row instead
-		// of just making it bigger in place. Reverted to plain format
-		// strings; see style.css for the size fix that replaced this.
+		// Icon size handled entirely in style.css (#pulseaudio
+		// text-shadow), not here -- an earlier version wrapped just
+		// {icon} in its own inline Pango span (size='16384') to grow
+		// only the icon; broke visibly (icon vanished, muted icon +
+		// "Muted" text landed on different lines). A later attempt used
+		// a uniform CSS font-size instead, which broke a *different*
+		// way (see style.css's own note). Landed on text-shadow, a
+		// paint-only glow that can't touch layout or rendering.
 		"format": "{icon}  {volume}%",
 		"format-muted": "󰝟  Muted",
-		// Threshold-object form (waybar's own ALabel::getIcon supports
-		// {"icon", "max"} pairs, not just an evenly-bucketed plain array --
-		// confirmed straight from waybar's own source, src/ALabel.cpp) --
-		// gives an exact 0% bucket of its own. Previously a plain 3-item
-		// array, evenly divided into thirds by volume percentage -- 0% fell
-		// into the same bucket as anything up to 33%, so it showed the same
-		// "low volume" glyph as e.g. 20%, not anything muted-looking, even
-		// though 0% is audibly silent either way. Reuses format-muted's own
-		// crossed-out glyph -- 0%-but-technically-unmuted and actually-
-		// muted are both silent to the ear, so they should look the same,
-		// not like two different states.
+		// Plain array, NOT waybar's threshold-object form
+		// ({"icon":...,"max":...}) -- that form is real and documented
+		// (waybar's own man page and source, src/ALabel.cpp), and was
+		// tried here specifically to give 0% its own icon separate from
+		// "just quiet". Confirmed directly, by dumping the actual
+		// rendered pixels as ASCII art rather than trusting color-based
+		// sampling again (which had already misled two verifications in
+		// a row on this exact feature) -- the threshold-object form
+		// silently renders NO icon at all for the regular (non-muted)
+		// pulseaudio format string in this waybar build (v0.15.0), while
+		// the plain array it replaced works correctly. A real bug/
+		// incompatibility in this version, not a config mistake -- filed
+		// under "don't use" rather than fought further. The 0%-looks-
+		// muted goal is handled at the source instead: volume_osd.sh
+		// now sets PulseAudio's real mute flag whenever scrolling/
+		// pressing down lands exactly on 0%, so format-muted above (the
+		// one path already proven correct the whole time) picks it up
+		// naturally, no dependence on the broken feature at all.
 		"format-icons": {
-			"default": [
-				{"icon": "󰝟", "max": 0},
-				{"icon": "󰕿", "max": 33},
-				{"icon": "󰖀", "max": 66},
-				{"icon": "󰕾", "max": 100}
-			]
+			"default": ["󰕿", "󰖀", "󰕾"]
 		},
 		"tooltip-format": "Click: mute/unmute   Right-click: mixer   Scroll: +/-5%",
 		"on-click": "/home/yash/.config/sway/scripts/volume_osd.sh mute-toggle",

@@ -52,6 +52,28 @@ adjust_volume() {
         [ "$target" -lt 0 ] && target=0
         [ "$target" -gt 100 ] && target=100
         pactl set-sink-volume @DEFAULT_SINK@ "${target}%"
+        # Scrolling/pressing down to exactly 0% also sets the real
+        # PulseAudio mute flag now, not just the number -- 0% and muted
+        # are the same silence to the ear, so make them the same state,
+        # not two states that happen to sound identical. This is also
+        # the only reliable way waybar's own bar icon shows a muted
+        # look at 0%: tried giving format-icons its own 0%-only
+        # threshold entry first ({"icon":...,"max":0}), documented as
+        # supported in waybar's own man page and source -- confirmed
+        # directly, ASCII-dumping the actual rendered pixels rather than
+        # trusting color-based sampling again after it misled the
+        # previous two attempts, that this waybar build (v0.15.0) simply
+        # doesn't render *any* icon via that threshold-object form for
+        # the regular (non-muted) format string, even though the plain
+        # array it replaced worked fine -- a real bug/incompatibility in
+        # this specific version, not a config mistake. This sidesteps it
+        # entirely by reusing format-muted, which was already proven
+        # working the whole time.
+        if [ "$target" -eq 0 ]; then
+            pactl set-sink-mute @DEFAULT_SINK@ 1
+        else
+            pactl set-sink-mute @DEFAULT_SINK@ 0
+        fi
     ) 9>"$LOCK"
 }
 
