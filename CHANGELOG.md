@@ -3,6 +3,32 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-30 (docker waybar module: nwg-bar's static menu replaced with a real picker)
+
+Asked to improve the docker waybar module -- clicking it opened an
+nwg-bar modal (Stats / Stop All) with no visibility into what's actually
+running, "of really no use". Same architectural fix already applied to
+Wi-Fi and Bluetooth: nwg-bar can only render static buttons from a fixed
+JSON file, no dynamic content at all, so `scripts/.local/bin/
+docker-picker.py` replaces it with the same wofi `--dmenu` picker
+approach.
+
+Per running container: one Sky info row (name, image, status, ports --
+view-only, selecting it just re-shows the same info, never destructive)
+plus two action rows, Peach "Restart" and Red "Stop" -- two different
+colors rather than one shared "command" hue, since stop and restart have
+a real severity difference worth signaling on sight. "Open docker stats"
+and "Stop all containers" stay available as top-level shortcuts either
+way. Verified the actual actions work, not just that the menu renders:
+started a real container, restarted it through the picker and confirmed
+via `docker ps` its uptime genuinely reset, stopped it the same way and
+confirmed via `docker ps -a` it exited -- left the system in the same
+all-stopped state it was in before testing.
+
+Removed the now-superseded `nwg-bar/.config/nwg-bar/docker.json` and
+`scripts/.local/bin/docker-stop-all.sh` (docker-picker.py's own "Stop all
+containers" replaces it) after confirming zero remaining references.
+
 ## 2026-08-30 (system-wide dark mode confirmed + waybar toggle + Papirus icon pack)
 
 Asked to make sure dark mode is the default everywhere, add a waybar

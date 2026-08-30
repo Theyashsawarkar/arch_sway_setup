@@ -90,7 +90,7 @@
 		"exec": "/home/yash/.local/bin/docker-status.sh",
 		"interval": 5,
 		"return-type": "json",
-		"on-click": "nwg-bar -t /home/yash/.config/nwg-bar/docker.json -s /home/yash/.config/nwg-bar/style.css"
+		"on-click": "/home/yash/.local/bin/docker-picker.py"
 	},
 
 	"network": {
