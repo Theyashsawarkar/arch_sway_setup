@@ -3,6 +3,27 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-30 (wofi text readability: two dead ends, then the real fix)
+
+Asked again to make text more readable ("black instead of white") after
+the previous pass found the visible white patch was actually icon pixels,
+not text. This time it genuinely was `#text`. Two direct attempts failed
+before finding the real cause, both disclosed rather than silently
+discarded: literal black text measurably backfired (this window's own
+base tint is already near-black, so near-black text has ~zero contrast
+against *it*, confirmed by screenshot); a subtitle-style dark outline
+around bright text (the actual standard fix for this exact problem)
+didn't work either because `text-shadow` parses without error in this
+GTK/wofi build but doesn't render at all (confirmed with a stress test:
+zero dark pixels anywhere when an outline should have produced plenty).
+
+Real fix: raised window background opacity `0.62` -> `0.85` (less of the
+blurred wallpaper's brightness variance can bleed through and wash out
+text, without removing the blur itself) and text color `#A6ADC8` ->
+`#CDD6F4` (Catppuccin "Text", same bright value mako already uses) for
+extra margin. Real, disclosed tradeoff: less see-through glass than
+before. See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+
 ## 2026-08-30 (app launcher: icon/name gap fixed; the "white" turned out to be real icon pixels)
 
 Asked for a gap between the app icon and name (too close), and for the

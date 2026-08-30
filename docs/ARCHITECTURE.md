@@ -472,6 +472,46 @@ documented elsewhere in this file -- that one is wofi's own dmenu list
 never requesting a cursor-shape change at all, which is unrelated to how
 waybar's own pill modules behave.
 
+## Wofi text readability: two dead ends before the real fix
+
+Asked again to make wofi text more readable against the glass background
+("black instead of white, hard to notice"), after the icon investigation
+above concluded the actual visible white patch wasn't text at all. This
+time it genuinely was about `#text`'s color, and two reasonable-looking
+attempts to fix it directly failed before finding the real cause:
+
+1. **Literal black text** (`#05050a` + a light `text-shadow` glow for
+   safety): measurably worse, not better. This window's own base tint
+   (`background-color`) is already near-black, so near-black text has
+   essentially zero contrast against *it specifically*, independent of
+   whatever's blurred behind the window. Confirmed by screenshotting and
+   finding the text pixels barely distinguishable from the window
+   background at all -- worse than the original light color, which at
+   least contrasted reliably against the dark base tint even when it
+   struggled against bright patches of the blur.
+2. **Subtitle-style outline** (bright fill + dark `text-shadow` ring
+   around it -- the actual standard technique for text over a variable-
+   brightness backdrop, e.g. video subtitles): also didn't work, for a
+   different and more fundamental reason -- `text-shadow` parses without
+   any error in this GTK/wofi build but doesn't actually render at all.
+   Confirmed by forcing a stress-test bright background (where an outline
+   shadow, if working, would produce plenty of dark pixels against the
+   bright fill and bright forced background) and finding zero dark pixels
+   anywhere in the window.
+
+**The real fix** attacks the actual cause instead of the symptom: at the
+previous `0.62` window background alpha, enough of the blurred wallpaper
+showed through to wash out text specifically on brighter parts of it.
+Raised to `0.85` -- doesn't remove the blur (SwayFX's `layer_effects` blur
+on wofi's layer surface, added earlier, is still genuinely active), just
+reduces how much of its brightness variance can bleed through, giving
+text a far more consistent backdrop. Paired with moving `#text`'s color
+from `#A6ADC8` (Subtext0, fairly muted) to `#CDD6F4` (Catppuccin "Text",
+the same bright value mako already uses for its own primary text) for
+extra contrast margin. Net effect: less see-through glass than before,
+which is a real, disclosed tradeoff of prioritizing readability here --
+worth knowing if the balance ever needs to shift back the other way.
+
 ## App launcher icons: gap, and a dark backing (not a text-color bug)
 
 Asked for a gap between the app icon and name in drun mode ("too close"),

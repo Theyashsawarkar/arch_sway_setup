@@ -13,7 +13,28 @@
 window {
     margin: 0px;
     border: 1.5px solid rgba(203, 166, 247, 0.55);
-    background-color: rgba(17, 17, 27, 0.62);
+    /* Was 0.62 -- raised to 0.85 after being asked to make entry text
+       more readable ("hard to notice against the glass background").
+       Tried the literal ask first (dark/black text) and it made things
+       measurably worse, not better: this window's own base tint is
+       already near-black, so near-black text has ~zero contrast against
+       it regardless of what's blurred behind -- confirmed directly by
+       screenshotting and finding the text pixels barely distinguishable
+       from the window background at all. Tried a subtitle-style dark
+       outline around light text next (the actual standard technique for
+       text over a variable-brightness backdrop) -- also didn't work, for
+       a different reason: text-shadow parses without error in this GTK/
+       wofi build but doesn't actually render at all, confirmed by forcing
+       a stress-test bright background and finding zero dark pixels
+       anywhere in the window when an outline shadow should have produced
+       plenty. The real fix has to attack the actual cause instead: at
+       0.62 alpha there was enough of the blurred wallpaper showing
+       through to wash out text on brighter parts of it. Raising opacity
+       here doesn't remove the blur (SwayFX's layer_effects blur is still
+       genuinely active, confirmed in an earlier pass), it just reduces
+       how much of its brightness variance can bleed through, giving text
+       a far more consistent backdrop to sit on. */
+    background-color: rgba(17, 17, 27, 0.85);
     /* Faint light-catching sheen along the top edge, fading out by
        mid-height -- the cheap, GTK-CSS-safe version of the highlight a
        real glass/acrylic panel would show. Layered as background-image
@@ -146,7 +167,12 @@ window {
 
 #text {
     margin: 2px;
-    color: #A6ADC8;
+    /* Was #A6ADC8 (Subtext0, more muted) -- moved to #CDD6F4 (Catppuccin
+       "Text", the same bright, high-contrast value mako already uses for
+       its own primary text-color) as part of the same readability fix as
+       the window opacity change above -- a brighter base color gives more
+       contrast margin against whatever's still showing through the glass. */
+    color: #CDD6F4;
 }
 
 /* Mouse feedback distinct from keyboard selection -- previously entries
