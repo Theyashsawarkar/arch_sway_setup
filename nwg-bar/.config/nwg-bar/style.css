@@ -10,10 +10,11 @@
    all, so it doesn't have the "closes mid-hover" problem wofi had.
 
    Buttons get no individual CSS name/class in nwg-bar's own source (checked
-   before relying on it), so per-action accent colors (a different one
-   for Lock vs Shutdown) aren't possible here -- one consistent Mauve
-   accent instead, matching how most other modules in this desktop
-   already work. */
+   before relying on it), so per-action accent colors can't be done via
+   CSS here the way every other module in this bar does it -- text/label
+   color below stays one consistent Mauve-ish silver. Per-action color
+   lives in the icons themselves instead (icons/*.svg, bar.json) -- see
+   that directory's own note for why. */
 
 window {
     background-color: transparent;

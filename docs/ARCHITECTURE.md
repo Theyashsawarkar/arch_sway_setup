@@ -748,6 +748,46 @@ left border at the same row: both sides now render the same color
 consistently (e.g. `(70,62,88)` on both, at multiple rows) -- symmetric,
 not just "present."
 
+## Power menu icons: invisible colored circles, no per-action distinction
+
+Asked for the power-menu icons (nwg-bar, `custom/power`'s waybar
+on-click) to actually show meaningful, colored icons -- specifically
+that Shutdown should look like an actual power button.
+
+**Root cause, found by reading the actual SVG, not assuming a stock icon
+pack just works**: nwg-bar's own stock icons
+(`/usr/share/nwg-bar/images/*.svg`) each have a colored circle
+(`fill="#c2352a"` etc.) with an inline `style="fill:none;fill-opacity:1"`
+on the *same element* -- CSS style always wins over a plain presentation
+attribute, so the circle's color was silently disabled in every single
+one of them. Every action rendered as the same flat white ring glyph
+with nothing behind it, regardless of theme -- not "small" or "wrong
+shape", genuinely invisible color. Separately, Suspend and Shutdown
+shipped the exact same red (`#c2352a`) even with the fill working, so
+there'd have been no color distinction between a soft/reversible action
+and a final one anyway.
+
+nwg-bar gives buttons no individual CSS name/class to target per action
+(confirmed from its own source, already noted in `style.css` from the
+switch away from wofi for this menu) -- so per-action color can't live
+at the CSS layer here the way every other module in this bar does it.
+Made local copies of the five icons actually used
+(`nwg-bar/.config/nwg-bar/icons/`, `bar.json` repointed at them instead
+of the system path) rather than editing package files directly, removed
+the `fill:none` override, and recolored each to this desktop's own
+Catppuccin Mocha palette instead of the stock pack's arbitrary colors --
+full mapping and reasoning in that directory's own `README.md`. Glyph
+shapes were already correct and untouched -- Shutdown in particular is
+already the real ISO power/standby symbol, just needed its color back.
+
+Verified live: launched `nwg-bar` directly, screenshotted the real card,
+and read the pixels back as ASCII art for both Shutdown and Lock --
+confirmed a solid colored circle with the white glyph cleanly cut out of
+the middle for each, the same ground-truth method the volume icon saga
+(below) established as the only one that's actually caught every real
+issue this session, rather than the color-tolerance sampling that missed
+problems twice in a row there.
+
 ## Volume icon, third pass: dropped the glow -- the real fix didn't need it
 
 Asked directly, after the format-icons bug was fixed and the icon was

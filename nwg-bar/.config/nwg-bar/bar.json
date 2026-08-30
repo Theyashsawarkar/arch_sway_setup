@@ -2,26 +2,26 @@
   {
     "label": "Lock",
     "exec": "swaylock -C /home/yash/.config/sway/lockconfig",
-    "icon": "/usr/share/nwg-bar/images/system-lock-screen.svg"
+    "icon": "/home/yash/.config/nwg-bar/icons/system-lock-screen.svg"
   },
   {
     "label": "Logout",
     "exec": "swaymsg exit",
-    "icon": "/usr/share/nwg-bar/images/system-log-out.svg"
+    "icon": "/home/yash/.config/nwg-bar/icons/system-log-out.svg"
   },
   {
     "label": "Suspend",
     "exec": "systemctl suspend",
-    "icon": "/usr/share/nwg-bar/images/system-suspend.svg"
+    "icon": "/home/yash/.config/nwg-bar/icons/system-suspend.svg"
   },
   {
     "label": "Reboot",
     "exec": "systemctl reboot",
-    "icon": "/usr/share/nwg-bar/images/system-reboot.svg"
+    "icon": "/home/yash/.config/nwg-bar/icons/system-reboot.svg"
   },
   {
     "label": "Shutdown",
     "exec": "systemctl poweroff",
-    "icon": "/usr/share/nwg-bar/images/system-shutdown.svg"
+    "icon": "/home/yash/.config/nwg-bar/icons/system-shutdown.svg"
   }
 ]

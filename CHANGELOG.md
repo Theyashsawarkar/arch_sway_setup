@@ -5,6 +5,29 @@ along the way. Newest first. Version markers (`## vX.Y.Z`) mark release
 boundaries on top of the dated entries -- see `docs/VERSIONING.md` for the
 full branch/release process.
 
+## 2026-08-30 (power menu icons: invisible colors fixed, meaningful per-action palette)
+
+Asked for the nwg-bar power menu to show meaningful, colored icons,
+Shutdown specifically looking like a real power button. First change on
+`develop` after tagging v1.0.0.
+
+Root cause: nwg-bar's stock icons (`/usr/share/nwg-bar/images/*.svg`)
+each have a colored circle whose fill is silently disabled by an inline
+`style="fill:none"` on the same element -- every action rendered as a
+flat white ring with nothing behind it, not a size/shape issue. Suspend
+and Shutdown also shared the exact same stock red, no distinction even
+if the fill had worked.
+
+Made local copies (`nwg-bar/.config/nwg-bar/icons/`, `bar.json`
+repointed) since nwg-bar gives buttons no CSS class to color per-action
+at the stylesheet layer -- removed the fill:none override, recolored
+each to this desktop's own Catppuccin Mocha palette (Sapphire/lock,
+Peach/logout, Teal/suspend, Yellow/reboot, Red/shutdown -- full mapping
+in that directory's README). Glyph shapes untouched -- Shutdown was
+already the correct ISO power/standby symbol, just needed its color
+back. Verified by launching nwg-bar directly and reading the rendered
+pixels back as ASCII art, not color-tolerance sampling.
+
 ## v1.0.0 -- 2026-08-30
 
 First tagged release. Marks the point this repo switched from "dated
