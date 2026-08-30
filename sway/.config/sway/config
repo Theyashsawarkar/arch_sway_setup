@@ -92,7 +92,7 @@ bindsym $mod+Shift+n exec ~/.local/bin/notification-history.py
 # and Lock -> (wraps) -> Shutdown going back with Shift+Tab. No visible
 # focus-ring styling on top of this yet -- works correctly, just not
 # obvious to the eye which button Tab landed on.
-bindsym $mod+Shift+p exec nwg-bar
+bindsym $mod+Shift+p exec nwg-bar -i 40
 
 # Cycle notification mode (normal -> silent -> dnd -> normal) -- same
 # script and same three-state cycle the waybar bell's scroll wheel uses

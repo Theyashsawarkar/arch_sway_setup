@@ -201,6 +201,6 @@
 	"custom/power": {
 		"format": "",
 		"tooltip": false,
-		"on-click": "nwg-bar"
+		"on-click": "nwg-bar -i 40"
 	}
 }

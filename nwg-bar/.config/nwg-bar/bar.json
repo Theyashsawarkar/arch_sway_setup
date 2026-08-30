@@ -20,7 +20,7 @@
     "icon": "/home/yash/.config/nwg-bar/icons/system-reboot.svg"
   },
   {
-    "label": "Shutdown",
+    "label": "Power off",
     "exec": "systemctl poweroff",
     "icon": "/home/yash/.config/nwg-bar/icons/system-shutdown.svg"
   }

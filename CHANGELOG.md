@@ -5,6 +5,26 @@ along the way. Newest first. Version markers (`## vX.Y.Z`) mark release
 boundaries on top of the dated entries -- see `docs/VERSIONING.md` for the
 full branch/release process.
 
+## 2026-08-30 (power menu polish: "Power off" label, thinner icons, real icon/label gap)
+
+Three small asks together: rename Shutdown to Power off, thinner
+icons, real space between icon and label -- nwg-bar stacks them with
+zero gap of its own (SetImagePosition POS_TOP, nothing else).
+
+Label changed in bar.json directly. Stroke-width dropped 2 -> 1.5
+across all five icons, same Lucide path data. Icon size set explicitly
+to 40px (-i 40) on both places nwg-bar launches from (waybar's
+custom/power on-click, sway's $mod+Shift+p) -- nwg-bar's own 48px
+default read as slightly oversized against the button padding. Actual
+gap: image { margin-bottom: 10px; } in style.css -- image is the
+element directly above the label in nwg-bar's own stack, no more
+specific CSS node exists to target.
+
+Verified live: read the padlock icon's rendered pixels back as ASCII
+art before and after -- gap to the label went from ~9px to ~19px, a
+real measured change. Confirmed via AT-SPI that the fifth button now
+reports "Power off". Border colors from every earlier pass unaffected.
+
 ## 2026-08-30 (power menu, third icon pass: lean stroke icons, one family)
 
 Direct feedback right after the Adwaita swap below: "older once were

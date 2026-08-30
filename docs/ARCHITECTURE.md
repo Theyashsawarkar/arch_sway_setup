@@ -748,6 +748,38 @@ left border at the same row: both sides now render the same color
 consistently (e.g. `(70,62,88)` on both, at multiple rows) -- symmetric,
 not just "present."
 
+## Power menu, polish pass: label rename, thinner icons, real icon/label gap
+
+Three small, concrete asks together: rename "Shutdown" to "Power off",
+make the icons thinner, and add real space between icon and label --
+nwg-bar stacks them with zero gap of its own between (its own source:
+`SetImagePosition(gtk.POS_TOP)`, nothing else).
+
+- `bar.json`'s label changed directly, no icon/exec change needed.
+- Icon stroke-width dropped from 2 to 1.5 across all five (icons/*.svg)
+  -- same Lucide path data as the previous pass, just a thinner line.
+- Icon size dropped from nwg-bar's own default (48px, undeclared until
+  now) to an explicit `-i 40` on both places nwg-bar gets launched
+  (waybar's `custom/power` on-click, `sway/config`'s `$mod+Shift+p`) --
+  the icons read as slightly oversized/cramped against the button's own
+  padding at the default size.
+- The actual gap: `image { margin-bottom: 10px; }` in `style.css` --
+  `image` is the element sitting directly above the label in nwg-bar's
+  own POS_TOP stack, so a bottom margin on it *is* the icon-label gap.
+  No dedicated "icon" or "label" CSS node exists to target more
+  specifically than that (confirmed from nwg-bar's own source -- it
+  just calls `button.SetImage()`/`button.SetLabel()` and lets GTK's
+  default button-content box handle layout).
+
+Verified live, measuring the actual before/after gap rather than
+assuming the margin took effect: read the padlock icon's own rendered
+pixels back as ASCII art before and after -- icon bottom edge to label
+top edge went from roughly 9px to roughly 19px, a real, measurable
+change, not just a CSS value that might not have applied. Confirmed via
+nwg-bar's own AT-SPI accessibility tree that the fifth button now
+reports itself as "Power off", not "Shutdown". Reconfirmed the five
+per-action border colors from every earlier pass were unaffected.
+
 ## Power menu, third icon pass: lean stroke icons, all five in one family
 
 Direct feedback right after the Adwaita swap below: "older once were

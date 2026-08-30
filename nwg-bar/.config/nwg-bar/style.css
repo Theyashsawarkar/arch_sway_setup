@@ -42,10 +42,16 @@ window {
     margin: 0px;
 }
 
+/* nwg-bar stacks icon above label inside each button (SetImagePosition
+   POS_TOP in its own source) with no gap of its own between them --
+   reported back directly as needing real space there. margin-bottom on
+   the icon is the actual gap, since it's the element sitting directly
+   above the label in that stack. */
 image {
     background: none;
     border: none;
     box-shadow: none;
+    margin-bottom: 10px;
 }
 
 /* Each button is now its own glass pill at rest, not just plain text
