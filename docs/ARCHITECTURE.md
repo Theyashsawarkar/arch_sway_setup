@@ -500,11 +500,39 @@ Three follow-up requests on the wofi work above:
   -- a grid would break the readability of a single-column list like the
   Wi-Fi picker or calculator. wofi's grid mode is a GtkFlowBox under the
   hood, which sizes each entry to its own icon+label content rather than
-  a fixed cell width -- confirmed this reads as a genuinely uneven,
-  organic grid rather than a uniform card layout by screenshotting and
-  checking for discrete content blocks with real gaps between them at
-  multiple row heights, not just trusting the "columns" name meant what
-  it sounded like.
+  a fixed cell width, which is what makes it read as an uneven, organic
+  grid instead of uniform cards.
+
+  **First verification pass here was wrong, and worth recording why**:
+  checked for "discrete content blocks with gaps" in a screenshot and
+  called it done -- but never actually counted how many columns were
+  rendering. Reported back that the launcher still showed a single
+  column. Re-checked properly this time (clustering content by x-position
+  per row, not just presence of gaps) and found the real cause: at the
+  shared config's default 600px width, `--columns 4` only ever produced
+  2 real columns -- real installed app names ("Beekeeper Studio",
+  "Bluetooth Adapters") are wide enough that GTK's `max-children-per-line`
+  acts as a ceiling, not a forced count, and 600px only fits 2 at a
+  readable size. On a machine with even longer app names this could
+  plausibly collapse to 1, matching what was reported. Fixed by widening
+  to `--width 60%` (same convention as keybind-search.py's popup) --
+  reverified the same way and found 4 genuine columns, evenly spaced.
+  The lesson: "gaps exist somewhere" is a much weaker check than "N
+  columns actually render," and this is why the width had to change too,
+  not just be a separate ask.
+- **A real border on every entry**, not just the existing left accent bar
+  reserved for the selected state -- asked for specifically so a
+  multi-column grid row reads as distinct tiles next to each other, not
+  text floating in shared space. First attempt used a very faint 12%
+  alpha mauve border; correctly parsed (no CSS errors) but nearly
+  invisible on screen once actually screenshotted and checked pixel-by-
+  pixel -- not "properly aesthetic" as asked, just technically present.
+  Raised to 28% at rest (35%/45% on hover/selected), confirmed this time
+  by finding a real, consistent brightness jump at each entry's border
+  row versus its neighbors in a screenshot. Still subtle enough at rest
+  to work as an ordinary row divider in every other wofi-backed tool's
+  single-column list, since this is the one shared `style.css` all of
+  them read -- not something that only makes sense in grid mode.
 
 ## Wofi's "glass" look: real compositor blur, not just a tinted box
 

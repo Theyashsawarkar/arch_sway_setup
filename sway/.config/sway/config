@@ -17,15 +17,21 @@ set $right l
 set $term kitty
 
 # application opener
-# --columns is only set here, not in the shared wofi/config -- every
-# other wofi-backed tool in this desktop (wifi/bluetooth pickers,
+# --columns/--width are only set here, not in the shared wofi/config --
+# every other wofi-backed tool in this desktop (wifi/bluetooth pickers,
 # calculator, keybind search, emoji picker, cliphist) is a plain
 # single-column list, and a grid would break their readability. GtkFlowBox
 # (what wofi's grid mode actually is under the hood) sizes each entry to
 # its own icon+label content rather than a fixed cell width, so this
 # genuinely reads as an uneven, organic grid -- not a uniform card layout
 # -- confirmed live via screenshot before trusting the docs' description.
-set $menu wofi --show drun,run --columns 4
+# --columns 4 alone, at the shared config's default 600px width, only
+# ever produced 2 real columns (3 real app names like "Beekeeper Studio"
+# don't leave room for more) -- verified directly by checking rendered
+# column positions in a screenshot, not assumed from the flag existing.
+# 60% width (same convention as keybind-search.py's popup) actually fits
+# 4, confirmed the same way.
+set $menu wofi --show drun,run --columns 4 --width 60%
 
 # calculator
 set $calc ~/.local/bin/wofi-calc.sh

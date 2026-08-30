@@ -74,11 +74,26 @@ window {
     padding: 8px 12px;
     border-radius: 8px;
     background-color: transparent;
+    /* A real border on every entry, not just the accent bar below --
+       asked for specifically so a multi-column grid row (the app
+       launcher's --columns 4) reads as distinct tiles sitting next to
+       each other, not just text floating in shared empty space. First
+       tried a much fainter 12% alpha -- correctly parsed, but nearly
+       invisible on screen, which defeats "properly aesthetic" as asked.
+       28% at rest is clearly visible without overpowering the row/tile
+       content, confirmed by screenshotting and finding a real brightness
+       jump at each entry's border row versus its neighbors. Still subtle
+       enough to work as a plain row divider in every other wofi-backed
+       tool's single-column list -- this is the one shared style.css
+       every one of them reads, so it has to hold up in both layouts, not
+       just the grid. */
+    border: 1px solid rgba(203, 166, 247, 0.28);
     /* Reserve the same 2px left accent bar space at idle, hover, and
        selected alike -- same layout-jump guard already used for the
        waybar workspace buttons' hover/focused underline elsewhere in
        this desktop, so the accent appearing on selection doesn't shift
-       every row's text over by 2px when it shows up. */
+       every row's text over by 2px when it shows up. Declared after the
+       shorthand border above so it wins on just that one edge. */
     border-left: 2px solid transparent;
     transition: background-color 0.15s ease, border-color 0.15s ease;
 }
@@ -95,10 +110,12 @@ window {
    other, not just from idle. */
 #entry:hover {
     background-color: rgba(203, 166, 247, 0.08);
+    border-color: rgba(203, 166, 247, 0.3);
 }
 
 #entry:selected {
     background-color: rgba(203, 166, 247, 0.18);
+    border-color: rgba(203, 166, 247, 0.45);
     border-left: 2px solid #CBA6F7;
 }
 

@@ -3,6 +3,29 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-30 (fix: app launcher grid wasn't actually 4 columns; entry borders were too faint)
+
+Reported the app launcher still showed a single column. The earlier
+verification pass was genuinely wrong: checked for "content blocks with
+gaps" in a screenshot and called it done, but never counted actual
+columns. Redid it properly (clustering content by x-position per row) and
+found the real bug -- at the shared config's 600px default width,
+`--columns 4` only ever produced 2 real columns, since real app names
+("Beekeeper Studio") are wide enough that GTK's column count is a ceiling
+that width constrains, not a forced number. Fixed by widening the
+launcher specifically (`--width 60%`, only on `sway/config`'s `$menu`, not
+the shared `wofi/config`) -- reverified with the same clustering check and
+found 4 genuine, evenly-spaced columns this time.
+
+Also added a real border to every entry, not just the existing left
+accent bar on selection -- asked for so grid rows read as distinct tiles.
+Same lesson repeated: first attempt (12% alpha) parsed cleanly but was
+nearly invisible once actually screenshotted, not "properly aesthetic" as
+asked just technically present. Raised to 28% at rest / 35% hover / 45%
+selected, confirmed this time by finding a real brightness jump at each
+entry's border row in a screenshot rather than trusting the CSS had no
+syntax errors as proof it looked right.
+
 ## 2026-08-30 (wifi/bluetooth pickers get keybindings; keybind search resized; app launcher grid)
 
 Three follow-ups to the wofi glass work above:
