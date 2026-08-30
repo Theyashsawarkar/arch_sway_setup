@@ -3,6 +3,32 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-30 (notification toast icons: real mako icon-path bug fixed)
+
+Asked for every toast's title to show the associated tool's icon
+(clipboard for copy events, Docker's icon for Docker, etc.) -- every
+notify-send call in this repo already passes a correct icon name, so
+dug into why none of them ever actually rendered.
+
+Root cause: mako only searches `/usr/share/icons/hicolor` and
+`/usr/share/pixmaps` by default and does no GTK-style theme inheritance
+-- confirmed directly with `find` that not one icon name used anywhere
+in this repo (`docker-desktop`, `edit-copy-symbolic`,
+`dialog-error-symbolic`, etc.) exists under `hicolor`; they all live
+under the actual active theme, Papirus-Dark, which is itself nearly
+empty and inherits from Papirus/breeze-dark in a way mako doesn't
+follow. Every notification's icon was silently failing to resolve, full
+stop, independent of how correct the icon name was.
+
+Fix: `icon-path=/usr/share/icons/Papirus-Dark:/usr/share/icons/Papirus:
+/usr/share/icons/Adwaita` in `mako/config` -- one line, covers every
+icon in the repo since all of them already resolve under Papirus
+(confirmed with `find` before committing to it). Verified live:
+`docker-desktop` icon fired after `makoctl reload`, screenshotted,
+716 pixels of Docker's exact brand blue found in the notification region
+-- 0 in a negative-control test with a deliberately nonexistent icon
+name, confirming the render is real and the test methodology holds.
+
 ## 2026-08-30 (notification bell: distinct icons back, alongside color)
 
 Second follow-up in the same session: after dropping to one shared

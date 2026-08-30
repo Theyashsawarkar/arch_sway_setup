@@ -744,6 +744,72 @@ left border at the same row: both sides now render the same color
 consistently (e.g. `(70,62,88)` on both, at multiple rows) -- symmetric,
 not just "present."
 
+## Notification toast icons: a real mako icon-path bug, not a per-icon problem
+
+Asked for every notification toast to show the associated tool's own
+icon next to its title (a copy event showing a clipboard icon, Docker
+showing its icon, etc.) -- reported again after an earlier pass this
+session already fixed `docker-picker.py`'s icon *name*
+(`utilities-terminal` -> `docker-desktop`). Every notify-send call
+across this repo's scripts already passes a real, correctly-named icon
+(`docker-desktop`, `edit-copy-symbolic`, `dialog-error-symbolic`, actual
+image paths for the wallpaper/screenshot notifications, etc.), so the
+question was why none of them were ever actually appearing.
+
+**Root cause, found in mako's own filesystem behavior, not assumed**:
+mako does not do GTK-style icon-theme resolution or theme inheritance --
+its own docs say plainly it only ever searches `/usr/share/icons/
+hicolor` and `/usr/share/pixmaps` by default, plus whatever `icon-path`
+is explicitly configured (empty here, until this fix). This desktop's
+actual active icon theme is `Papirus-Dark`
+(`gsettings get org.gnome.desktop.interface icon-theme`) -- confirmed
+directly with `find` that not one of the icon names this repo's scripts
+use (`docker-desktop`, `edit-copy-symbolic`, `dialog-error-symbolic`,
+`weather-clear-night-symbolic`, `bluetooth-active-symbolic`, ...) exists
+anywhere under `hicolor`. Every single notification's icon was silently
+failing to resolve and falling back to no icon at all, regardless of how
+correct the icon name passed to notify-send was -- this is almost
+certainly the real shape of "notifications don't show icons", not a
+per-script naming issue (the docker-picker.py fix from earlier this
+session picked a *better* name, but it still wouldn't have rendered
+without this).
+
+Also confirmed directly: `Papirus-Dark` itself is nearly empty (3972
+files, mostly dark-tinted folder/places variants) and its own
+`index.theme` declares `Inherits=breeze-dark,hicolor` -- but mako
+doesn't follow icon-theme inheritance either, and breeze-dark isn't even
+installed on this machine. The full `Papirus` theme (65991 files) is
+what actually has every icon this repo's scripts reference -- confirmed
+directly, every single icon name used anywhere in this repo resolves
+under it. Fix: `icon-path=/usr/share/icons/Papirus-Dark:/usr/share/icons/
+Papirus:/usr/share/icons/Adwaita` in `mako/config` -- Papirus-Dark first
+for anything it does override, full Papirus for the actual icon set,
+Adwaita last as a broad fallback for anything future scripts reach for
+that Papirus doesn't ship.
+
+**Verified live**, not just reasoned about: fired a real notification
+with `-i docker-desktop` after the fix and reloaded mako
+(`makoctl reload`, config-only, no restart needed -- doesn't hit the
+mode-reset bug documented below since the daemon process itself never
+restarts); screenshotted the notification region and searched for
+Docker's own brand blue (`(28,144,237)`) as an exact pixel match --
+716 matching pixels, clearly a real rendered icon, not noise. Negative
+control: same test with a deliberately nonexistent icon name --
+0 matching pixels, confirming the color match in the first test wasn't
+coincidental and the test methodology itself is sound. Every other icon
+name in the repo already confirmed present under the same Papirus tree
+via `find` before this, so this one fix in `mako/config` covers all of
+them -- no other file needed to change.
+
+**One shape worth stating plainly**: mako places a single icon to the
+left of the whole notification box (title + body together,
+`icon-location=left`, mako's own default, unchanged here) -- it does not
+support an icon embedded inline inside just the title text itself. "The
+title should have the clipboard svg in it" reads most naturally as
+wanting the tool's icon visibly associated with that notification at
+all, which this fix delivers; it's not literally inside the title
+string, because mako has no mechanism for that.
+
 ## Three notification modes: normal/silent/dnd, sound, and a persistence gap
 
 Asked for three notification modes (normal: popup + sound; silent:
