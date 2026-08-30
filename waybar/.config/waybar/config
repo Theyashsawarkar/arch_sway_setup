@@ -72,7 +72,10 @@
 		"exec": "/home/yash/.local/bin/notification-history-status.sh",
 		"interval": 5,
 		"return-type": "json",
-		"on-click": "/home/yash/.local/bin/notification-history.py"
+		"on-click": "/home/yash/.local/bin/notification-history.py",
+		"on-scroll-up": "/home/yash/.local/bin/notification-mode.sh next",
+		"on-scroll-down": "/home/yash/.local/bin/notification-mode.sh prev",
+		"signal": 8
 	},
 
 	"clock#time": {

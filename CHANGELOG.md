@@ -3,6 +3,57 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-30 (three notification modes: normal/silent/dnd)
+
+Asked for three notification modes -- normal (popup + sound), silent
+(popup, no sound), dnd (neither, but still logged to history) -- a
+pleasant sound, a mode-dependent waybar bell icon, and both keybindings
+and scroll for switching, "soft and flawless".
+
+Built entirely on mako's own native mode system (`makoctl mode -s
+<name>` + `[mode=<name>]` config sections) rather than anything custom
+-- `invisible=1` suppresses the popup without touching history, exactly
+what "dnd" needed. Picked
+`/usr/share/sounds/freedesktop/stereo/message.oga` for the sound (the
+shortest of the plausible freedesktop chimes by actual `ffprobe`
+duration, not a filename guess, and the same file mako's own docs use
+as their `on-notify` example) via `on-notify=exec paplay <file>`.
+
+Three real bugs found by testing, not assumed:
+
+- A global option placed after a `[section]` header silently scopes to
+  that section only -- the sound line, first placed after
+  `[urgency=high]`, only ever fired for high-urgency notifications.
+  Moved above any section header.
+- `invisible=1` does not also suppress `on-notify` -- `dnd` mode still
+  played the sound until `on-notify=none` was added there too
+  (confirmed with a marker-file side effect, decoupled from timing-
+  sensitive audio playback). `on-notify=` (empty) is a hard parse error;
+  `none` is the documented no-op value.
+- mako's active mode resets to its own built-in "default" on every
+  daemon restart, with nothing persisting it -- confirmed by killing and
+  restarting mako mid-test. Fixed the same way `caffeine-toggle.sh`
+  already handles this exact shape of problem: a state file
+  (`~/.local/state/notification-mode/current`) plus a startup script
+  (`notification-mode-restore.sh`) run after `exec mako` in
+  `sway/config`, with the same bounded-retry pattern already used
+  elsewhere for daemon-not-ready-yet races.
+
+Switching: `notification-mode.sh normal|silent|dnd|next|prev`,
+wired to `$mod+Ctrl+n/s/d` (direct jump), `$mod+n` and the waybar bell's
+scroll wheel (cycle). The waybar `custom/notifications` module also
+picked up a `"signal": 8` so `pkill -RTMIN+8 waybar` gives an instant
+icon/color refresh on switch instead of waiting out the module's normal
+poll interval -- confirmed via a screenshot taken immediately after a
+keybinding switch, already showing the new color.
+
+Not independently verified: the scroll-wheel wiring itself, same
+`ydotool` absolute-mouse-calibration gap disclosed for
+`notification-history.py`'s click handler last entry. The `next`/`prev`
+cycling logic it calls is fully verified directly (both directions,
+correct wraparound); the scroll binding calls the identical script the
+verified keybindings call.
+
 ## 2026-08-30 (notification-history.py: new feature, plus a real docker-picker.py icon bug)
 
 Asked for a real docker-branded icon on Docker notifications (reported

@@ -744,6 +744,126 @@ left border at the same row: both sides now render the same color
 consistently (e.g. `(70,62,88)` on both, at multiple rows) -- symmetric,
 not just "present."
 
+## Three notification modes: normal/silent/dnd, sound, and a persistence gap
+
+Asked for three notification modes (normal: popup + sound; silent:
+popup, no sound; dnd: neither, but still recorded to history), a
+pleasant sound, mode-dependent waybar bell icon, and both keybindings and
+scroll to switch -- "soft and flawless".
+
+**mako already has the exact right native mechanism for this** -- not
+something to build from scratch. `[mode=<name>]` config sections apply
+conditionally based on the current mode (`makoctl mode -s <name>`), and
+`invisible=1` inside one suppresses the popup without touching whether
+the notification gets recorded. Confirmed both independently with the
+notification's own distinctive Mauve border color as a screenshot signal
+(a much more reliable check than generic "non-background pixel count",
+which turned out to just be picking up wallpaper content at one point,
+caught by comparing against a clean baseline with zero mauve pixels
+before trusting any of the mode-specific measurements).
+
+**Sound**: `on-notify=exec paplay <file>` -- documented directly in
+mako's own man page as the intended mechanism, not invented. Picked
+`/usr/share/sounds/freedesktop/stereo/message.oga` (the standard
+freedesktop sound theme's "new message" chime) by checking every
+plausible candidate's actual duration with `ffprobe` first rather than
+guessing from the filename -- 0.3s, the shortest of the real candidates,
+appropriate for something that can fire on every single notification;
+the next-shortest option runs a full second. It's also the literal file
+mako's own docs use as their own example.
+
+**Three real bugs found and fixed while building this, each caught by
+testing the actual behavior rather than trusting the config or a
+plausible-sounding assumption:**
+
+1. **A global option placed after a section header gets silently scoped
+   to that section.** The sound line, first added after `[urgency=high]`,
+   only ever fired for high-urgency notifications -- normal-urgency ones
+   (the vast majority) got no sound at all, with zero parse error to
+   flag it. mako's config format scopes every option to whichever
+   section most recently opened above it; there's no way to tell this
+   from the option line itself. Fixed by moving it before any section
+   header, into the true global block.
+2. **`invisible=1` does not also cancel `on-notify`.** An early version
+   of `[mode=dnd]` had only `invisible=1`, on the assumption that "no
+   popup" would obviously mean "no sound either" for a mode literally
+   named after suppressing everything. It doesn't -- confirmed directly
+   with an unambiguous marker-file side effect on `on-notify` (touch a
+   uniquely-timestamped file, decoupled from actually needing to *hear*
+   anything), which fired even in `dnd` mode. Needs the same explicit
+   `on-notify=none` as `[mode=silent]` -- `none` specifically, not an
+   empty value (`on-notify=` alone fails to parse at all, confirmed
+   directly: `"Failed to parse option 'on-notify='"`).
+3. **Mode state doesn't survive a mako restart.** `makoctl mode` resets
+   to mako's own built-in "default" the moment mako restarts (crash,
+   manual restart, reboot) -- confirmed directly by killing and
+   restarting mako mid-test and checking `makoctl mode` immediately
+   after. Without a fix, choosing `dnd` once would silently drop back to
+   full popups-and-sound on every login with no indication anything
+   changed. Fixed the same way `caffeine-toggle.sh`'s own state survives
+   a reboot elsewhere in this repo: a persisted state file
+   (`~/.local/state/notification-mode/current`) plus a startup script
+   (`notification-mode-restore.sh`, run right after `exec mako` in
+   `sway/config`, with the same bounded-retry pattern
+   `swayidle-startup.sh`/`fetch_wallpaper.sh` already use for the
+   analogous "the thing I need to talk to isn't up yet" race) that
+   reapplies it every time mako starts.
+
+**Mode naming**: `normal`/`silent`/`dnd` are plain custom mode names with
+no `[mode=normal]` section of their own for the first one -- confirmed
+live that an undefined mode name is a clean no-op (every global setting
+applies unchanged, verified with the same Mauve-border-plus-marker-file
+check as the other two modes), rather than relying on mako's own
+built-in "default" mode, which mako's own docs flag as deprecated and
+due for removal in a future version.
+
+**Switching**: `scripts/.local/bin/notification-mode.sh
+normal|silent|dnd|next|prev`. Direct-jump keybindings
+(`$mod+Ctrl+n`/`-s`/`-d`) for "I know exactly which mode I want", plus
+`$mod+n` and the waybar bell's scroll wheel (`on-scroll-up`/`-down` in
+`waybar/config`) both calling `next`/`prev` for quick cycling -- verified
+the cycling math directly (`normal -> silent -> dnd -> normal` forward,
+correctly symmetric in reverse), not just eyeballed. The waybar `custom/
+notifications` module also got a `"signal": 8` entry, triggered via
+`pkill -RTMIN+8 waybar` at the end of every mode switch -- the actual
+mechanism behind "soft and flawless": the bell's icon and color update
+the instant you switch, not on the module's own 5s poll interval.
+Confirmed with a real keybinding switch to `dnd` and finding the bell's
+color had already changed to Red in a screenshot taken immediately after,
+not waited out to the next poll.
+
+**A deliberate design choice worth stating plainly**: the mode-change
+confirmation notification itself follows whatever mode it just switched
+into -- switching into `dnd` means that confirmation doesn't pop up
+either, which is consistent (dnd meaning "no popups, ever" shouldn't have
+a built-in exception for its own confirmation) rather than a gap. The
+waybar icon's instant update via the signal above is the actually-
+guaranteed-visible confirmation regardless of mode; the notification is
+extra, always still landing in history either way.
+
+**Waybar bell icon** (`notification-history-status.sh`): reads the
+persisted state file, not `makoctl mode` directly, keeping this the same
+single source of truth every other part of this feature already treats
+as authoritative rather than a second one that could theoretically read
+racy live daemon state mid-switch. Three distinct icons + colors --
+`fa-bell` (Lavender) for normal, `fa-bell-slash` (dim gray, matching
+every other "quieted, not fully off" state elsewhere in this bar) for
+silent, `md-minus-circle` (Red -- the one state here that's an active,
+deliberate choice to suppress everything, worth a real attention color)
+for dnd.
+
+**Not independently mouse-tested**: same disclosed limitation as
+`notification-history.py`'s own waybar click a few passes back --
+`ydotool`'s absolute mouse positioning has an unmet calibration
+requirement in this environment, so scroll-over-the-bell-icon couldn't
+be cleanly verified with a real wheel event. What *is* fully verified:
+the underlying `next`/`prev` cycling logic directly (both directions,
+symmetric wraparound), and both keybinding paths via real simulated
+keypresses. The waybar `on-scroll-*` wiring calls the identical script
+with the identical arguments as the verified keyboard path -- the same
+inference-from-proven-pattern basis as the click path, not an
+independent scroll test.
+
 ## Notification history viewer, and a real docker-picker.py icon bug
 
 Asked for two things: a real docker-branded icon on Docker notifications

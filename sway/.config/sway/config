@@ -74,6 +74,22 @@ bindsym $mod+Shift+d exec ~/.local/bin/docker-picker.py
 # Notification history: view past notifications, sorted newest first
 bindsym $mod+Shift+n exec ~/.local/bin/notification-history.py
 
+# Cycle notification mode (normal -> silent -> dnd -> normal) -- same
+# script and same three-state cycle the waybar bell's scroll wheel uses
+# (on-scroll-up/-down in waybar/config), just the keyboard path. Only
+# one direction bound here since scroll already covers both, and
+# cycling forward through 3 states by pressing repeatedly is simple
+# enough not to need a second reverse-cycle keybinding to remember too.
+bindsym $mod+n exec ~/.local/bin/notification-mode.sh next
+
+# Direct jumps to a specific notification mode, alongside the cycle
+# above -- for "I know exactly which mode I want right now" (DND before
+# a meeting, say) rather than pressing $mod+n repeatedly and counting
+# states.
+bindsym $mod+Ctrl+n exec ~/.local/bin/notification-mode.sh normal
+bindsym $mod+Ctrl+s exec ~/.local/bin/notification-mode.sh silent
+bindsym $mod+Ctrl+d exec ~/.local/bin/notification-mode.sh dnd
+
 # $mod+? matches the near-universal "show shortcuts" convention (Slack,
 # Discord, GitHub, GNOME all use ? or Ctrl+/) rather than inventing a new
 # one. Excludes Neovim on purpose -- it already has its own keymap search.
@@ -355,6 +371,13 @@ exec dbus-update-activation-environment --all
 
 exec waybar 
 exec mako
+# Reapplies whatever notification mode was last chosen -- mako's own
+# mode selection resets to its built-in default on every restart/login,
+# so without this, DND/silent would silently drop back to normal on
+# every reboot. Bounded retry inside the script itself for the same
+# mako-not-up-yet race dbus-update-activation-environment above exists
+# to guard against elsewhere in this file.
+exec ~/.local/bin/notification-mode-restore.sh
 
 # Start the idle manager automatically
 # Managed as a systemd user service (systemd/.config/systemd/user/swayidle.service)

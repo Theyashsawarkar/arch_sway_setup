@@ -223,22 +223,31 @@ window#waybar {
 }
 
 /* Notification history bell -- left of the clock cluster, its own
-   module rather than folded into either clock pill. Dim gray when
-   history is empty (matches every other "off"/idle state in this bar --
-   caffeine.inactive, battery states, etc.), Lavender when there's real
-   history to look at -- a calm, informational color rather than an
-   urgency-style Red/Peach, since having history isn't itself a warning
-   the way caffeine-on or a critical battery level is. */
+   module rather than folded into either clock pill. Icon and color both
+   reflect the current notification mode (notification-mode.sh), not
+   just whether history is empty -- scroll up/down on this pill cycles
+   modes, click opens the history viewer. Lavender for normal (calm,
+   informational, matches the same "everything's fine" role Lavender
+   already plays elsewhere in this bar), dim gray for silent (a quieted,
+   not-fully-off state -- same tone as every other "off"/idle state in
+   this bar, caffeine.inactive etc.), Red for dnd -- the one state here
+   that's a deliberate, active choice to suppress *everything*, worth a
+   real attention color so it's obvious at a glance you're in it, not
+   just half of a two-tone toggle. */
 #custom-notifications {
     margin-right: 8px;
 }
 
-#custom-notifications.empty {
+#custom-notifications.normal {
+    color: #B4BEFE; /* Lavender */
+}
+
+#custom-notifications.silent {
     color: #6C7086;
 }
 
-#custom-notifications.has-history {
-    color: #B4BEFE; /* Lavender */
+#custom-notifications.dnd {
+    color: #F38BA8; /* Red */
 }
 
 /* Covers both the documented naming convention (.time as an added class)
