@@ -3,6 +3,18 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-30 (wofi: real gutters between entries, for every wofi tool)
+
+wofi has no dedicated row/column-spacing option, so this is `margin: 5px`
+on `#entry` itself -- the standard GTK-CSS way to create gaps between
+FlowBox children. Shows up as real gutters in the app launcher's grid and
+as breathing room between rows in every other wofi tool's list, since
+they all share the one `style.css`. Verified with the same real-keypress
+method the app-launcher-grid bug required (`ydotool`-simulated `$mod+d`
+and `$mod+Shift+w`, not a manual shell reproduction): confirmed the grid
+still fits 4 real columns with the new margin, and a real ~11px gap now
+exists between list rows.
+
 ## 2026-08-30 (the real bug: a bare comma inside exec, silently dropping --columns 4)
 
 Reported a second time that `$mod+d` still showed a single column. Every

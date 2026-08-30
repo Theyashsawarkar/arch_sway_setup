@@ -472,6 +472,26 @@ documented elsewhere in this file -- that one is wofi's own dmenu list
 never requesting a cursor-shape change at all, which is unrelated to how
 waybar's own pill modules behave.
 
+## Gutters between wofi entries
+
+Asked to increase the gap between rows/columns. wofi has no dedicated
+row-spacing/column-spacing option -- checked `--help` and the man page,
+neither exposes one -- so this is the standard GTK-CSS technique instead:
+`margin` on `#entry` itself (the FlowBox child), not something set on the
+container. `5px` on every side, which shows up as a real gutter between
+tiles in the app launcher's grid and as breathing room between rows in
+every other wofi-backed tool's single-column list, since they all share
+this one `style.css`.
+
+Verified with the same real-keypress method the app-launcher-grid bug
+above required: simulated `$mod+d` and `$mod+Shift+w` with `ydotool`,
+screenshotted, and confirmed two things directly rather than assumed --
+the grid still fits 4 real columns with the new margin eating into
+available space (found the same 4 evenly-spaced structural boundaries as
+before), and a real, consistent ~11px vertical gap now exists between list
+rows (close to the expected 5px margin + 1px border on each adjacent
+entry, `2*(5+1)=12`, matching within normal antialiasing rounding).
+
 ## The app launcher grid's real bug: a bare comma inside `exec`
 
 Reported a second time that `$mod+d` still showed a single column, after a

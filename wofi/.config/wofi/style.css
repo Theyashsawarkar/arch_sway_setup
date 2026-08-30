@@ -72,6 +72,15 @@ window {
 
 #entry {
     padding: 8px 12px;
+    /* Gutter between entries -- wofi has no dedicated row/column-spacing
+       option (checked --help and the man page, neither exposes one), so
+       this is the standard GTK-CSS way to create gaps between FlowBox
+       children: margin on the child itself, not something set on the
+       container. Applies to every wofi-backed tool sharing this
+       stylesheet -- visible as real gutters between tiles in the app
+       launcher's grid, and as breathing room between rows in every
+       other tool's single-column list. */
+    margin: 5px;
     border-radius: 8px;
     background-color: transparent;
     /* A real border on every entry, not just the accent bar below --
