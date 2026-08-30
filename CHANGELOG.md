@@ -3,6 +3,48 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-30 (theme-toggle.sh: real bug found -- was writing theme names that don't exist yet)
+
+Reported the toggle fires notifications but Zen Browser (set to follow
+system theme) never actually switched to light. Verified every layer of
+the mechanism directly rather than guessing: `dconf write` genuinely
+changes the value; the XDG portal's `Settings.Read`
+(`org.freedesktop.appearance`/`color-scheme`) reflects it immediately,
+queried directly via `gdbus call`; and -- the layer that actually matters
+for a live update with no restart -- the portal genuinely **emits a
+`SettingChanged` signal** with the correct new value on both the legacy
+and current namespaces, confirmed by monitoring the session bus with
+`gdbus monitor` while triggering the toggle. All three layers check out.
+
+The real bug: `catppuccin-gtk-theme-latte`/`papirus-icon-theme`/
+`papirus-folders-catppuccin-git` were added to `packages/` when this
+toggle was built, but never actually installed (`pacman -Q` fails for
+all three -- the handed-off install command hadn't been run yet).
+`theme-toggle.sh` was writing `gtk-theme`/`icon-theme` dconf keys
+pointing at those names regardless, and a theme name that doesn't
+resolve to anything installed fails silently -- apps just keep rendering
+whatever they last loaded, indistinguishable from the toggle doing
+nothing.
+
+Fixed: now checks `/usr/share/themes/<name>`/`/usr/share/icons/<name>`
+before writing either key, skips it (leaving the previous working value)
+if missing, and notifies clearly naming what's not installed instead of
+pretending it applied. `color-scheme` always writes regardless -- no
+file dependency, and it's the one signal Firefox/Zen actually need for
+their own dark/light CSS, since they don't render via system GTK theme
+files the way a native GTK app does. Verified the fix directly with the
+packages still missing: color-scheme and the already-installed dark GTK
+theme switched correctly, the not-yet-installed light theme/icon-theme
+were left alone rather than pointed at nothing.
+
+Confirmed working but outside this repo's reach: whether an app
+subscribes to the portal signal at all is up to that app. Firefox-based
+browsers have a `widget.use-xdg-desktop-portal.settings` preference
+(`about:config`) gating this -- worth checking there if a browser still
+doesn't react after this fix. See
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the full verification
+trail.
+
 ## 2026-08-30 (incident: stow symlinks broken desktop-wide, recovered clean; docker gets a keybinding)
 
 Reported the docker waybar click had stopped working, and asked for a

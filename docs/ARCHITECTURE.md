@@ -744,6 +744,67 @@ left border at the same row: both sides now render the same color
 consistently (e.g. `(70,62,88)` on both, at multiple rows) -- symmetric,
 not just "present."
 
+## Theme toggle robustness: verified the whole chain, found a real gap
+
+Reported the toggle fires notifications but Zen Browser (set to follow
+the system theme) never actually switched to light. Verified every layer
+of the mechanism directly rather than guessing which one was broken:
+
+1. `dconf write` itself -- confirmed the value actually changes
+   (`dconf read` immediately after).
+2. The XDG Desktop Portal's `Settings.Read` -- queried
+   `org.freedesktop.appearance`/`color-scheme` directly via `gdbus call`
+   and confirmed it echoes back the new value the instant dconf changes,
+   not a stale/cached one.
+3. Whether the portal actually **emits a live change signal**, not just
+   answers correctly on-demand -- this is the one that matters for an
+   already-running app to update without a restart. Ran `gdbus monitor
+   --session --dest org.freedesktop.portal.Desktop` while triggering the
+   toggle: `SettingChanged` fired correctly, with the right new value, on
+   *both* the legacy `org.gnome.desktop.interface` namespace and the
+   newer `org.freedesktop.appearance` one. This layer is genuinely,
+   verifiably working.
+
+**The real bug**: `catppuccin-gtk-theme-latte`, `papirus-icon-theme`, and
+`papirus-folders-catppuccin-git` -- the packages added to `packages/
+aur.txt`/`packages/pacman.txt` when this toggle was first built -- were
+never actually installed (confirmed: `pacman -Q` fails for all three; the
+handed-off install command hadn't been run). `theme-toggle.sh` was
+writing `gtk-theme`/`icon-theme` dconf keys pointing at those names
+unconditionally, light or dark, regardless of whether anything was
+actually installed under `/usr/share/themes`/`/usr/share/icons` for
+them. A GTK theme/icon-theme name that doesn't resolve to anything
+installed doesn't fail loudly -- native GTK apps just silently keep
+rendering whatever they last successfully loaded, which looks
+indistinguishable from "the toggle did nothing."
+
+**Fixed**: `theme-toggle.sh` now checks `/usr/share/themes/<name>` and
+`/usr/share/icons/<name>` directly before writing either dconf key, and
+skips writing it (leaving the previous, working value in place) if the
+target isn't actually there -- with a clear notification naming what's
+missing and pointing at the install command, rather than silently
+pretending everything applied. `color-scheme` is always written
+regardless of any of this, since it's a pure preference value with no
+file dependency, and is the one signal apps like Firefox/Zen actually
+need for their own internal dark/light CSS switching -- they don't
+render using arbitrary system GTK theme files the way a native GTK app
+does. Verified the fix directly: ran the toggle with the packages still
+missing, confirmed `color-scheme` and the already-installed dark GTK
+theme switched correctly while the not-yet-installed light GTK
+theme/icon theme were left alone (not overwritten with a broken
+reference), and confirmed the notification text names exactly what's
+missing.
+
+**What's confirmed working but genuinely outside this repo's reach**:
+whether a specific app actually *subscribes* to the portal's
+`SettingChanged` signal is up to that app, not anything on the desktop
+side. Firefox-based browsers specifically have a
+`widget.use-xdg-desktop-portal.settings` preference (`about:config`)
+gating whether they use the portal for this at all -- if a browser stays
+on its last-detected appearance after a verified-correct toggle, that
+preference is the first thing worth checking, since it's inside the
+browser's own settings, not reachable from a desktop config.
+
 ## A real incident: stow symlinks silently broken across the whole desktop
 
 Reported the docker waybar module's click had stopped opening the wofi

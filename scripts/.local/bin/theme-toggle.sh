@@ -4,46 +4,106 @@
 # the vast majority of regular GUI apps (file managers, browsers' GTK
 # chrome, settings dialogs, GTK-based editors) detect and follow this
 # automatically, which is the actual mechanism behind "apps detect OS
-# dark mode" -- confirmed both palettes exist before wiring this up
-# (catppuccin-gtk-theme-latte alongside the already-installed -mocha,
-# see packages/aur.txt).
+# dark mode".
+#
+# Verified end to end, not assumed: dconf write -> the XDG Desktop Portal
+# (org.freedesktop.portal.Desktop, backed by xdg-desktop-portal-gtk per
+# /usr/share/xdg-desktop-portal/sway-portals.conf's "default=gtk" for the
+# Settings interface) reflects the new value immediately on
+# Settings.Read, AND actually emits a live SettingChanged signal on both
+# the legacy org.gnome.desktop.interface namespace and the newer
+# org.freedesktop.appearance one (confirmed with `gdbus monitor` while
+# running this script -- both fired with the correct new value, not just
+# assumed from the spec).
+#
+# Real bug found and fixed here: this used to write gtk-theme/icon-theme
+# names unconditionally, including for the light palette
+# (catppuccin-latte-mauve-standard+default, Papirus-Light) before those
+# packages were actually confirmed installed on this machine (checked:
+# `pacman -Q catppuccin-gtk-theme-latte papirus-icon-theme
+# papirus-folders-catppuccin-git` all failed -- packages/aur.txt lists
+# them, but the handed-off install command hadn't been run yet). Writing
+# a theme/icon-theme name that doesn't resolve to anything installed
+# doesn't fail loudly -- native GTK apps just silently keep rendering
+# whatever they last successfully loaded, which looks exactly like "the
+# toggle did nothing" even though color-scheme itself changed correctly.
+# Now checks /usr/share/themes and /usr/share/icons directly before
+# writing either key, and skips it (leaving the previous, working value
+# in place) with a clear notification if the target isn't actually
+# installed -- color-scheme is always written regardless, since it's a
+# pure preference value with no file dependency, and is the one signal
+# apps like Firefox/Zen actually need for their own internal dark/light
+# CSS switching (they don't render using arbitrary system GTK theme
+# files the way a native GTK app does).
+#
+# Also worth knowing, and not something this or any script can fix: an
+# app has to actually be listening for org.freedesktop.appearance's
+# SettingChanged signal for a *live* switch with no restart -- confirmed
+# real and firing correctly here, but whether a given app subscribes to
+# it is up to that app. Firefox-based browsers specifically have a
+# widget.use-xdg-desktop-portal.settings preference (about:config) gating
+# whether they use the portal for this at all; if a browser stays on its
+# last-detected appearance after a toggle, checking that preference is
+# the first thing to look at -- outside what any desktop-side config can
+# reach into.
 #
 # Deliberately does NOT touch this desktop's own bar/launcher/
 # notification styling (waybar/wofi/mako's style.css, sway's window
 # border colors) -- those are hand-built throughout this whole repo to
 # one specific Catppuccin Mocha palette, a deliberate aesthetic choice,
-# not something meant to flip with a generic light/dark toggle. Making
-# them do that would mean maintaining a full parallel light variant of
-# every custom stylesheet in this repo -- a much bigger undertaking than
-# what was actually asked for here.
-#
-# No sudo needed at toggle-time: Papirus-Dark/-Light are both real,
-# complete icon sets shipped by the base papirus-icon-theme package, and
-# their folder colors were already recolored to match (mauve, both
-# palettes) once during install.sh, where sudo was already in use for
-# other steps. papirus-folders itself needs root every single time it
-# runs (confirmed by reading its own source before relying on that), so
-# it's never invoked here -- this script only ever flips which
-# already-colored variant is referenced.
-#
-# Also worth knowing, not something this script can fix: dconf changes
-# apply live to apps that are already running and subscribed to
-# gsettings-changed (most modern GTK3/GTK4 apps), but some apps only
-# read theme state once at their own startup and won't visibly change
-# until relaunched -- a real, standard limitation of this whole
-# mechanism, not specific to this script.
+# not something meant to flip with a generic light/dark toggle.
 set -uo pipefail
 
-scheme=$(dconf read /org/gnome/desktop/interface/color-scheme 2>/dev/null | tr -d "'")
+DCONF_IFACE=/org/gnome/desktop/interface
+
+theme_exists() {
+    [ -d "/usr/share/themes/$1" ]
+}
+
+icon_theme_exists() {
+    [ -d "/usr/share/icons/$1" ]
+}
+
+apply_gtk_theme() {
+    local name="$1"
+    if theme_exists "$name"; then
+        dconf write "$DCONF_IFACE/gtk-theme" "'$name'"
+    else
+        echo "gtk-theme '$name' not installed under /usr/share/themes -- left unchanged" >&2
+        return 1
+    fi
+}
+
+apply_icon_theme() {
+    local name="$1"
+    if icon_theme_exists "$name"; then
+        dconf write "$DCONF_IFACE/icon-theme" "'$name'"
+    else
+        echo "icon-theme '$name' not installed under /usr/share/icons -- left unchanged" >&2
+        return 1
+    fi
+}
+
+scheme=$(dconf read "$DCONF_IFACE/color-scheme" 2>/dev/null | tr -d "'")
+missing=""
 
 if [ "$scheme" = "prefer-light" ]; then
-    dconf write /org/gnome/desktop/interface/color-scheme "'prefer-dark'"
-    dconf write /org/gnome/desktop/interface/gtk-theme "'catppuccin-mocha-mauve-standard+default'"
-    dconf write /org/gnome/desktop/interface/icon-theme "'Papirus-Dark'"
-    notify-send -u low -i weather-clear-night-symbolic "Theme" "Switched to dark mode"
+    dconf write "$DCONF_IFACE/color-scheme" "'prefer-dark'"
+    apply_gtk_theme "catppuccin-mocha-mauve-standard+default" || missing="${missing}GTK theme, "
+    apply_icon_theme "Papirus-Dark" || missing="${missing}icon theme, "
+    label="dark"
+    icon="weather-clear-night-symbolic"
 else
-    dconf write /org/gnome/desktop/interface/color-scheme "'prefer-light'"
-    dconf write /org/gnome/desktop/interface/gtk-theme "'catppuccin-latte-mauve-standard+default'"
-    dconf write /org/gnome/desktop/interface/icon-theme "'Papirus-Light'"
-    notify-send -u low -i weather-clear-symbolic "Theme" "Switched to light mode"
+    dconf write "$DCONF_IFACE/color-scheme" "'prefer-light'"
+    apply_gtk_theme "catppuccin-latte-mauve-standard+default" || missing="${missing}GTK theme, "
+    apply_icon_theme "Papirus-Light" || missing="${missing}icon theme, "
+    label="light"
+    icon="weather-clear-symbolic"
+fi
+
+if [ -n "$missing" ]; then
+    notify-send -u normal -i "$icon" "Theme" \
+        "Switched to $label mode (${missing%, } not installed yet -- run the install command from CHANGELOG.md)"
+else
+    notify-send -u low -i "$icon" "Theme" "Switched to $label mode"
 fi
