@@ -1,7 +1,38 @@
 # Changelog
 
 Notable changes to this setup, in human terms — what changed, why, and what broke
-along the way. Newest first.
+along the way. Newest first. Version markers (`## vX.Y.Z`) mark release
+boundaries on top of the dated entries -- see `docs/VERSIONING.md` for the
+full branch/release process.
+
+## v1.0.0 -- 2026-08-30
+
+First tagged release. Marks the point this repo switched from "dated
+entries with no version boundaries" to a real `main`/`develop` branch model
+with tagged releases (`docs/VERSIONING.md`) -- not a specific technical
+milestone on its own, but the desktop was given a full, direct stability
+pass before drawing this line, not just assumed stable:
+
+- **Processes**: exactly one each of sway, waybar, mako, swaybg running,
+  confirmed via `pgrep -x`/`pgrep -a` (not just "a" process existing --
+  checked for duplicates/stray instances from the session's own testing).
+- **systemd**: `systemctl --user list-units --failed` clean (one stale,
+  harmless `mako.service` failure reset -- a disabled, package-provided
+  unit unrelated to how this repo actually runs mako, killed as a side
+  effect of live testing earlier the same session, not a real fault).
+  `wallpaper.timer` active and correctly scheduled; `swayidle.service`
+  correctly inactive because caffeine mode is currently on (state file
+  present) -- confirmed intentional, not a fault, by reading
+  `swayidle-startup.sh`'s own logic rather than assuming.
+- **Config validity**: `makoctl reload`, `swaymsg reload`, and a manual
+  brace/bracket balance check on `waybar/config` all clean.
+- **Scripts**: every `.sh`/`.py` under `scripts/.local/bin/` and
+  `sway/.config/sway/scripts/` executable, `bash -n`/`python3 -m py_compile`
+  clean across all of them.
+- **Disk/state hygiene**: wallpaper archive correctly capped at 60 files,
+  20M total, no stale locks, notification-mode state file consistent with
+  live `makoctl mode`.
+- **git**: working tree clean, `main` up to date with `origin/main`.
 
 ## 2026-08-30 (volume icon, third pass: dropped the glow)
 

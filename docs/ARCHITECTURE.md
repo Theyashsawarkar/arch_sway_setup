@@ -12,6 +12,10 @@ Nothing here is copied onto the live system — it's all symlinks, so editing
 `packages/pacman.txt` and `packages/aur.txt` are the exception: plain package-name
 manifests, not something stow ever touches.
 
+As of v1.0.0, this repo follows a real `main`/`develop` branch and release
+process -- see `docs/VERSIONING.md` for the full model. Day-to-day work
+happens on `develop`; `main` only ever moves via a tested, tagged release.
+
 ## Package map
 
 | Package    | Where it lands                         | What it's for |
