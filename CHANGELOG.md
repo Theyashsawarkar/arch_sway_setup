@@ -5,6 +5,32 @@ along the way. Newest first. Version markers (`## vX.Y.Z`) mark release
 boundaries on top of the dated entries -- see `docs/VERSIONING.md` for the
 full branch/release process.
 
+## 2026-08-30 (power menu, third icon pass: lean stroke icons, one family)
+
+Direct feedback right after the Adwaita swap below: "older once were
+better than this. i want lean icons just like the older once but just
+different." The Adwaita set fixed meaning but lost the lean, thin-
+outline look the originals had -- the actual ask was both at once.
+
+Rebuilt all five from Lucide (a modern line-icon set, 24x24 grid,
+consistent 2px stroke, no fill) -- found already vendored locally as an
+npm dependency in an unrelated project on this machine, no network
+fetch needed. lock/log-out/moon/rotate-cw/power path data copied
+straight from Lucide's own per-icon source files into plain standalone
+SVGs, same stroke weight across all five this time -- one coherent
+family instead of a patchwork. Swapped stroke="currentColor" for a
+hardcoded #CDD6F4 (same reasoning as every other icon fix this
+session: raw file load, not icon-theme resolution, no reliable
+currentColor context). Shutdown's `power` icon is functionally the same
+ring+line symbol as before, just redrawn in the same lean style as the
+other four.
+
+Verified live: launched nwg-bar directly, read all five icons back as
+ASCII art -- a genuinely hollow padlock, door+arrow logout, a thin
+crescent moon, circular refresh arrow, power symbol, all at the same
+visual weight. Confirmed the five border colors from the earlier pass
+unaffected.
+
 ## 2026-08-30 (power menu: better icon shapes, four of five swapped for Adwaita's)
 
 Reported directly: Suspend looked like "a circle with a vertical rod in

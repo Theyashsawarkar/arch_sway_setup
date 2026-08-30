@@ -748,6 +748,48 @@ left border at the same row: both sides now render the same color
 consistently (e.g. `(70,62,88)` on both, at multiple rows) -- symmetric,
 not just "present."
 
+## Power menu, third icon pass: lean stroke icons, all five in one family
+
+Direct feedback right after the Adwaita swap below: "older once were
+better than this. i want lean icons just like the older once but just
+different." The Adwaita set fixed *meaning* (a real moon instead of an
+ambiguous ring) but lost the *look* -- solid, bold shapes where the
+originals were thin single-stroke outlines. The actual ask all along was
+both at once: keep the lean look, fix the shapes that weren't meaningful.
+
+Landed on [Lucide](https://lucide.dev) -- a modern line-icon set (24x24
+grid, consistent 2px stroke, round caps/joins, no fill) that's exactly
+the "lean" language the original nwg-bar icons were reaching for, just
+executed properly and with genuinely distinct shapes per action. Found
+it already vendored locally as an npm dependency in an unrelated project
+on this machine (`lucide-react` under
+`~/Codes/claude-remote-main/client/node_modules/`) -- no network fetch
+needed, the exact path data for `lock`, `log-out`, `moon`, `rotate-cw`,
+and `power` came straight out of that package's own per-icon source
+files. All five rebuilt as plain standalone SVGs from that data, same
+stroke weight and style across the board -- one coherent family this
+time, not a patchwork of old-style-plus-one-new-icon (the previous
+pass's own real shortcoming) or a style mismatch against a set that
+used to be lean (the Adwaita pass's shortcoming).
+
+Lucide's own default is `stroke="currentColor"` -- swapped for hardcoded
+`#CDD6F4` before use, the exact same reasoning applied to every other
+icon fix in this repo: these load as raw files via an absolute path, not
+through GTK's icon-theme resolution, so `currentColor` has no reliable
+context here. `power` specifically is functionally identical to what
+Shutdown already had (ring + vertical line, the real ISO standby
+symbol) -- swapped anyway, for stroke-weight consistency with the other
+four rather than leaving one differently-drawn icon in an otherwise
+uniform set.
+
+Verified live the same way as every icon pass this session: launched
+`nwg-bar` directly, read all five icons' actual rendered pixels back as
+ASCII art -- a genuinely hollow padlock, a door-plus-arrow logout, a
+thin crescent moon (finally, distinctly *not* a ring), a circular
+refresh arrow, and the power symbol, all at the same visual weight.
+Reconfirmed the five per-action border colors from the earlier pass
+were unaffected (386-795 matching pixels each, same range as before).
+
 ## Power menu: better icon shapes, four of five swapped for Adwaita's
 
 Reported directly, with a specific example: Suspend rendered as "a
