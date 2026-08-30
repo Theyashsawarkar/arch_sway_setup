@@ -744,6 +744,75 @@ left border at the same row: both sides now render the same color
 consistently (e.g. `(70,62,88)` on both, at multiple rows) -- symmetric,
 not just "present."
 
+## Volume icon: too small to notice, and 0% didn't look muted
+
+Asked two things, framed as one report: at 0% volume (not the actual
+PulseAudio mute flag, just the slider at zero) the icon didn't change to
+look muted, and separately the icon in general is hard to notice at low
+volumes -- asked for my actual design opinion on the first one rather
+than just doing whatever was asked, and to fix icon size so it stays
+"consistent and visible" rather than wobbling per level.
+
+**Design opinion, given directly rather than silently implementing
+either way**: yes, 0% should look the same as an actual mute. There's no
+audible difference between "volume slider at zero" and "muted" -- both
+are silent -- so showing the "just quiet" icon at 0% instead of a
+muted-looking one is actively misleading, not a neutral design choice.
+Fixed accordingly.
+
+**Root cause of "hard to notice", found by measuring real pixels, not
+guessed**: cropped a live screenshot down to just the icon glyph and
+measured its exact bounding box at three volume levels -- ~4x5px of
+actual ink, at every level, regardless of which of the three glyphs was
+showing. That's tiny at this bar's 12px base font-size; the icon reading
+as "too small" wasn't really about *which* volume level, the whole glyph
+set is just small there.
+
+**0% fix**: waybar's `format-icons` isn't limited to the evenly-bucketed
+plain array this repo had been using (`["low","med","high"]`, which
+divides 0-100 into three equal thirds -- 0% and 20% landed in the exact
+same bucket, both showing the "low" glyph). Confirmed directly from
+waybar's own source (`src/ALabel.cpp`, `getIcon()`) that `format-icons`
+also accepts an array of `{"icon": ..., "max": N}` threshold objects,
+checked in order, first match wins -- gives an exact, standalone 0%
+bucket. Reuses `format-muted`'s own existing crossed-out glyph
+(U+F075F, already in the pre-existing config, confirmed present in the
+installed Nerd Font via `fc-list` before reusing it) rather than
+inventing a fourth new one -- 0%-unmuted and actually-muted are the same
+*experience* for the user, so they should be the same *icon*, not two
+different ones
+that both mean "silent."
+
+**Size fix**: wrapped `{icon}` in its own Pango span
+(`<span size='16384'>{icon}</span>`) directly inside the `format`
+string, sizing *only* the icon, not the percent-text next to it --
+Pango spans with attributes already confirmed working in this exact
+waybar version elsewhere in this repo (`docker-status.sh`'s own
+`<span color=...>` usage), so this wasn't a new, unverified mechanism.
+Deliberately **not** a CSS `font-size` change, and deliberately
+**not** state-conditional -- this exact repo already hit a real failure
+mode doing that once before: bumping `font-size` on
+`#custom-capslock.locked` (a *dynamic* state that toggles at runtime)
+visibly popped the whole bar taller the instant the state activated,
+since waybar's `height` config doesn't hard-clip an over-tall label
+(documented in that rule's own comment in `style.css`). A span size
+baked directly into the static `format` template has neither problem --
+it's the same size on every single render, from waybar's very first
+frame onward, so there's no "before" state to jump from and nothing
+ever pops.
+
+**Verified live**, not just reasoned about: restarted waybar for real
+this time (the previous entry above already found `SIGUSR2` doesn't
+reload anything in this config) and measured the icon's own bounding
+box again at 15/50/90% -- now a consistent x=92-111, y=16-24 (20x9px)
+at every level, identical footprint regardless of which glyph is
+showing, versus ~4x5px before. Confirmed 0% (unmuted) renders a visibly
+different, narrower glyph in the same y-range -- the reused mute icon,
+not the "low" one. Confirmed the true-mute case (`pactl set-sink-mute`)
+still renders correctly too. Confirmed no bar-height pop from the
+static span size, screenshotting the bar's own background extent before
+and after the restart.
+
 ## Workspace indicator, follow-up: occupied numbers were too dim, and a real waybar-reload gap
 
 Reported right after the occupancy feature below: the occupied-but-

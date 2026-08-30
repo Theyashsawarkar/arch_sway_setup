@@ -158,10 +158,39 @@
 	},
 
 	"pulseaudio": {
-		"format": "{icon}  {volume}%",
-		"format-muted": "󰝟  Muted",
+		// Icon wrapped in its own Pango span, sized up independent of the
+		// percent text -- the plain glyphs measured out at ~4-5px of actual
+		// ink at the bar's 12px base font-size (confirmed directly: cropped
+		// a real screenshot down to just the icon and measured its exact
+		// pixel bounding box), which is what actually made it "too small to
+		// notice", not any particular volume level. A *static* span size --
+		// not a per-state font-size override -- so it's the exact same size
+		// at every volume level and on every waybar startup, never a
+		// runtime jump: bumping font-size on a *dynamic* state elsewhere in
+		// this bar once visibly popped the whole bar taller for a moment
+		// (see #custom-capslock.locked's own comment in style.css) --
+		// avoided here by keeping the bigger size constant from the first
+		// frame onward, nothing to jump between.
+		"format": "<span size='16384'>{icon}</span>  {volume}%",
+		"format-muted": "<span size='16384'>󰝟</span>  Muted",
+		// Threshold-object form (waybar's own ALabel::getIcon supports
+		// {"icon", "max"} pairs, not just an evenly-bucketed plain array --
+		// confirmed straight from waybar's own source, src/ALabel.cpp) --
+		// gives an exact 0% bucket of its own. Previously a plain 3-item
+		// array, evenly divided into thirds by volume percentage -- 0% fell
+		// into the same bucket as anything up to 33%, so it showed the same
+		// "low volume" glyph as e.g. 20%, not anything muted-looking, even
+		// though 0% is audibly silent either way. Reuses format-muted's own
+		// crossed-out glyph -- 0%-but-technically-unmuted and actually-
+		// muted are both silent to the ear, so they should look the same,
+		// not like two different states.
 		"format-icons": {
-			"default": ["󰕿", "󰖀", "󰕾"]
+			"default": [
+				{"icon": "󰝟", "max": 0},
+				{"icon": "󰕿", "max": 33},
+				{"icon": "󰖀", "max": 66},
+				{"icon": "󰕾", "max": 100}
+			]
 		},
 		"tooltip-format": "Click: mute/unmute   Right-click: mixer   Scroll: +/-5%",
 		"on-click": "/home/yash/.config/sway/scripts/volume_osd.sh mute-toggle",

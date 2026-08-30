@@ -3,6 +3,38 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-30 (volume icon: muted look at 0%, consistent visible size)
+
+Two things reported as one: 0% volume didn't look muted (design opinion
+given directly: it should -- 0% and actually-muted are both silent, no
+reason to look different), and the icon in general is hard to notice at
+low volumes.
+
+Measured the actual problem before fixing it: cropped a real screenshot
+to just the icon and found ~4x5px of ink at every volume level,
+regardless of which of the three glyphs was showing -- the whole icon
+was just small, not a per-level issue.
+
+- 0% fix: waybar's format-icons supports {"icon","max"} threshold
+  objects, not just an evenly-bucketed array (confirmed from waybar's
+  own source, src/ALabel.cpp) -- gives 0% its own exact bucket instead
+  of sharing one with everything up to 33%. Reuses format-muted's
+  existing crossed-out glyph rather than adding a new one.
+- size fix: wrapped {icon} in its own Pango span
+  (<span size='16384'>{icon}</span>), sizing only the icon, not the
+  percent text -- a *static* size baked into the format template, not a
+  CSS font-size or a state-conditional one. This repo already hit the
+  state-conditional failure mode once (bumping font-size on
+  #custom-capslock.locked visibly popped the whole bar taller at
+  runtime) -- avoided here since the span size never changes, so
+  there's nothing to jump between.
+
+Verified live: restarted waybar for real (SIGUSR2 confirmed a no-op in
+the entry above), measured the icon bbox again -- now a consistent
+20x9px at every volume level, versus ~4x5px before. Confirmed 0%
+renders the reused mute glyph, true-mute still works, no bar-height
+pop from the change.
+
 ## 2026-08-30 (workspace indicator follow-up: brighter numbers, real waybar-reload gap)
 
 Reported right after the occupancy feature below: the occupied-but-
