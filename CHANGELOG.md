@@ -3,6 +3,32 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-30 (Zen Browser confirmed not reacting to the portal signal -- fixed in its profile)
+
+Reported Zen still stayed dark after the packages were actually
+installed. Zen was genuinely running, so this got a direct answer:
+screenshotted the desktop and pixel-sampled Zen's own toolbar/chrome
+area, found it consistently near-black while `dconf read color-scheme`
+reported `prefer-light` at that exact moment -- first-hand confirmation,
+not just trusting the report.
+
+Traced it to `widget.use-xdg-desktop-portal.settings`, defaulting to `2`
+(auto-detect: GTK + Wayland + portal available). Every one of those
+conditions is genuinely true here, but it evidently wasn't resolving to
+"use it" in this Zen build. Fixed directly in Zen's actual active profile
+(found via its `lock` file pointing at the real running PID, not
+guessed): `user_pref("widget.use-xdg-desktop-portal.settings", 1);` in
+`user.js`, forcing the portal on rather than relying on auto-detection.
+
+Deliberately not added to this repo -- Firefox/Zen profile directory
+names are randomly generated per install, not a stable path any stow
+package could target. This fix lives only in that profile on this
+machine; a fresh install or new profile would need it reapplied. Needs a
+Zen restart to take effect (`user.js` is only read at startup) -- not
+restarted automatically here, since closing someone's browser out from
+under their open tabs isn't this repo's call to make. See
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the full trace.
+
 ## 2026-08-30 (theme-toggle.sh: real bug found -- was writing theme names that don't exist yet)
 
 Reported the toggle fires notifications but Zen Browser (set to follow

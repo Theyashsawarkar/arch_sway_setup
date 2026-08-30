@@ -805,6 +805,40 @@ on its last-detected appearance after a verified-correct toggle, that
 preference is the first thing worth checking, since it's inside the
 browser's own settings, not reachable from a desktop config.
 
+### Follow-up: confirmed live that Zen Browser genuinely wasn't reacting
+
+After the packages were actually installed and the fix above shipped,
+still reported Zen staying dark. Zen was genuinely running at the time
+(confirmed real PIDs, not assumed), so this got a direct answer instead
+of more theorizing: screenshotted the desktop, pixel-sampled Zen's own
+toolbar/chrome area, and found consistently near-black colors while
+`dconf read color-scheme` reported `'prefer-light'` at that exact moment
+-- concrete, first-hand confirmation Zen's chrome wasn't reacting, not
+just trusting the report.
+
+Traced it to that same `widget.use-xdg-desktop-portal.settings`
+preference. Its default is `2` (auto-detect: use the portal only if
+GTK build + Wayland + portal available), and every one of those
+conditions is genuinely true here -- yet it evidently wasn't resolving to
+"use it" in this specific Zen build/environment. Applied the fix
+directly: `user_pref("widget.use-xdg-desktop-portal.settings", 1);` (force
+always-on) in `user.js` in Zen's actual active profile, found via its
+`lock` file pointing at the real running PID rather than guessing which
+of the two profile directories under `~/.config/zen/` was in use.
+
+**Deliberately not added to this repo's stowed config**: Firefox/Zen
+profile directory names are randomly generated per-install (this
+machine's is `l23hrxpc.Default (release)`), not stable or portable the
+way every other config in this repo is -- there's no fixed path a stow
+package could symlink into. This fix lives only in that profile's
+`user.js` on this specific machine; a fresh install (or a new profile)
+would need the same fix applied again manually, a real, disclosed
+limitation rather than something silently assumed to carry over.
+`user.js` only gets read at Zen's own startup, not live -- needs a
+restart to actually take effect, not applied automatically here since
+restarting someone's browser out from under their open tabs isn't this
+repo's call to make.
+
 ## A real incident: stow symlinks silently broken across the whole desktop
 
 Reported the docker waybar module's click had stopped opening the wofi
