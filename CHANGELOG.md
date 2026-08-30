@@ -5,6 +5,15 @@ along the way. Newest first. Version markers (`## vX.Y.Z`) mark release
 boundaries on top of the dated entries -- see `docs/VERSIONING.md` for the
 full branch/release process.
 
+## v1.0.1 -- 2026-08-30
+
+Patch release. The entire power-menu arc since v1.0.0 -- keybinding,
+real per-action colors on the button chrome, glass+border on every
+button, Tab-navigation fix, lean icon set, and this polish pass --
+merged from `develop` in one fast-forward, tagged as a patch rather
+than a minor bump per direct instruction. Everything below back to
+v1.0.0 shipped in this version.
+
 ## 2026-08-30 (power menu polish: "Power off" label, thinner icons, real icon/label gap)
 
 Three small asks together: rename Shutdown to Power off, thinner
