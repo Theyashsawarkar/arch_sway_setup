@@ -3,6 +3,19 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-30 (keybind-search.py: truncate descriptions, fixing right-side overflow)
+
+Reported the keybind search popup's right side overflows. Real cause: a
+couple of the sway descriptions built by this tool are enormous -- the
+exit-sway confirmation's swaynag message came to 243 characters,
+~1750px at this font, well past the 1152px (60%) window. wofi has no
+ellipsize/wrap control exposed for `--dmenu` entries (checked `--help`
+and the binary's own exported symbols). Truncates in the script itself
+now (`MAX_DESC_LEN = 78`, appends `…`) -- longest entry after the fix is
+123 chars, was 243. Verified by pixel-checking the popup's right edge in
+a screenshot: nothing beyond background level 2px past the window
+boundary. See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+
 ## 2026-08-30 (wofi: fixed -- left border was invisible on every entry, always)
 
 Reported left/right edges of rows/cells weren't visible properly. Real

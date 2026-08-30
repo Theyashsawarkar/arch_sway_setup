@@ -232,9 +232,29 @@ def parse_tmux():
     return entries
 
 
+MAX_DESC_LEN = 78
+
+
 def format_line(e):
+    # wofi has no CSS/config-level ellipsize or wrap for dmenu entries
+    # (checked --help and the binary's own exported symbols -- it does
+    # call gtk_label_set_line_wrap internally somewhere, but nothing
+    # exposes control over it here, and it isn't applying to these
+    # entries regardless). Truncating here instead, not just to avoid
+    # the popup's right edge overflowing -- a couple of these descriptions
+    # are genuinely enormous (the swaynag exit-sway confirmation message
+    # is 243 characters end to end), and even if wofi wrapped them
+    # instead of overflowing, a giant multi-paragraph entry would be its
+    # own readability problem in a quick-reference list. 78 chars keeps
+    # every real entry on one line within the 60% window width (measured
+    # against the longest ones that still needed to stay intact, like the
+    # OSD scripts' full descriptions) with room left for the longest
+    # [scope] suffix.
+    desc = e["desc"]
+    if len(desc) > MAX_DESC_LEN:
+        desc = desc[: MAX_DESC_LEN - 1].rstrip() + "…"
     scope = f"  [{e['table']}]" if e["table"] else ""
-    return f"{e['source']:5s} {e['keys']:22s} {e['desc']}{scope}"
+    return f"{e['source']:5s} {e['keys']:22s} {desc}{scope}"
 
 
 def main():

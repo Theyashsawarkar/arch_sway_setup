@@ -472,6 +472,34 @@ documented elsewhere in this file -- that one is wofi's own dmenu list
 never requesting a cursor-shape change at all, which is unrelated to how
 waybar's own pill modules behave.
 
+## keybind-search.py: truncating descriptions, since wofi can't wrap or ellipsize them
+
+Reported the keybind search popup's right side overflows. Real cause: a
+couple of the sway descriptions this tool builds are enormous -- the
+exit-sway confirmation's full swaynag message came out to 243 characters
+end to end, roughly 1750px at this font, nearly 1.5x the entire 1152px
+(60%) window width. wofi has no CSS or config-level ellipsize/wrap for
+`--dmenu` entries -- checked `--help` and the binary's own exported
+symbols directly (`strings $(which wofi) | grep -i wrap` does show
+`gtk_label_set_line_wrap`, so wofi's own source calls it *somewhere*, but
+nothing exposes control over it here, and it plainly wasn't applying to
+these rows regardless).
+
+Truncates in `keybind-search.py` itself instead (`MAX_DESC_LEN = 78`,
+appends `…` when cut) -- not just to stop the overflow, but because even
+if wofi *did* wrap instead of overflow, a giant multi-paragraph entry in
+a quick-reference list would be its own readability problem. 78 chars
+keeps every real description on one line within the window width with
+room left for the longest `[scope]` suffix (`resize mode (Super+Ctrl+r
+first)`), chosen by checking the actual longest entries that needed to
+stay intact (the OSD scripts' descriptions) rather than picking an
+arbitrary round number.
+
+Verified two ways: the longest entry after truncation is 123 characters
+(was 243), and pixel-checked the popup's right edge in a screenshot --
+nothing beyond background-level intensity 2px past the window boundary,
+versus real elevated (border) values right at the edge itself.
+
 ## A real bug: the left border was invisible on every entry, always
 
 Reported that left and right edges of rows/cells weren't visible properly.
