@@ -3,6 +3,21 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-30 (notification bell: distinct icons back, alongside color)
+
+Second follow-up in the same session: after dropping to one shared
+bell glyph with color-only mode signal, asked to bring back distinct
+icons per mode too, on top of the color (not instead of it).
+
+Three bell-family glyphs, not the original mismatched set: `fa-bell`
+(normal), `fa-bell-slash` (silent), `md-bell-sleep` (dnd -- a bell with
+"zzz", replacing the original `md-minus-circle`, which wasn't a bell at
+all and read as an unrelated icon rather than "the bell, in a different
+state"). All three confirmed present in the installed Nerd Font via
+`fc-list` before use. Hit the session's recurring PUA-glyph-transport-
+corruption bug again writing these -- caught and fixed the usual way
+(patch via Python `chr()`, verify by reading back `hex(ord(ch))`).
+
 ## 2026-08-30 (notification bell: one glyph, color-only mode signal)
 
 Follow-up to the three-mode notification feature above. Asked for

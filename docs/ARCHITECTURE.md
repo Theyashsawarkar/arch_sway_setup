@@ -845,20 +845,38 @@ extra, always still landing in history either way.
 persisted state file, not `makoctl mode` directly, keeping this the same
 single source of truth every other part of this feature already treats
 as authoritative rather than a second one that could theoretically read
-racy live daemon state mid-switch. One glyph, `fa-bell`, shared by all
-three modes -- color alone (Lavender/normal, dim gray matching every
-other "quieted, not fully off" state elsewhere in this bar/silent, Red
--- the one state here that's an active, deliberate choice to suppress
-everything, worth a real attention color/dnd) is what distinguishes them.
-This was originally three different glyphs (`fa-bell`/`fa-bell-slash`/
-`md-minus-circle`); asked to go bell-only with color doing the work
-instead, after briefly considering (and dropping) plain white icons for
-all three -- white gave up the at-a-glance mode signal color already
-provides, plain colored bells with no glyph change reads cleaner. Picked
-colors specifically checked against `#clock`'s own colors (Blue for the
-time, Maroon for the date, right next to this module) so the mode color
-doesn't get lost against or mistaken for the clock -- confirmed with an
-exact-pixel-color screenshot count per mode: each mode's own color is
+racy live daemon state mid-switch. Went through three rounds on the icon
+itself, each a direct response to feedback: three different glyphs
+(`fa-bell`/`fa-bell-slash`/`md-minus-circle`) first -> asked for
+white-only, reconsidered mid-request, dropped to one shared `fa-bell`
+with color as the only signal -> asked again for distinct glyphs per
+mode, landed on the current design: **both** shape and color change per
+mode, reinforcing rather than duplicating each other. All three stay in
+the bell family rather than reaching for an unrelated glyph like the
+original `md-minus-circle` for dnd, so it still reads as "the
+notification bell, in a different state" at a glance rather than a
+different icon entirely: `fa-bell` (normal), `fa-bell-slash` (silent --
+the standard "muted" bell), `md-bell-sleep` (dnd -- a bell with "zzz",
+distinct silhouette from bell-slash, and conceptually fits "do not
+disturb" better than a generic prohibition glyph). All three codepoints
+confirmed present in the installed JetBrainsMono Nerd Font via
+`fc-list ":charset=<hex>"` before use, same discipline as every other
+icon chosen this session, and the PUA-glyph-transport-corruption bug
+that's recurred repeatedly all session hit again writing these three --
+caught and fixed the same way as always: patch via Python `chr(0xXXXXX)`
+directly into the file, then read back and check `hex(ord(ch))` per
+glyph rather than trust the literal in the edit call.
+
+Colors: Lavender for normal, dim gray for silent (matching every other
+"quieted, not fully off" state elsewhere in this bar), Red for dnd (the
+one state here that's an active, deliberate choice to suppress
+everything, worth a real attention color). Picked specifically checked
+against `#clock`'s own colors (Blue for the time, Maroon for the date,
+right next to this module) so the mode color doesn't get lost against
+or mistaken for the clock -- confirmed with an exact-pixel-color
+screenshot count per mode (a hand-rolled pure-Python PPM parser, since
+this machine has neither Pillow nor ImageMagick installed and no sudo to
+add them; `grim -t ppm` was the workaround): each mode's own color is
 the dominant exact match in the bar while active, and none of the three
 notification colors share a single exact pixel match with either clock
 color in any mode.
