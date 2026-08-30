@@ -5,6 +5,30 @@ along the way. Newest first. Version markers (`## vX.Y.Z`) mark release
 boundaries on top of the dated entries -- see `docs/VERSIONING.md` for the
 full branch/release process.
 
+## 2026-08-30 (power menu: better icon shapes, four of five swapped for Adwaita's)
+
+Reported directly: Suspend looked like "a circle with a vertical rod in
+the middle", not meaningful -- asked for better icons generally.
+
+Checked Papirus's own system-suspend-symbolic first and rejected it --
+same ring-plus-dash concept already in use, wouldn't have fixed
+anything. Used a crescent moon instead (Papirus's weather-clear-night
+shape, recolored) -- the universal sleep symbol. Swapped Lock/Logout/
+Reboot to Adwaita's own symbolic set too rather than leave a mismatched
+patchwork next to one new icon. Shutdown untouched -- already correct
+from the previous pass.
+
+Every Adwaita source icon ships a hardcoded fill meant for light GNOME
+toolbars (#2e3436) -- same issue already found and fixed for mako's
+notification icons. Recolored to #CDD6F4 (this bar's own text color).
+Full mapping in icons/README.md.
+
+Verified live: launched nwg-bar directly, read all five icons' actual
+rendered pixels back as ASCII art -- a real padlock, a clear exit
+arrow, an unambiguous crescent moon, a circular refresh arrow, each
+individually recognizable. Confirmed the five border colors from the
+previous pass were unaffected.
+
 ## 2026-08-30 (power menu: keybinding, verified Tab nav without ever pressing Enter)
 
 Added $mod+Shift+p to open the power menu (same gap every other

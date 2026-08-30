@@ -748,6 +748,47 @@ left border at the same row: both sides now render the same color
 consistently (e.g. `(70,62,88)` on both, at multiple rows) -- symmetric,
 not just "present."
 
+## Power menu: better icon shapes, four of five swapped for Adwaita's
+
+Reported directly, with a specific example: Suspend rendered as "a
+circle with a vertical rod in the middle" -- not a meaningful shape --
+and asked for better icons generally, not just that one.
+
+Checked Papirus's own `system-suspend-symbolic` as the obvious first
+candidate and rejected it -- it's the *same* ring-plus-horizontal-dash
+concept already in use, just a slightly different rendering of the
+identical idea, so swapping to it wouldn't have actually addressed the
+complaint. Went with a genuinely different, unambiguous concept instead:
+a crescent moon (Papirus's own `weather-clear-night-symbolic` shape,
+recolored) -- the universal "sleep" symbol, immediately readable in a
+way an abstract ring never was.
+
+While at it, swapped Lock/Logout/Reboot to Adwaita's own symbolic icon
+set too (GNOME's, clean and widely recognized) rather than leaving a
+patchwork of nwg-bar's original minimal shapes next to one new moon --
+one coherent icon family reads better than a mismatched set, and this
+was explicitly asked for "better icons for those buttons" (plural, not
+just Suspend). Shutdown untouched -- it was already correct from the
+previous pass (the real ISO power/standby symbol), no reason to change
+what wasn't broken.
+
+Every Adwaita source icon ships with a hardcoded fill meant for *light*
+GNOME toolbars (`#2e3436`) -- the exact same "icon designed for the
+wrong background" issue already found and fixed for mako's own
+notification icons earlier this session, not a new class of problem.
+Recolored to `#CDD6F4` (Clean Silver, this bar's own text color) before
+use. Full source/shape mapping and reasoning in `icons/README.md`.
+
+Verified live, not assumed correct from reading the source SVGs alone:
+launched `nwg-bar` directly and read every one of the five icons' actual
+rendered pixels back as ASCII art -- a real padlock (Lock), a clear exit
+arrow (Logout), an unambiguous crescent moon (Suspend), a circular
+refresh arrow (Reboot), confirmed distinct from each other and each
+individually recognizable at the size they actually render at, not just
+plausible-looking in isolation. Confirmed the five per-action border
+colors from the previous pass were unaffected -- 386-780 matching pixels
+each, same range as before this change.
+
 ## Power menu: keybinding, and verifying Tab navigation without ever pressing Enter
 
 Asked for a keybinding to open the power menu (same gap every other
