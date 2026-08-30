@@ -17,21 +17,35 @@ set $right l
 set $term kitty
 
 # application opener
-# --columns/--width are only set here, not in the shared wofi/config --
-# every other wofi-backed tool in this desktop (wifi/bluetooth pickers,
+# --columns is only set here, not in the shared wofi/config -- every
+# other wofi-backed tool in this desktop (wifi/bluetooth pickers,
 # calculator, keybind search, emoji picker, cliphist) is a plain
-# single-column list, and a grid would break their readability. GtkFlowBox
-# (what wofi's grid mode actually is under the hood) sizes each entry to
-# its own icon+label content rather than a fixed cell width, so this
-# genuinely reads as an uneven, organic grid -- not a uniform card layout
-# -- confirmed live via screenshot before trusting the docs' description.
-# --columns 4 alone, at the shared config's default 600px width, only
-# ever produced 2 real columns (3 real app names like "Beekeeper Studio"
-# don't leave room for more) -- verified directly by checking rendered
-# column positions in a screenshot, not assumed from the flag existing.
-# 60% width (same convention as keybind-search.py's popup) actually fits
-# 4, confirmed the same way.
-set $menu wofi --show drun,run --columns 4 --width 60%
+# single-column list, and a grid would break their readability. Width
+# comes from wofi/config's own width=60%, shared by every wofi popup in
+# this desktop, not repeated here.
+#
+# --show drun,run (both modes combined) used to be here, matching what
+# this line had before any of this -- dropped the ",run" deliberately
+# after finding a real sway parsing gotcha, not as an unrelated
+# simplification: sway's own command syntax uses a bare comma to chain
+# multiple commands on one bindsym line (`bindsym x cmd1, cmd2`), and
+# `exec`'s argument isn't exempt from that -- a literal comma anywhere in
+# the string handed to `exec`, even one meant for the program being
+# launched, gets treated as a sway command separator. `wofi --show
+# drun,run --columns 4` was silently getting truncated to just `wofi
+# --show drun` the moment `exec` ran it -- confirmed directly by
+# comparing the actual running process's real command line
+# (`ps -o cmd -p <pid>`) against what was configured, after a real
+# ydotool-simulated keypress (not just a manual shell reproduction of
+# the command, which doesn't go through sway's exec parsing at all and
+# had been silently passing every earlier verification of this). This is
+# exactly why the grid kept reporting as "still one column" despite every
+# earlier check looking fine -- --columns 4 was never actually reaching
+# wofi in the first place. "run" mode (launch an arbitrary $PATH
+# executable by typed name, not from the app database) wasn't part of
+# what was actually asked for ("application search") anyway, so it's
+# left out rather than chasing a quoting/escaping workaround to keep it.
+set $menu wofi --show drun --columns 4
 
 # calculator
 set $calc ~/.local/bin/wofi-calc.sh

@@ -3,6 +3,40 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-30 (the real bug: a bare comma inside exec, silently dropping --columns 4)
+
+Reported a second time that `$mod+d` still showed a single column. Every
+prior check had tested the wofi command directly in a plain background
+shell, which never goes through sway's own `exec` parsing at all -- the
+real `$mod+d` keybinding does, and had never actually been tested that
+way. Simulated a genuine keypress with `ydotool` (kernel-level input
+injection, not a manual reproduction) and compared the actual running
+process's command line against what was configured: real presses were
+launching `wofi --show drun` -- no `--columns 4` at all.
+
+Root cause: sway's config syntax uses a bare comma to chain multiple
+commands on one `bindsym` line, and `exec`'s argument isn't exempt --
+`wofi --show drun,run --columns 4` was being silently truncated to `wofi
+--show drun` by sway itself before wofi ever saw it, dropping `--columns 4`
+along with everything after the comma. This is exactly why the fix looked
+correct at every prior check and still didn't work: the flag never reached
+wofi in the first place, so no CSS/width change could have fixed it.
+
+Fixed by dropping `",run"` from `$menu` -- `--show drun` alone has no
+comma to trip sway's parser. "run" mode (arbitrary `$PATH` executable by
+typed name) wasn't part of what was asked for anyway. Reverified with the
+same real-keypress method, twice: `$mod+d` now genuinely launches `wofi
+--show drun --columns 4`.
+
+Also moved `width=60%` into the shared `wofi/config` per request (every
+wofi popup in this desktop, not just two of them) -- removed the
+now-redundant `--width 60%` that had been repeated on both `$menu` and
+`keybind-search.py`'s own invocation, so there's exactly one place
+controlling it. See
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the full writeup,
+including the general lesson: testing a command directly is not proof the
+*same* command works when run through `exec` from a keybinding.
+
 ## 2026-08-30 (fix: app launcher grid wasn't actually 4 columns; entry borders were too faint)
 
 Reported the app launcher still showed a single column. The earlier

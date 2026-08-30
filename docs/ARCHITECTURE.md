@@ -472,6 +472,61 @@ documented elsewhere in this file -- that one is wofi's own dmenu list
 never requesting a cursor-shape change at all, which is unrelated to how
 waybar's own pill modules behave.
 
+## The app launcher grid's real bug: a bare comma inside `exec`
+
+Reported a second time that `$mod+d` still showed a single column, after a
+fix that looked, by every check run so far, like it should have worked. It
+didn't, and the reason was worth chasing down properly rather than
+re-guessing at CSS again: **every verification up to this point had been
+testing the wrong thing.**
+
+Every earlier test ran the wofi command manually, in a plain background
+shell (`wofi --show drun,run --columns 4 --width 60% &`). That never goes
+through sway's own `exec` command parsing at all -- it's just a shell
+directly running a program, and it worked every time. The actual
+`$mod+d` keybinding runs through sway's `exec`, a completely different
+code path, and had never once been tested directly until this pass --
+confirmed by literally simulating the real keypress with `ydotool` (kernel-
+level input injection, indistinguishable from a real key event, already
+used elsewhere in this repo for capslock/numlock) and comparing the
+*actual running process's command line* against what was configured.
+
+The real process launched by a genuine `$mod+d` press was `wofi --show
+drun` -- no `--columns 4` at all. Root cause: sway's config syntax uses a
+bare comma to chain multiple commands on one `bindsym` line (`bindsym x
+cmd1, cmd2`), and `exec`'s own argument isn't exempt from that parsing --
+a literal comma anywhere in the string handed to `exec`, even one meant
+for the program being launched rather than sway itself, gets treated as a
+command separator. `wofi --show drun,run --columns 4` was silently
+truncated to `wofi --show drun` the instant `exec` ran it, dropping
+`--columns 4` along with the rest. This is exactly why "still shows a
+single column" persisted through what looked like a correct fix: the flag
+was never reaching wofi in the first place, so no amount of CSS or width
+changes could have touched it.
+
+Fixed by dropping `",run"` from `$menu` -- `--show drun` alone has no
+comma to trip over. "run" mode (launch an arbitrary `$PATH` executable by
+typed name, separate from the `.desktop`-entry app database `drun` reads)
+wasn't actually part of what was asked for ("application search")
+regardless, so this isn't a workaround masking a lost feature, just
+dropping something that was never the point. Reverified with the same
+real-keypress-plus-process-inspection method, twice, before trusting it:
+the running process now genuinely is `wofi --show drun --columns 4`.
+
+**The methodological lesson, worth keeping in mind for anything bound to
+a key in this desktop going forward**: a command that behaves correctly
+when run directly is not proof that the *same* command behaves correctly
+when run through `exec` from a `bindsym`. They are different code paths,
+and sway's own comma-as-separator parsing is exactly the kind of thing
+that only shows up in the second one.
+
+Also acted on directly in this pass: moved `width=60%` into the shared
+`wofi/config` (was previously repeated as `--width 60%` on `$menu` and on
+`keybind-search.py`'s own wofi invocation separately) so every wofi popup
+in this desktop uses it from one place, per request -- removed both of the
+now-redundant per-invocation flags rather than leaving three copies of the
+same value to drift out of sync with each other.
+
 ## Wi-Fi/Bluetooth pickers, keybind search sizing, and an "uneven" app grid
 
 Three follow-up requests on the wofi work above:
