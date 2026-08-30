@@ -114,6 +114,36 @@ window {
     transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
+/* App icons in drun mode -- confirmed #img is a real, matching CSS node
+   (tested directly: a temporary bright background-color rule visibly
+   applied before this was written, not assumed from wofi's docs). Two
+   things fixed here:
+     - Real gap between icon and app name -- they had zero spacing
+       between them before, margin-right is the fix (matches the same
+       margin-on-the-child technique used for entry gutters above, since
+       there's no dedicated icon/label spacing option either).
+     - A dark rounded backing behind every icon -- many real app icons
+       (checked live: a plain #text color rule change, even with
+       !important, had zero effect on a stark near-white patch that
+       turned out to be actual baked-in icon pixels once isolated by
+       shape/position, not styled text at all -- raster icon images
+       aren't recolorable by CSS `color` the way symbolic SVG icons are).
+       A lot of real app icons ship with white/light backgrounds or
+       padding meant for a light UI, which read as jarring white
+       rectangles floating on this desktop's dark glass background with
+       nothing behind them. This doesn't recolor the icons themselves
+       (can't, they're just images) -- it gives them a dark, rounded
+       "badge" to sit on instead, the same treatment app grids like
+       GNOME Activities/macOS Spotlight use for exactly this reason, so
+       a white-background icon reads as "a rounded icon tile" instead of
+       "a white square that doesn't belong here". */
+#img {
+    margin-right: 10px;
+    background-color: rgba(17, 17, 27, 0.5);
+    border-radius: 8px;
+    padding: 3px;
+}
+
 #text {
     margin: 2px;
     color: #A6ADC8;

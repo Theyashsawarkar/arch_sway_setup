@@ -3,6 +3,27 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-30 (app launcher: icon/name gap fixed; the "white" turned out to be real icon pixels)
+
+Asked for a gap between the app icon and name (too close), and for the
+color to be black instead of white. Gap: `#img` had zero spacing before
+this, `margin-right: 10px` fixes it (confirmed `#img` is a real CSS node
+by testing a temporary bright background first, not assumed).
+
+The "white" investigation is worth recording since it looked like a bug
+at first and wasn't one: found a near-white patch, assumed unstyled
+`#text`, tested with `!important` (would beat any competing rule) and a
+bare `label {}` type selector -- neither had any effect. Isolated the
+patch by shape/position instead of guessing more selectors: it's real app
+icon pixel data, not text -- raster icons aren't recolorable by CSS
+`color` at all. Gave `#img` a dark rounded backing instead
+(`rgba(17,17,27,0.5)`, matching how GNOME Activities/macOS Spotlight
+handle the same problem), which helps icons with real transparency but
+can't repaint pixels an icon already drew opaque -- disclosed as a real,
+partial fix (near-white pixel count: 206 before, 209 after, i.e.
+unchanged for opaque-background icons) rather than claimed as fully
+solved. See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+
 ## 2026-08-30 (wofi color-palette consistency audit: one bug fixed, one gap filled)
 
 Audited every wofi-invoking script for palette consistency plus a general

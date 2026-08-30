@@ -472,6 +472,44 @@ documented elsewhere in this file -- that one is wofi's own dmenu list
 never requesting a cursor-shape change at all, which is unrelated to how
 waybar's own pill modules behave.
 
+## App launcher icons: gap, and a dark backing (not a text-color bug)
+
+Asked for a gap between the app icon and name in drun mode ("too close"),
+and for wofi to use black instead of white there. The gap was real and
+simple: `#img` (confirmed a real, matching CSS node -- tested directly
+with a temporary bright `background-color` that visibly applied, not
+assumed from wofi's docs) had no spacing at all before this;
+`margin-right: 10px` fixes it, same margin-on-the-child technique already
+used for entry gutters just above it in the same file.
+
+The color part turned out not to be a text-styling bug at all, worth
+recording precisely because it looked like one at first. Found a genuine
+near-white patch in a screenshot and assumed it was `#text` rendering
+unstyled -- checked with `!important` on `#text`'s `color` (would win
+over literally any competing rule, including the system GTK theme's own
+stylesheet) and it had zero effect; checked with a bare `label { color:
+... }` type selector (would catch the label regardless of what ID wofi
+actually gives it) and that had zero effect either. Isolated the patch by
+its exact shape and position instead of continuing to guess at selectors,
+and found it sitting precisely where the icon renders, not the label --
+it's real app icon pixel data. Raster icon images aren't recolorable by
+CSS `color` at all (that only works for symbolic SVG icons using
+`currentColor`), so no stylesheet change could ever have "fixed" this the
+way a text-color bug would be fixed.
+
+What *is* fixable: many real icons ship with an opaque or lightly-padded
+white/light background meant for a light UI, which reads as a jarring
+white square floating on this desktop's dark glass background with
+nothing behind it. Gave `#img` a dark, rounded backing (`rgba(17,17,27,
+0.5)`, `border-radius: 8px`) -- the same treatment app grids like GNOME
+Activities or macOS Spotlight use for this exact reason. This only helps
+icons with real alpha transparency around their edges (a background can't
+paint over pixels the icon itself already drew opaque) -- confirmed this
+directly rather than assuming full coverage: near-white pixel count in a
+screenshot was 206 before and 209 after, i.e. genuinely unchanged for
+icons with a fully opaque background baked in, which is a real, disclosed
+limitation of this fix rather than something to claim as fully solved.
+
 ## Wofi color-palette consistency audit
 
 Asked to make sure every wofi popup follows the same color palette, plus a
