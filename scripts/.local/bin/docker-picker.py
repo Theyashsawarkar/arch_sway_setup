@@ -75,8 +75,8 @@ def build_menu():
             if ports:
                 info += f"  --  {ports}"
             entries.append((markup(info, COLOR_INFO), (lambda n=name, i=info: show_details(n, i))))
-            entries.append((markup(f"  Restart {name}", COLOR_RESTART), (lambda c=cid, n=name: restart_container(c, n))))
-            entries.append((markup(f"  Stop {name}", COLOR_STOP), (lambda c=cid, n=name: stop_container(c, n))))
+            entries.append((markup(f"  └─   Restart {name}", COLOR_RESTART), (lambda c=cid, n=name: restart_container(c, n))))
+            entries.append((markup(f"  └─   Stop {name}", COLOR_STOP), (lambda c=cid, n=name: stop_container(c, n))))
 
     entries.append((markup("Open docker stats", COLOR_COMMAND), open_stats))
     entries.append((markup("Stop all containers", COLOR_COMMAND), stop_all))

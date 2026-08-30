@@ -3,6 +3,26 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-30 (docker-picker.py: tree-connector prefix so multiple containers don't blur together)
+
+Asked whether multiple running containers would get confusing in a flat
+list. Tested directly rather than reasoning about it in the abstract:
+started two real containers (postgres, pgadmin) and generated the actual
+menu -- 8 rows total, each container's 2 action rows sitting right below
+its info row. Every action row already includes the full container name
+("Restart postgres", not just "Restart"), so there's no real *ambiguity*
+even out of context, and fuzzy-typing a container name already narrows
+the list to just its 3 relevant rows -- but visually scanning a longer
+list with several containers running could still blur which action
+belongs to which container above it.
+
+Added a `└─` tree-connector prefix to both action rows, so the
+info-row-to-action relationship reads at a glance instead of requiring
+you to read every line's full text to work it out. Verified by
+regenerating the real menu with two containers running and confirming
+each container's block reads as a clear group. Restored both test
+containers to stopped afterward, matching the state they were in before.
+
 ## 2026-08-30 (docker waybar module: nwg-bar's static menu replaced with a real picker)
 
 Asked to improve the docker waybar module -- clicking it opened an
