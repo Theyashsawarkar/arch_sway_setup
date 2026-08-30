@@ -3,6 +3,42 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-30 (wofi: real glass -- compositor blur, not just a tinted box)
+
+Asked to make wofi look more "glass", better UI/UX generally. Recognized
+first that a semi-transparent `background-color` alone (0.95 alpha before
+this, basically opaque) was never going to read as real glass, and that
+GTK3's CSS engine has no `backdrop-filter` -- that's not achievable in
+wofi's own stylesheet at all. The actual fix: this desktop's own sway build
+is SwayFX (`scenefx0.4`, already in `packages/aur.txt`, already used for
+window shadows/corner-radius), which supports real compositor-level blur
+on specific layer-shell surfaces by namespace -- just never wired to wofi.
+Confirmed wofi's real namespace live (`swaymsg -t get_outputs` while it was
+open) rather than assumed, added `layer_effects "wofi" { blur enable;
+blur_xray enable; corner_radius 16; shadows enable; }` to `sway/config`.
+Verified it's actually applied two ways: the compositor's own IPC echoes
+back `"blur": true`, and a direct pixel test found the screen region behind
+an (temporarily near-transparent, for testing) wofi window rendered 4x
+smoother than the same region without it open.
+
+With real blur behind it, rebuilt `wofi/style.css` to let it show through
+instead of hiding it: background alpha 0.95 -> 0.62, a faint top-edge sheen
+gradient (the light-catching highlight a real glass panel shows), a
+brighter hairline border on the search input than the outer window so it
+reads as sitting closer to you than the glass pane behind it, and a
+properly restyled scrollbar (was completely unstyled GTK-default light
+gray before -- about as glass-breaking a seam as it gets). Also real UX
+gaps, not just look: `#entry:hover` didn't exist at all before (zero mouse
+feedback, only keyboard `:selected`), and selection gained a left accent
+bar alongside its existing background wash. `wofi/config`'s `image_size`
+24 -> 32 for better icon hierarchy in `drun`. Every wofi-backed tool in
+this desktop (launcher, wifi/bluetooth pickers, calculator, emoji picker,
+cliphist, networkmanager-dmenu) shares this one stylesheet, so all of them
+get this at once. Tested both `--show drun` and `--show dmenu` directly,
+checked stderr for CSS parse warnings on each (none) before trusting any
+of it. See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the full
+writeup.
+
 ## 2026-08-30 (notification beautification: real icons on every notify-send call)
 
 Asked to make notifications more aesthetic, specifically with icons for

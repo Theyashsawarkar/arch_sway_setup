@@ -472,6 +472,92 @@ documented elsewhere in this file -- that one is wofi's own dmenu list
 never requesting a cursor-shape change at all, which is unrelated to how
 waybar's own pill modules behave.
 
+## Wofi's "glass" look: real compositor blur, not just a tinted box
+
+Asked to make wofi look more like glass. The honest first step was
+recognizing that a semi-transparent `background-color` alone (what the
+previous style had, at 0.95 alpha -- essentially opaque) isn't glass, it's
+a dark box with a hint of see-through. Real glass needs something behind
+it to actually blur, and GTK3's CSS engine (what wofi's `style.css` is
+written in) has no `backdrop-filter` -- that's a much newer CSS Filter
+Effects spec feature GTK3 never implemented.
+
+What this desktop already has, unused until now: **SwayFX** (this repo's
+actual sway build, `packages/aur.txt` -- a sway fork adding real
+compositor-level blur/shadow/corner-radius via `scenefx0.4`, already used
+for window shadows and corner rounding, just never wired to any
+layer-shell surface). SwayFX's `layer_effects "<namespace>" { blur enable;
+... }` applies real background blur to a specific layer-shell surface by
+its namespace. Confirmed wofi's actual namespace live rather than assumed
+from the binary name -- `swaymsg -t get_outputs` while wofi was open lists
+it under `layer_shell_surfaces` as `"wofi"`.
+
+```
+layer_effects "wofi" {
+    blur enable
+    blur_xray enable
+    corner_radius 16
+    shadows enable
+}
+```
+
+`blur_xray enable` blurs the *true* desktop background behind wofi, not
+whatever surface happens to sit immediately behind it (a waybar pill it
+overlaps, say) -- the difference between authentic frosted glass and
+blurring the wrong layer. `corner_radius 16` matches wofi's own CSS
+`border-radius` so the blurred/shadowed shape actually lines up with the
+window's rounded corners instead of showing a square blur behind round
+content.
+
+Verified this is real, not just requested, two ways: `swaymsg -t
+get_outputs`'s `layer_shell_surfaces` entry for wofi echoes back
+`"blur": true` (confirms the compositor accepted and applied it, not just
+that the config parsed), and a direct pixel test -- screenshotted the same
+600x400 screen region with wofi closed vs. open (at a near-zero background
+alpha specifically to make any underlying blur visible through it),
+measured local pixel-to-pixel variance as a sharpness proxy in a
+background-only row (away from wofi's own sharp UI chrome, which would
+confound the measurement), and found it 4x smoother with wofi open
+(edge-variance 6.0 vs. 23.9) -- consistent with real blur, not a rendering
+assumption.
+
+With real blur available, `style.css` was rebuilt to actually let it show:
+
+- Background alpha dropped from 0.95 to 0.62 -- enough tint to keep text
+  legible, translucent enough for the blur to actually read as present.
+- A faint top-edge sheen (`background-image: linear-gradient(...)`,
+  layered on top of `background-color` -- GTK CSS supports both on one
+  element) fading out by mid-height, mimicking the light-catching highlight
+  a real glass/acrylic panel shows at its top edge.
+- `#input`'s own border made slightly brighter than the outer window
+  border, so the search field reads as sitting a touch closer to you than
+  the glass pane behind it, rather than flush with it.
+- The GTK default scrollbar (a flat light-gray widget) was left unstyled
+  before -- exactly the kind of unstyled-default seam that breaks a glass
+  illusion sitting on top of a dark, blurred, translucent panel. Recolored
+  to the same Mauve family as everything else, transparent at rest so it
+  doesn't compete with the blur when not needed.
+- `#entry:hover` added -- there was no mouse-hover feedback at all before,
+  only `:selected` (keyboard navigation). A softer wash than `:selected`'s
+  keeps the two states visually distinct from each other, not just from
+  idle.
+- `#entry:selected` gained a 2px left accent bar in the same Mauve, on top
+  of the existing background wash -- both idle and hover reserve the same
+  2px of transparent `border-left` so the accent appearing on selection
+  doesn't shift every row's text over by 2px when it shows up (the same
+  layout-jump guard already used for waybar's workspace-button
+  hover/focused underline elsewhere in this desktop).
+- `wofi/config`'s `image_size` bumped 24 -> 32 for more visual hierarchy
+  in `drun` mode's app-icon grid.
+
+All of this lives in the one shared `style.css`/`config` every wofi-backed
+tool in this desktop uses -- `drun`/`run`, the wifi picker, bluetooth
+picker, calculator, emoji picker, cliphist popup, `networkmanager-dmenu` --
+so this one change reaches every one of them, not just the app launcher.
+Tested both `--show drun` and `--show dmenu` directly (not just the
+launcher) to confirm neither mode broke -- checked stderr for GTK CSS
+parse warnings on each (none) before trusting any of this.
+
 ## Notification icons: every notify-send call, one real icon each
 
 Every `notify-send` call across this desktop's own scripts (`scripts/.local/

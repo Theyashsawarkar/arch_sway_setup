@@ -5,7 +5,7 @@ height=400
 prompt=Search Apps and Commands...
 allow_markup=true
 allow_images=true
-image_size=24
+image_size=32
 term=kitty
 
 # Performance and visuals

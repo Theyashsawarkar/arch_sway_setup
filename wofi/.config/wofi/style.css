@@ -1,12 +1,26 @@
 /* ~/.config/wofi/style.css */
 
+/* Real "glass" now: sway/config's layer_effects "wofi" blurs the actual
+   desktop behind this window at the compositor level (SwayFX/scenefx --
+   already installed, just never wired to wofi's layer surface before).
+   Everything here is tuned to let that show through rather than hide it --
+   a much lower background opacity than before (was 0.95, essentially
+   opaque, which made the earlier blur-less "glass" description a bit of
+   a stretch), plus a subtle top-edge sheen gradient, which is what reads
+   as an actual pane of glass catching light rather than just a tinted
+   box. */
+
 window {
     margin: 0px;
-    /* Royal Mauve - The color of kingsmanship, wisdom, and sophistication */
-    border: 2px solid #CBA6F7; 
-    /* Deep Midnight base - grounds the UI and reduces visual fatigue */
-    background-color: rgba(17, 17, 27, 0.95); 
-    border-radius: 16px; /* Generous, smooth curves for a fluid feel */
+    border: 1.5px solid rgba(203, 166, 247, 0.55);
+    background-color: rgba(17, 17, 27, 0.62);
+    /* Faint light-catching sheen along the top edge, fading out by
+       mid-height -- the cheap, GTK-CSS-safe version of the highlight a
+       real glass/acrylic panel would show. Layered as background-image
+       on top of background-color rather than replacing it (GTK CSS
+       supports both together on one element). */
+    background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0) 45%);
+    border-radius: 16px;
     font-family: "JetBrainsMono Nerd Font";
     font-size: 12px;
 }
@@ -14,11 +28,13 @@ window {
 #input {
     margin: 15px;
     padding: 12px;
-    border: none;
-    /* Soft, elevated background for the search bar */
-    background-color: rgba(49, 50, 68, 0.5); 
-    color: #CBA6F7; /* Active typing glows in the royal accent */
-    border-radius: 10px; /* Curves matching the outer shell */
+    /* A slightly brighter hairline than the outer window border -- reads
+       as the search field sitting a touch closer to you than the glass
+       pane behind it, rather than being flush with it. */
+    border: 1px solid rgba(203, 166, 247, 0.35);
+    background-color: rgba(49, 50, 68, 0.45);
+    color: #CBA6F7;
+    border-radius: 10px;
     font-weight: bold;
 }
 
@@ -36,24 +52,57 @@ window {
     border: none;
 }
 
-#entry {
-    padding: 8px 12px; /* Added breathing room for text */
-    border-radius: 8px; /* Soft highlights */
+/* GTK's default scrollbar is a flat light-gray widget -- fine on a
+   normal opaque light-themed app, but a bright rectangular default
+   sitting on top of a dark, blurred, translucent panel is exactly the
+   kind of unstyled-default seam that breaks the illusion. Slimmed down
+   and recolored to the same Mauve family as everything else here,
+   transparent when idle so it doesn't compete with the blur at rest. */
+#scroll scrollbar {
     background-color: transparent;
+}
+#scroll scrollbar slider {
+    background-color: rgba(203, 166, 247, 0.35);
+    border-radius: 8px;
+    min-width: 6px;
+}
+#scroll scrollbar slider:hover {
+    background-color: rgba(203, 166, 247, 0.6);
+}
+
+#entry {
+    padding: 8px 12px;
+    border-radius: 8px;
+    background-color: transparent;
+    /* Reserve the same 2px left accent bar space at idle, hover, and
+       selected alike -- same layout-jump guard already used for the
+       waybar workspace buttons' hover/focused underline elsewhere in
+       this desktop, so the accent appearing on selection doesn't shift
+       every row's text over by 2px when it shows up. */
+    border-left: 2px solid transparent;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
 #text {
     margin: 2px;
-    color: #A6ADC8; /* Muted silver text for unselected items (calming) */
+    color: #A6ADC8;
 }
 
-/* The Selection Highlight */
+/* Mouse feedback distinct from keyboard selection -- previously entries
+   had no hover state at all, so moving the mouse over the list gave zero
+   visual response until you actually clicked. A softer wash than
+   :selected's, so the two states stay visually distinguishable from each
+   other, not just from idle. */
+#entry:hover {
+    background-color: rgba(203, 166, 247, 0.08);
+}
+
 #entry:selected {
-    /* A soft, translucent wash of the royal color rather than a harsh block */
-    background-color: rgba(203, 166, 247, 0.15); 
+    background-color: rgba(203, 166, 247, 0.18);
+    border-left: 2px solid #CBA6F7;
 }
 
 #entry:selected #text {
-    color: #CBA6F7; /* Selected text pops to guide the eye */
+    color: #CBA6F7;
     font-weight: bold;
 }

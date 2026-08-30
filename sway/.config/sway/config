@@ -67,6 +67,28 @@ shadows on
 shadow_blur_radius 20
 shadow_color #0000007F
 
+# Real compositor-level background blur for wofi specifically, via
+# SwayFX's layer_effects (scenefx0.4 -- already in packages/aur.txt,
+# nothing new to install). This is what makes "glass" actually read as
+# glass instead of just a tinted box: wofi/style.css's own semi-transparent
+# background alone has nothing real to blur behind it without this.
+# Namespace confirmed live rather than guessed -- `swaymsg -t get_outputs`
+# while wofi was open lists it under layer_shell_surfaces as "wofi" (not
+# assumed from the binary name; layer-shell namespaces don't have to match
+# it). blur_xray blurs the true desktop background behind wofi rather than
+# whatever surface happens to be immediately behind it (e.g. a waybar
+# pill it overlaps), which is the difference between an authentic frosted-
+# glass look and blurring the wrong thing. corner_radius matches wofi's
+# own CSS border-radius so the blurred/shadowed shape lines up with the
+# window's actual rounded corners instead of showing a square blur behind
+# round content.
+layer_effects "wofi" {
+    blur enable
+    blur_xray enable
+    corner_radius 16
+    shadows enable
+}
+
 # --- Theme Window Borders ---
 # Color configuration for window frames
 # Focused border: Red. Went Mauve -> Sapphire -> Lavender -> Mauve before
