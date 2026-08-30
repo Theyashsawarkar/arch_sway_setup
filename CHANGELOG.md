@@ -3,6 +3,28 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-30 (workspace indicator follow-up: brighter numbers, real waybar-reload gap)
+
+Reported right after the occupancy feature below: the occupied-but-
+unfocused number was "slightly hard to notice". Clarified intent: number
+color should say "window here, or this is where I am" without
+distinguishing the two -- the underline alone confirms "this one is
+current". Bumped occupied's color from translucent (0.7 alpha) to
+solid, identical to `.focused` -- the two states now differ only by
+font-weight (secondary cue) and the underline.
+
+Found a real gap while re-verifying: `pkill -SIGUSR2 waybar`, used to
+"reload" waybar for the first pass on this feature, actually does
+nothing by default (checked waybar's own source -- no `on-sigusr2-action`
+configured here, and no CSS file-watching either), so that earlier
+verification may have been screenshotting a stale render that happened
+to look right. Fixed by actually restarting waybar outright
+(`sway/config`'s `exec waybar` isn't a supervised exec, so a plain kill
+needed a manual relaunch) rather than trusting an unconfirmed signal.
+Re-verified after the real restart at full bar height (41px): both
+numbers solid Red equally, underline present only under the focused
+workspace's full width, nothing under the merely-occupied one.
+
 ## 2026-08-30 (workspace indicator: occupancy shown separately from focus)
 
 Asked for workspace numbers to show which workspaces hold a window, not

@@ -744,6 +744,52 @@ left border at the same row: both sides now render the same color
 consistently (e.g. `(70,62,88)` on both, at multiple rows) -- symmetric,
 not just "present."
 
+## Workspace indicator, follow-up: occupied numbers were too dim, and a real waybar-reload gap
+
+Reported right after the occupancy feature below: the occupied-but-
+unfocused number (translucent Red, 0.7 alpha) was "slightly hard to
+notice". Also clarified the intended signal split more precisely: the
+number color should say "there's a window here, or this is where I am"
+-- deliberately not distinguishing between those two on its own -- and
+the underline should be the *only* thing that confirms "this one
+specifically is current". That's a cleaner design than graduated
+color intensity was: bumped the occupied rule's color from
+`rgba(243, 139, 168, 0.7)` to solid `#F38BA8`, identical to `.focused`.
+The two states now differ only in font-weight (600 vs 800, a secondary,
+non-load-bearing cue) and the underline, which stays exclusively on
+`.focused`.
+
+**A real gap found while re-verifying this, not part of what was
+reported but worth recording**: re-checked the fix by sending
+`pkill -SIGUSR2 waybar` and screenshotting, same as the first pass on
+this feature -- and initially got ambiguous, inconsistent-looking pixel
+counts. Read waybar's own source (`src/main.cpp`) to check what SIGUSR2
+actually does by default: nothing, unless the bar config sets its own
+`on-sigusr2-action` (ours doesn't) -- it's a no-op signal here, not a
+style/config reload trigger. waybar also doesn't appear to file-watch
+its own CSS for hot-reload (checked `client.cpp`'s `setupCss`, only
+called at startup). So the *first* pass's "live verification" earlier
+this session may well have been screenshotting a stale render by
+coincidence of the colors happening to look plausible, not an actually-
+confirmed reload -- worth being honest about here rather than letting it
+stand uncorrected. Fixed properly this time by actually restarting
+waybar (`pkill` the old process, launch a fresh detached one via
+`setsid waybar & disown`, since `sway/config`'s `exec waybar` isn't a
+supervised/auto-restarting exec) rather than trusting a signal with an
+unconfirmed effect. **Lesson for next time touching waybar's CSS**:
+restart the process outright to verify, don't rely on SIGUSR1/2 doing a
+style reload unless that's explicitly wired up in the bar's own config.
+
+Re-verified live after the real restart, at full bar height this time
+(41px, not the 30px guess used previously) specifically to separate the
+number glyph's own pixels from the actual underline: rows 15-23 showed
+solid Red at both workspace numbers' x-positions equally (confirming
+the brightness fix), and rows 32-33 showed a long, contiguous solid-Red
+run spanning the *focused* workspace's full button width only -- nothing
+at the unfocused-but-occupied workspace's position in those rows. Number
+brightness: fixed and equal. Underline: still exclusively on the
+focused one. Exactly the intended design.
+
 ## Workspace indicator: occupancy as its own signal, separate from focus
 
 Asked for the workspace numbers in waybar to show which workspaces hold

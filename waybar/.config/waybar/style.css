@@ -436,29 +436,38 @@ window#waybar {
    waybar's own source, src/modules/sway/workspaces.cpp), added whenever
    a workspace's nodes + floating_nodes are both empty -- exactly "does
    this hold a window", no polling or IPC of our own needed.
-   Number color only, no underline -- keeps the two signals from ever
-   colliding: underline always means "you are here" (below), number
-   color always means "something's running there", and a workspace can
-   independently be either, neither, or both. Same Red as .focused below,
-   just translucent rather than solid -- one hue reads as "one family of
-   signal" (occupancy) at two strengths, rather than a fourth unrelated
-   color competing for attention; the underline is what's reserved
-   exclusively for "current". :not(.focused) so the focused rule below
-   always wins outright on the workspace that's both -- solid Red +
-   underline, not a fight between two rules over the same element. */
+   Number color only, no underline -- keeps the two signals cleanly
+   separate: the number color answers "is there a window here, or is
+   this where I am" (occupied and focused deliberately look the same at
+   a glance -- both real Red, not two different strengths), and the
+   underline is the *only* thing that answers "which one specifically is
+   current" -- reserved exclusively for .focused below, never doubled up
+   as an occupancy signal too.
+   Originally translucent (0.7 alpha) to keep it visually secondary to
+   .focused -- reported as "slightly hard to notice" in practice, so
+   bumped to fully solid, same hex as .focused. Once the underline is
+   doing all the "which one is current" work on its own, there's no
+   reason for the number itself to be dimmer too -- that was solving a
+   problem the underline already solves by itself, at the cost of making
+   the occupied signal easy to miss. font-weight is what's left as the
+   one subtle secondary cue (600 here, 800 on .focused) -- still there
+   for anyone looking closely, just not load-bearing the way the
+   underline is. :not(.focused) so the focused rule below always applies
+   outright on the workspace that's both -- solid Red + underline, not a
+   fight between two rules over the same element. */
 #workspaces button:not(.empty):not(.focused) {
-    color: rgba(243, 139, 168, 0.7); /* Red, translucent */
+    color: #F38BA8; /* Red, same as .focused -- see note above */
     font-weight: 600;
 }
 
 /* Four real states now instead of three: idle/empty (gray) -> occupied
-   (translucent Red, above) -> hover (Lavender, "about to switch") ->
-   focused (solid Mauve... Red, see below, "this is where you are").
-   Hover/focused both get an underline accent too -- reads like an
-   active browser/editor tab, clearer at a glance than color alone.
-   Defined after the occupied rule above on purpose -- same selector
-   specificity, so hovering an occupied workspace still shows hover's
-   Lavender, not a fight over which color wins. */
+   (solid Red, same shade as focused, above) -> hover (Lavender, "about
+   to switch") -> focused (solid Red *and* underlined, see below, "this
+   is where you are"). Hover/focused both get an underline accent too --
+   reads like an active browser/editor tab, clearer at a glance than
+   color alone. Defined after the occupied rule above on purpose -- same
+   selector specificity, so hovering an occupied workspace still shows
+   hover's Lavender, not a fight over which color wins. */
 #workspaces button:hover {
     background-color: rgba(180, 190, 254, 0.18);
     color: #B4BEFE;
@@ -468,10 +477,11 @@ window#waybar {
 #workspaces button.focused {
     /* Text color only, not a filled background block -- background
        stays the same barely-there neutral chip every workspace button
-       has. Bold weight + the Red number + a solid Red underline
-       (opaque, vs hover's translucent Lavender, vs occupied's even more
-       translucent Red above) carry the "this is where you are" signal
-       instead of a solid fill.
+       has. The Red number by itself doesn't distinguish this from a
+       merely-occupied workspace above (same hex, on purpose) -- the
+       underline is what actually says "this specific one is current".
+       Bold weight (800 vs occupied's 600) is a secondary, non-load-
+       bearing cue on top of that.
        Matched to Red specifically -- asked to make the workspace
        indicator and the focused-window border (sway/config
        client.focused) the same color, rather than the two "this is
