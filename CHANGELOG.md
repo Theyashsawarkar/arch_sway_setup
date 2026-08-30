@@ -3,6 +3,33 @@
 Notable changes to this setup, in human terms — what changed, why, and what broke
 along the way. Newest first.
 
+## 2026-08-30 (volume icon correction: span-size broke it, text-shadow fixed it)
+
+Reported right after the entry below: icon not visible at all, muted
+icon + "Muted" text not on the same line. Both real, both caused by
+that entry's inline-span approach.
+
+Isolated the cause step by step rather than guessing: reverted the
+per-icon Pango span first (confirmed the separate format-icons
+threshold-object change was fine on its own, icon rendered small but
+correctly). Tried a uniform font-size bump on the whole module instead
+-- hit a second, different bug: at 15px the three volume-level glyphs
+stopped rendering entirely (0 pixels), while the mute glyph and percent
+digits kept working fine at the same size. Reproducible, isolated,
+genuinely strange -- a real font/Pango rendering quirk, not chased
+further blind. font-weight: 700 (already proven safe elsewhere in this
+file) changed nothing for these glyphs -- no breakage, but no visible
+difference either.
+
+Landed on text-shadow -- same paint-only technique already proven safe
+in this file (#custom-capslock.locked's glow), doesn't touch layout or
+font rendering at all. Verified properly this time: matched for a
+Maroon-ish hue rather than "anything non-background" (which the first
+pass at this wrongly picked up backlight's own Yellow icon bleeding into
+the same crop). Consistent ~12x9px glow at every volume level (vs
+~4-5px bare), icon and text on the same y-range, and the glyphs actually
+render.
+
 ## 2026-08-30 (volume icon: muted look at 0%, consistent visible size)
 
 Two things reported as one: 0% volume didn't look muted (design opinion

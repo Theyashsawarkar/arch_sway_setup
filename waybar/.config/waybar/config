@@ -158,21 +158,22 @@
 	},
 
 	"pulseaudio": {
-		// Icon wrapped in its own Pango span, sized up independent of the
-		// percent text -- the plain glyphs measured out at ~4-5px of actual
-		// ink at the bar's 12px base font-size (confirmed directly: cropped
-		// a real screenshot down to just the icon and measured its exact
-		// pixel bounding box), which is what actually made it "too small to
-		// notice", not any particular volume level. A *static* span size --
-		// not a per-state font-size override -- so it's the exact same size
-		// at every volume level and on every waybar startup, never a
-		// runtime jump: bumping font-size on a *dynamic* state elsewhere in
-		// this bar once visibly popped the whole bar taller for a moment
-		// (see #custom-capslock.locked's own comment in style.css) --
-		// avoided here by keeping the bigger size constant from the first
-		// frame onward, nothing to jump between.
-		"format": "<span size='16384'>{icon}</span>  {volume}%",
-		"format-muted": "<span size='16384'>󰝟</span>  Muted",
+		// Icon size handled entirely in style.css (#pulseaudio font-size),
+		// not here -- an earlier version of this wrapped just {icon} in its
+		// own inline Pango span (size='16384') to grow only the icon,
+		// leaving the percent text alone. Reported back directly: the icon
+		// became invisible, and the muted icon + "Muted" text weren't on
+		// the same line anymore. That's a real, known Pango behavior --
+		// mixing one oversized inline run with normal-size text in the same
+		// label drags the line's baseline/ascent metrics unpredictably, and
+		// this font's PUA icon glyphs are already known (elsewhere in this
+		// repo) to carry unusual internal metrics compared to normal
+		// characters, compounding it -- almost certainly what pushed the
+		// icon's actual ink outside the module's fixed-height row instead
+		// of just making it bigger in place. Reverted to plain format
+		// strings; see style.css for the size fix that replaced this.
+		"format": "{icon}  {volume}%",
+		"format-muted": "󰝟  Muted",
 		// Threshold-object form (waybar's own ALabel::getIcon supports
 		// {"icon", "max"} pairs, not just an evenly-bucketed plain array --
 		// confirmed straight from waybar's own source, src/ALabel.cpp) --

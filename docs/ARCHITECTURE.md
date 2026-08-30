@@ -744,6 +744,58 @@ left border at the same row: both sides now render the same color
 consistently (e.g. `(70,62,88)` on both, at multiple rows) -- symmetric,
 not just "present."
 
+## Volume icon, correction: the span-size fix broke rendering; text-shadow is what actually worked
+
+Reported right after the entry below: the volume icon wasn't visible at
+all anymore, and the muted icon + "Muted" text weren't on the same
+line. Both true, and both caused by the fix in the entry below --
+recorded here rather than editing that entry in place, since being
+honest about a real regression (and the reasoning that led to it) is
+worth keeping visible, not quietly erasing.
+
+**What actually went wrong, found by isolating variables one at a
+time rather than guessing**: the previous fix wrapped just `{icon}` in
+its own inline Pango span (`<span size='16384'>{icon}</span>`) to grow
+the icon without touching the percent text next to it. Reverted that
+first and re-tested with plain format strings (icon still small, but
+present and correctly aligned) -- confirming the *icon-only span* was
+the actual cause, not the separate `format-icons` threshold-object
+restructuring done alongside it (that part checked out fine on its own).
+Then tried the more conventional alternative, a uniform `font-size` bump
+on the whole `#pulseaudio` module (same size for icon and text, avoiding
+a mixed-size line entirely) -- and hit a second, different, genuinely
+strange failure: at 15px, the three volume-level glyphs (low/medium/
+high) stopped rendering completely (0 matching pixels, confirmed via
+screenshot), while the *mute* glyph and the plain percent digits kept
+rendering fine at the exact same size. Reproducible, isolated by testing
+font-size on its own with nothing else changed -- a real quirk in how
+this specific Nerd Font's icon glyphs rasterize via this Pango/Cairo
+stack at that size, not something worth chasing further blind with only
+pixel-sampling as a diagnostic (no way to actually *look* at the render
+the way a person can -- worth stating plainly rather than continuing to
+guess at magic numbers).
+
+Tried `font-weight: 700` next, since this exact stylesheet already
+proved it safe elsewhere (workspace numbers) -- confirmed it changed
+nothing at all for these specific glyphs (no visible difference,
+but also no breakage) -- likely a single-weight icon font with no bold
+variant to fall back to differently. Landed on `text-shadow` instead --
+the same paint-only technique this file already used successfully once
+before for "make something louder without touching layout"
+(`#custom-capslock.locked`'s own glow) -- doesn't change box size or
+font rendering at all, just adds a soft Maroon halo around whatever
+already rendered. Verified this one properly: measured the icon's
+visible footprint by color-matching for a Maroon-ish hue (not exact-color
+match this time, since a soft glow blends toward the background at its
+edges) rather than trusting a loose "anything non-background" check,
+which the first pass at this measurement wrongly picked up on unrelated
+neighboring modules (backlight's own Yellow icon bleeding into the same
+crop region) before being narrowed down. Result: a consistent ~12x9px
+glow footprint at every volume level (versus ~4-5px bare before), icon
+and "Muted"/percent text sitting on the same y-range (15-25 and 16-24
+respectively -- properly aligned, unlike the broken span version), and
+the glyphs render at all, which they didn't at 15px.
+
 ## Volume icon: too small to notice, and 0% didn't look muted
 
 Asked two things, framed as one report: at 0% volume (not the actual
