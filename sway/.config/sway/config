@@ -50,29 +50,39 @@ set $menu wofi --show drun --columns 4
 # calculator
 set $calc ~/.local/bin/wofi-calc.sh
 
+# Every popup keybinding below routes through toggle-popup.sh -- asked
+# directly for these to toggle (press the same keybinding again to close
+# it, not just always open a new one) rather than being fire-and-open
+# only. Escape already closed the wofi-based ones on its own (wofi's own
+# native behavior, nothing this repo had to add) -- toggle-popup.sh adds
+# the other half: a marker file per keybinding tracks whether *that*
+# popup is the one currently open, so the right process gets signaled
+# closed instead of just guessing "any wofi". See the script's own
+# comments for the full reasoning.
+
 # clipboard history
-bindsym $mod+m exec cliphist list | wofi --dmenu | cliphist decode | wl-copy
+bindsym $mod+m exec ~/.local/bin/toggle-popup.sh clipboard wofi sh -c "cliphist list | wofi --dmenu | cliphist decode | wl-copy"
 
 # Launch Wofi Emoji Picker
-bindsym $mod+period exec wofi-emoji
+bindsym $mod+period exec ~/.local/bin/toggle-popup.sh emoji wofi wofi-emoji
 
 # Previously only reachable by clicking waybar's network module, no
 # keyboard path existed at all
 # Wi-Fi picker: scan, connect, toggle
-bindsym $mod+Shift+w exec ~/.local/bin/wifi-picker.py
+bindsym $mod+Shift+w exec ~/.local/bin/toggle-popup.sh wifi wofi ~/.local/bin/wifi-picker.py
 
 # Previously waybar-click-only, same gap as Wi-Fi above
 # Bluetooth picker: pair, connect, toggle
-bindsym $mod+Shift+b exec ~/.local/bin/bluetooth-picker.py
+bindsym $mod+Shift+b exec ~/.local/bin/toggle-popup.sh bluetooth wofi ~/.local/bin/bluetooth-picker.py
 
 # Previously waybar-click-only, same gap as Wi-Fi/Bluetooth above
 # Docker picker: view running containers, restart, stop
-bindsym $mod+Shift+d exec ~/.local/bin/docker-picker.py
+bindsym $mod+Shift+d exec ~/.local/bin/toggle-popup.sh docker wofi ~/.local/bin/docker-picker.py
 
 # Matches the same keyboard-path convention as every other waybar-click
 # picker above -- notification bell was waybar-click-only otherwise
 # Notification history: view past notifications, sorted newest first
-bindsym $mod+Shift+n exec ~/.local/bin/notification-history.py
+bindsym $mod+Shift+n exec ~/.local/bin/toggle-popup.sh notifhistory wofi ~/.local/bin/notification-history.py
 
 # Same gap as every picker above -- the power menu (nwg-bar) was only
 # ever reachable by clicking waybar's custom/power module, no keyboard
@@ -92,20 +102,24 @@ bindsym $mod+Shift+n exec ~/.local/bin/notification-history.py
 # and Lock -> (wraps) -> Shutdown going back with Shift+Tab. No visible
 # focus-ring styling on top of this yet -- works correctly, just not
 # obvious to the eye which button Tab landed on.
-bindsym $mod+Shift+p exec nwg-bar -i 40
+bindsym $mod+Shift+p exec ~/.local/bin/toggle-popup.sh powermenu nwg-bar nwg-bar -i 40
 
 # termusic -- terminal music player, no Spotify/YouTube Premium needed
 # (streams/downloads via yt-dlp, see docs/ARCHITECTURE.md for the full
 # story). Opens in its own floating kitty window rather than tiling --
 # a music player is something you glance at and dismiss, not something
 # that should permanently claim a slot in the tiling layout the way an
-# editor or browser does.
-bindsym $mod+Shift+m exec kitty --class termusic -e termusic
+# editor or browser does. Toggles via sway's scratchpad, not
+# process-kill like the wofi-based popups above -- termusic-server keeps
+# playing music in the background with no TUI attached, so hiding the
+# window should never stop playback. See termusic-toggle.sh.
+bindsym $mod+Shift+m exec ~/.local/bin/termusic-toggle.sh
 
-# Matches the app_id kitty is launched with above -- floating, sized and
-# centered rather than left to whatever default floating placement sway
-# picks, so it shows up predictably in the same spot every time.
-for_window [app_id="^termusic$"] floating enable, resize set 900 700, move position center
+# Matches the app_id kitty is launched with above -- floating, sized to
+# 60% width / 50% height of the output, centered, and moved into the
+# scratchpad + shown immediately so it's visible the moment it first
+# opens rather than launching hidden.
+for_window [app_id="^termusic$"] floating enable, resize set 1152 540, move position center, move scratchpad, scratchpad show
 
 # Cycle notification mode (normal -> silent -> dnd -> normal) -- same
 # script and same three-state cycle the waybar bell's scroll wheel uses
@@ -127,7 +141,7 @@ bindsym $mod+Ctrl+d exec ~/.local/bin/notification-mode.sh dnd
 # Discord, GitHub, GNOME all use ? or Ctrl+/) rather than inventing a new
 # one. Excludes Neovim on purpose -- it already has its own keymap search.
 # Search all keybindings (sway + tmux) in a fuzzy wofi popup
-bindsym $mod+Shift+slash exec ~/.local/bin/keybind-search.py
+bindsym $mod+Shift+slash exec ~/.local/bin/toggle-popup.sh keybindsearch wofi ~/.local/bin/keybind-search.py
 
 ### Window Look & Feel (Classy Minimalist)
 # Core border style for windows
@@ -230,10 +244,10 @@ seat seat0 xcursor_theme Adwaita 24
 bindsym $mod+Return exec $term
 
 # Start your combined app/command launcher
-bindsym $mod+d exec $menu
+bindsym $mod+d exec ~/.local/bin/toggle-popup.sh launcher wofi $menu
 
 # Start your math/currency calculator
-bindsym $mod+c exec $calc
+bindsym $mod+c exec ~/.local/bin/toggle-popup.sh calc wofi $calc
 
 # Kill focused window
 bindsym $mod+Shift+q kill

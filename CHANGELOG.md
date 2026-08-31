@@ -5,6 +5,63 @@ along the way. Newest first. Version markers (`## vX.Y.Z`) mark release
 boundaries on top of the dated entries -- see `docs/VERSIONING.md` for the
 full branch/release process.
 
+## 2026-08-31 (every popup toggles now; termusic gets real glass, correct size, and a search diagnosis)
+
+Three asks together: every keybinding-launched popup should toggle
+(press the same key again to close it) and close on Escape; termusic
+needs an actual transparent background and resizing to 60%/50% of the
+output; and why doesn't termusic's YouTube search work at all.
+
+Escape already worked for wofi and nwg-bar popups (both handle it
+natively, confirmed rather than assumed -- nwg-bar's own Go source
+calls gtk.MainQuit() on Escape release). Toggle needed real work: new
+scripts/.local/bin/toggle-popup.sh, a marker-file-based wrapper every
+wofi-based popup keybinding and the power menu now route through --
+same key while its own popup is open closes it, a different key closes
+whatever else is open first then opens the one requested. Verified live
+for both a raw wofi process and nwg-bar (a different binary entirely)
+to confirm it generalizes.
+
+termusic doesn't use that script -- killing/relaunching it would stop
+playback, since it's a real client/server app. New
+scripts/.local/bin/termusic-toggle.sh uses sway's scratchpad instead:
+verified directly (not assumed from sway's own ambiguous docs) that
+`scratchpad show` on an already-shown scratchpad window genuinely hides
+it again, and that the underlying process is untouched the whole time
+(same PIDs, no disconnect logged, across a full hide/show cycle).
+
+Real transparency bug found and fixed: kitty's background_opacity only
+blends cells using the terminal's own default background -- termusic's
+theme was painting an explicit opaque hex into every cell, defeating it
+regardless of kitty's own setting (confirmed from termusic's own
+source, not assumed). Fixed with termusic's own "native" theme value
+(resolves to ratatui's Color::Reset, meaning "don't paint here"),
+cascading through every panel in one edit since they all reference the
+same field symbolically. Verified live: 0% of the window's pixels are
+the old literal hex now; cross-checked the resulting dark blend against
+a same-region wallpaper-only screenshot to confirm it's a real blend
+against a coincidentally-dark wallpaper patch, not a failure to blend.
+
+Resized to 1152x540 (60%/50% of the actual 1920x1080 output, computed
+directly). A real bug hit building the toggle script: an early version
+backgrounded kitty without detaching stdio, which could hang whatever
+launched it -- fixed with setsid + redirected output.
+
+YouTube search diagnosed to a real, external, unfixable-from-here root
+cause: confirmed yt-dlp itself works fine (direct search succeeds), so
+termusic's search specifically uses the public Invidious instance
+network, not yt-dlp, for the search step. Tested every one of
+termusic's five hardcoded fallback instances' actual search endpoints
+directly: three return explicit errors (403 disabled, 401
+unauthorized, anti-bot challenge page), two are unreachable. Checked
+the live instance directory too -- zero of the 11 currently listed
+instances have their public API enabled at all. Not a local network
+issue, not fixable by upgrading termusic (checked upstream's current
+changelog, still Invidious-based). Working mitigation: paste a direct
+YouTube URL into the same search popup instead of a text query -- skips
+the broken search step, goes straight to the already-confirmed-working
+yt-dlp download path.
+
 ## 2026-08-31 (termusic: CLI music player, no local library or Premium needed)
 
 Asked for a "beautiful CLI" music player with no local library and no

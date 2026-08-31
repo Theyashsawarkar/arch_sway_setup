@@ -749,6 +749,196 @@ left border at the same row: both sides now render the same color
 consistently (e.g. `(70,62,88)` on both, at multiple rows) -- symmetric,
 not just "present."
 
+## Every popup toggles now, plus termusic: real glass, correct size, and why search fails
+
+Three asks together: every keybinding-launched popup in this repo
+should toggle (press the same keybinding again to close it, not just
+always open a new one) and close on Escape; termusic specifically needs
+an actual glass/transparent background, resized to 60%/50% of the
+output; and why doesn't termusic's YouTube search work at all.
+
+### Toggle + Escape, for every popup
+
+**Escape already worked, for the popups where it safely can** -- wofi's
+own default keybinding closes its popup on Escape (confirmed nothing in
+this repo overrides it), and nwg-bar handles `Key::Escape` internally
+too (`gtk.MainQuit()` on release, confirmed straight from its own Go
+source) -- neither needed anything added here.
+
+**Toggle needed real work**: `scripts/.local/bin/toggle-popup.sh`, a
+generic wrapper every wofi-based popup keybinding and the nwg-bar power
+menu now route through (`sway/config`). A marker file per keybinding
+(`~/.local/state/popup-toggle/<name>.pid`) tracks whether *that specific*
+popup is the one currently open -- not just "is a wofi process running
+somewhere", since every wofi-based picker in this repo shows up as a
+bare `wofi` process indistinguishable from any other one by name alone.
+Same key while its own popup is open -> close it (same effect as
+Escape) and stop. Otherwise -> close whatever *other* popup might be
+open first (so switching between two different pickers never stacks
+one on top of another), then launch the one requested. Covers the
+clipboard-history popup, the emoji picker, the app launcher, the
+calculator, every waybar-click-turned-keybinding picker (Wi-Fi,
+Bluetooth, Docker, notification history, keybind search), and the power
+menu -- ten keybindings in total, all through the one script.
+
+Verified live for two structurally different cases, not just one:
+opened the app launcher (a raw `wofi` process) via a simulated keypress,
+confirmed it toggled closed on a second press and closed correctly on
+Escape too (with the marker file cleaned up either way -- confirmed the
+directory ends up genuinely empty after an Escape-close, not just after
+the toggle-close path); separately did the same for the power menu
+(`nwg-bar`, an entirely different binary, not wofi at all) to confirm
+the script generalizes across processes, not just within one tool.
+
+**termusic doesn't route through this script** -- deliberately.
+Killing/relaunching its process on every toggle would kill playback too
+(it's a real client/server app, not a transient dmenu popup); see below
+for what it uses instead.
+
+**A real, honest limitation, not silently skipped**: Escape for
+termusic specifically -- making Escape hide termusic *only while it's
+the focused window*, without eating Escape for every other application
+on the system, isn't something plain sway `bindsym` can safely do.
+`bindsym` captures a key combo at the compositor level regardless of
+which window is focused; there's no built-in "only when this app_id has
+focus" scoping for it (the `[criteria] command` syntax scopes *commands
+run via a keybinding*, e.g. `swaymsg '[app_id=...] scratchpad show'`,
+not *whether the keybinding itself fires*). Binding a bare `Escape`
+globally would have intercepted it in every terminal, editor, and
+dialog on the desktop, not just termusic -- a real regression, not a
+minor tradeoff. The toggle keybinding (`$mod+Shift+m`, same key hides
+it as opens it) already delivers the same practical outcome without
+that risk, so that's what termusic actually gets.
+
+### termusic: real glass background
+
+Reported directly: the window looked flat/opaque despite kitty's own
+`background_opacity 0.85` (already set globally, `kitty/kitty.conf`,
+the same value every other glass surface in this desktop already uses).
+**Root cause, confirmed by reading termusic's actual source rather than
+assumed**: kitty's `background_opacity` only blends cells using the
+terminal's *own* default background -- a TUI application that
+explicitly paints a background color into its cells (which termusic's
+theme did: `primary.background = "#1e1e2e"`, a literal opaque hex) gets
+drawn at full opacity regardless of the window's own setting. This is a
+real, known kitty+TUI-app interaction, not a bug in either tool
+individually.
+
+Confirmed termusic has a first-class way around this before assuming
+one didn't exist: its theme system supports a `"native"` value
+(`ThemeColor::Native`) that resolves straight to `ratatui::Color::Reset`
+for `Background` specifically (`ColorTermusic::Background => Color::Reset`,
+confirmed reading `styles.rs` directly) -- "don't paint anything
+explicit here, let whatever's already there show through" instead of a
+literal hex. Every panel's own `background_color` in `tui.toml`
+(library/playlist/lyric/progress/etc.) already referenced this same
+field symbolically (`background_color = "Background"`, not a hardcoded
+color of its own), so changing the one value
+(`[theme.primary] background = "native"`) cascaded correctly to the
+entire UI in a single edit, confirmed by reading the generated config
+rather than guessing it would.
+
+Verified live, not just "should now blend": screenshotted the actual
+running window before and after -- 0% of its pixels are the old literal
+Mocha hex now (previously the vast majority were), confirming the
+explicit paint is genuinely gone. The resulting colors read very dark,
+which looked suspicious at first -- cross-checked directly by hiding
+the window and screenshotting the *exact same screen region* with
+nothing but wallpaper in it: also very dark, confirming this is a
+correctly-blended, coincidentally-dark patch of the current wallpaper
+under an 85%-opacity dark terminal background, not a failure to blend
+at all (the math checks out: kitty's own near-black default background
+at 0.85 opacity dominates the blend regardless of what's behind it,
+same as it does for every other glass surface in this setup).
+
+### termusic: resized to 60%/50%, toggled via scratchpad
+
+`for_window [app_id="^termusic$"]` now sizes it to `1152x540` (60%
+width / 50% height of this machine's actual `1920x1080` output,
+computed directly rather than guessed, and left as fixed pixels rather
+than `ppt` -- sway's own docs are ambiguous on whether percentage units
+apply to *floating* containers the way they unambiguously do for tiled
+ones, not worth the risk of a silently-wrong size for one window).
+
+Toggling uses sway's scratchpad (`scripts/.local/bin/termusic-toggle.sh`),
+not the same kill-and-relaunch `toggle-popup.sh` every other popup uses
+-- deliberately, so playback never stops while the window is hidden.
+First launch: no window exists yet, so it starts fresh and the
+`for_window` rule (floating + sized + centered + moved into the
+scratchpad + shown immediately, all in one rule) makes it appear
+correctly. Every press after that: `swaymsg '[app_id="^termusic$"]
+scratchpad show'` alone -- confirmed directly, not assumed from sway's
+own slightly ambiguous docs ("cycles through windows... showing and
+hiding them"), that calling this on a window already shown from the
+scratchpad genuinely hides it again rather than being a no-op, by
+toggling it twice and checking which pseudo-workspace (`__i3_scratch`
+when hidden, the real workspace name when shown) the window actually
+sits on after each call. Also confirmed directly that hiding it this
+way never touches the underlying process at all -- the same termusic
+client and `termusic-server` PIDs stay up the entire time across a
+hide/show cycle, and the server's own log shows no disconnect/reconnect
+during it.
+
+A real, unrelated bug caught while building this: the first version of
+`termusic-toggle.sh` launched kitty as a plain backgrounded shell job
+(`kitty ... &`) -- inheriting this script's own stdout/stderr meant
+whatever invoked the script (sway's `exec`, a test shell) could hang
+waiting for those file descriptors to close for as long as kitty kept
+running, instead of returning immediately the way a background launch
+should. Fixed with `setsid` plus redirected stdio, the same pattern
+already used for every other backgrounded GUI launch verified this
+session.
+
+### Why YouTube search fails: a real, external problem, not this setup
+
+**Confirmed directly, not assumed, that this isn't a local network or
+config problem first**: `yt-dlp` itself, called directly, resolves
+DNS, reaches `youtube.com`, and returns real search results with zero
+issues. So the network, DNS, and `yt-dlp` itself are all fine -- the
+problem is specific to termusic's own search *mechanism*.
+
+**Root cause, found in termusic's own TUI log
+(`/tmp/termusic-tui.log`)**: `Youtube search fail: Something is wrong
+with your connection or all 7 invidious servers are down.` termusic's
+free-text search (the `s` popup) does **not** use `yt-dlp` for
+searching at all -- only for the download step, once a result is
+already picked. Searching goes through the public
+[Invidious](https://invidious.io) instance network instead (confirmed
+reading `lib/src/invidious.rs` directly): it tries to fetch a live
+instance list from `api.invidious.io`, falls back to five hardcoded
+instance URLs if that fails, and needs at least one instance's
+`/api/v1/search` endpoint to actually respond correctly.
+
+**Tested every candidate instance's actual search endpoint directly,
+not just whether the domain responds to a bare request** -- three of
+termusic's five hardcoded fallbacks answered a plain request fine but
+failed the specific `/api/v1/search` call for three different concrete
+reasons: `inv.nadeko.net` returns `403 Endpoint disabled` (search
+explicitly turned off by that instance's own operator), 
+`invidious.nerdvpn.de` returns `401 Authorization Required`, `yewtu.be`
+serves an anti-bot JavaScript challenge page instead of JSON (blocks
+any plain HTTP client, not just termusic). The other two hardcoded
+fallbacks (`yt.artemislena.eu`, `y.com.sb`) are simply unreachable.
+Checked the live, currently-maintained instance directory itself too
+(`api.invidious.io/instances.json`) rather than assuming termusic's
+five were just unlucky picks: **zero of the 11 instances it currently
+lists have their public API enabled at all**. This is Invidious's
+entire public network in its current state, not a handful of bad server
+picks -- something termusic itself has no control over, and something a
+newer termusic version wouldn't fix either (checked the current
+upstream `master` branch changelog: still Invidious-based, no
+alternative search backend has been added).
+
+**The actual, working path around it, right now**: paste a direct
+YouTube video URL into the same `s` popup instead of typing a text
+query -- that skips the broken Invidious search step entirely and goes
+straight to the `yt-dlp` download path, which is already confirmed
+fully working. Practically: find the song elsewhere (a browser search),
+copy its YouTube URL, paste it into termusic. Not the pure "type a song
+name and go" experience originally hoped for, but a real, working
+mitigation rather than a dead end -- and an honest limitation to flag
+rather than something to paper over.
+
 ## termusic: a CLI music player with no local library and no Premium subscription
 
 Asked for a "beautiful CLI" music player, explicit constraints: no

@@ -53,7 +53,7 @@ name = "Catppuccin Mocha"
 author = "Catppuccin"
 
 [theme.primary]
-background = "#1e1e2e"
+background = "native"
 foreground = "#cdd6f4"
 
 [theme.cursor]
