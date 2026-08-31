@@ -5,6 +5,43 @@ along the way. Newest first. Version markers (`## vX.Y.Z`) mark release
 boundaries on top of the dated entries -- see `docs/VERSIONING.md` for the
 full branch/release process.
 
+## 2026-09-01 (rmpc's theme: recolored by role, matched to waybar's own palette)
+
+Direct feedback: "can we improve the theming of the music player here i
+mean use some colors like our status bar and make it more asthetic."
+The original theme was a literal, uniform string substitution (every
+"blue" -> the same Mauve, every "yellow" -> the same Yellow, everywhere)
+-- technically colored but nearly monochrome, Mauve+Yellow doing almost
+every job. Read `waybar/style.css` first to see how it actually assigns
+color (a different hue per module: Sapphire/dark-mode, Sky/wifi, Peach/
+capslock, Teal/numlock, Maroon/pulseaudio, Lavender/notifications, a
+literal `#6c7086` for every off-state), then recolored rmpc's theme by
+UI role to match, not at random:
+
+- Song title (previously no color at all): Sky `#89dceb`.
+- Artist (was identical Yellow to the state badge above it): Lavender
+  `#b4befe`.
+- Volume number/%: Maroon `#eba0ac` -- literally waybar's own
+  `#pulseaudio` color, the most direct possible match.
+- Repeat/Random/Consume/Single toggles (all four previously shared one
+  color pair): Teal/Peach/Sapphire/Lavender when active, waybar's own
+  literal off-gray `#6c7086` when not, instead of a dimmed Mauve.
+- `level_styles.info`: Mauve -> Sapphire, freeing Mauve to stay the
+  one "selected/active" accent everywhere else in the theme (unchanged:
+  `current_item_style`, `borders_style`, `tab_bar.active_style`).
+- Every `#1e1e2e` (Catppuccin Base) -> `#11111b` -- grepped the repo
+  first and confirmed `#11111B` is already the one shared dark surface
+  across waybar, mako, wofi, nwg-bar, and sway's own border scheme;
+  rmpc was the only thing still on the lighter Base tone.
+
+Verified live: relaunched through the real keybinding, confirmed zero
+parse errors in rmpc's own log, screenshotted the running window, and
+pixel-matched specific coordinates against the theme's target hex
+values -- title/artist/volume came back exact RGB matches, zero color
+distance. Off-state toggles came back the right color family and
+position, qualitatively confirmed (too fine-grained a target for exact
+pixel matching on anti-aliased glyph edges).
+
 ## v1.1.0 -- 2026-08-31
 
 termusic replaced entirely with mpd + rmpc (a real MPD daemon plus a

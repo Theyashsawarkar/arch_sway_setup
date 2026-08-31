@@ -62,6 +62,66 @@ this desktop, so mapping it there keeps this tool visually consistent
 with the rest of the setup instead of introducing a second, unrelated
 accent color).
 
+That first pass was a literal, uniform substitution -- every "blue"
+became the same Mauve, every "yellow" the same Yellow, everywhere --
+which left almost the whole UI reading as one or two colors (Mauve +
+Yellow, plus Red/Green/Pink only in the rarely-seen debug log levels).
+Direct follow-up feedback: "improve the theming... use some colors like
+our status bar and make it more aesthetic." Revisited with the actual
+goal being richness and consistency with `waybar/style.css`'s own
+palette, not just "has hex colors" -- waybar deliberately assigns a
+*different* hue per module (Sapphire for dark mode, Sky for wifi, Peach
+for capslock, Teal for numlock, Maroon for the volume/pulseaudio
+module, Lavender for notifications, dim gray `#6c7086` for every "off"
+state) rather than one accent color doing every job, and rmpc's theme
+didn't have any of that variety yet. Recolored by role instead of by
+literal string match this time:
+
+- **Song title** (`components.title`) -- had no color at all before,
+  just Bold on the default text color, on what's the single most-looked-
+  at line in the whole UI. Now Sky `#89dceb`.
+- **Artist** (`components.artist_and_album`) -- was the same Yellow as
+  the `[Playing]` state badge right above it, no differentiation
+  between the two. Now Lavender `#b4befe`.
+- **Volume number/%** (`components.volume`) -- was generic Mauve. Now
+  Maroon `#eba0ac` -- not a new pick, this is *literally* the color
+  `#pulseaudio` (waybar's own volume module) already uses, the most
+  direct "use our status bar's colors" match available.
+- **Repeat/Random/Consume/Single toggles** (`components.states`) -- all
+  four shared one identical Yellow-on/Mauve-dim-off pair before, no way
+  to tell which toggle was which by color alone. Now each gets its own
+  waybar-matched hue when on -- repeat Teal `#94e2d5`, random Peach
+  `#fab387`, consume Sapphire `#74c7ec`, single Lavender `#b4befe` --
+  and every *off* state moved from a dimmed Mauve to waybar's own
+  literal off-state gray, `#6c7086`, instead of a dimmed accent color.
+- **`level_styles.info`** (rmpc's own internal log pane, low-visibility
+  but still themed) -- was Mauve, now Sapphire `#74c7ec`, freeing Mauve
+  to stay what it already is everywhere else in this theme and this
+  desktop: the one "this is selected/active/interactive" accent
+  (`current_item_style`, `borders_style`, `tab_bar.active_style`,
+  waybar's own hover color) -- diversifying the rest didn't touch that.
+- **Every `#1e1e2e` (Catppuccin's plain "Base") swapped for `#11111b`**
+  (modal background, all five `level_styles` backgrounds, and the dark
+  text used for contrast against Mauve/Green highlights) -- grepped the
+  whole repo first to confirm `#11111B` really is the one shared dark
+  surface everywhere else (waybar, mako, wofi, nwg-bar, even the sway
+  window-border scheme all already use it) before assuming rmpc should
+  match it too; it was the only place in this desktop still using the
+  lighter Base tone for that role.
+
+Verified live, not just eyeballed: relaunched rmpc through the real
+`$mod+Shift+m` keybinding, confirmed its own log had zero parse errors
+for the edited theme, screenshotted the running window, and pixel-
+matched specific coordinates against the exact target hex values --
+title, artist, and volume all came back an *exact* RGB match
+(`(137,220,235)`, `(180,190,254)`, `(235,160,172)` respectively, zero
+color distance from the theme's own values). The off-state toggle
+cluster came back a dim, low-contrast blue-gray in the right position
+and color family, consistent with `#6c7086` plus the terminal's own
+"Dim" modifier blending it further -- not a hex-exact match on
+anti-aliased glyph-edge pixels, but qualitatively confirmed rather than
+assumed.
+
 `background_color`/`header_background_color` left as `None` --
 confirmed hex colors are supported at all first (`grep`'d rmpc's own
 theme-parsing source for a hex test case before trusting it), then

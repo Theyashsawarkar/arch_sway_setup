@@ -1022,6 +1022,77 @@ toggled it back open once more to confirm the existing show-path
 already, so closing an internal rmpc modal still has a working key,
 just Ctrl+C instead of Escape from now on.
 
+## rmpc's theme: recolored by role, not by literal string substitution
+
+Direct feedback: "can we improve the theming of the music player here i
+mean use some colors like our status bar and make it more asthetic."
+The original theme build (see the mpd/rmpc migration entry below) was a
+literal, uniform substitution -- every "blue" in rmpc's own default
+theme became the same Mauve, every "yellow" the same Yellow, everywhere
+that color name appeared. Technically themed, but the result was almost
+monochrome: nearly the whole UI read as Mauve + Yellow, with Red/Green/
+Pink only ever showing up in the rarely-seen debug log pane.
+
+Revisited with the actual ask in mind -- richness, and *specifically*
+consistency with `waybar/style.css`'s own palette, not just "has hex
+colors already". Read waybar's own stylesheet first rather than
+guessing which hues it uses where: it deliberately assigns a
+*different* color per module (Sapphire = dark mode, Sky = wifi, Peach =
+capslock, Teal = numlock, Maroon = the `#pulseaudio` volume module,
+Lavender = notifications, a literal dim gray `#6c7086` for every "off"
+state) instead of one accent color carrying every role. rmpc's theme
+had none of that variety.
+
+Recolored `rmpc/.config/rmpc/themes/catppuccin-mocha.ron` by UI role
+this time, picking each hue to match the waybar module it's most
+directly analogous to, not at random:
+
+- **Song title** -- had no color at all before, just Bold on the
+  default text color, despite being the single most-looked-at line in
+  the UI. Now Sky `#89dceb`.
+- **Artist** -- was identical Yellow to the `[Playing]` state badge
+  right above it. Now Lavender `#b4befe`, genuinely distinct.
+- **Volume number/%** -- was generic Mauve. Now Maroon `#eba0ac` --
+  not an arbitrary pick, this is *literally* waybar's own `#pulseaudio`
+  module color, the most direct "our status bar's colors" match
+  available for this exact concept (volume level).
+- **Repeat/Random/Consume/Single toggles** -- all four previously
+  shared one identical on/off color pair, no way to tell which was
+  which by color. Now each gets its own waybar-matched hue when active
+  -- Teal (repeat), Peach (random), Sapphire (consume), Lavender
+  (single) -- and every *off* state moved from a dimmed Mauve to
+  waybar's own literal off-state gray `#6c7086`, matching that
+  convention exactly instead of approximating it with a dim modifier
+  alone.
+- **`level_styles.info`** -- was Mauve, now Sapphire `#74c7ec`, freeing
+  Mauve to stay exactly what it already means everywhere else in this
+  theme and this desktop: the one "selected/active/interactive" accent
+  (`current_item_style`, `borders_style`, `tab_bar.active_style`,
+  waybar's own universal hover color) -- diversifying everything else
+  deliberately left that single role untouched.
+- **Every `#1e1e2e` (Catppuccin's plain "Base") became `#11111b`**
+  (modal background, all five `level_styles` backgrounds, and the dark
+  contrast-text used against Mauve/Green highlights) -- grepped the
+  whole repo first rather than assuming, and confirmed `#11111B` is
+  already the one shared dark surface everywhere else in this desktop
+  (waybar, mako, wofi, nwg-bar, even sway's own window-border color
+  scheme) -- rmpc's theme was the only place still using the lighter
+  Base tone for that role.
+
+**Verified live**, not eyeballed: relaunched rmpc through the real
+`$mod+Shift+m` keybinding, confirmed its own log showed zero parse
+errors for the edited theme (a bad RON edit would either crash rmpc on
+launch or silently fall back to defaults -- checked the process was
+genuinely still alive with the new file, not assumed), screenshotted
+the running window, and pixel-matched specific screen coordinates
+against the theme's own target hex values: title, artist, and volume
+all came back an *exact* RGB match with zero color distance from what
+the theme specifies. The off-state toggle cluster came back a dim,
+low-contrast blue-gray in the right position and color family for
+`#6c7086` plus the terminal's "Dim" modifier -- not a hex-exact match
+on tiny anti-aliased glyph-edge pixels (too fine-grained a target for
+this method), but qualitatively confirmed rather than assumed correct.
+
 ## music-search.py: replacing termusic's broken search with a direct-to-yt-dlp tool
 
 Follow-up to the search diagnosis below: asked directly to build a
