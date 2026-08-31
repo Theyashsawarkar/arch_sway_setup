@@ -5,6 +5,54 @@ along the way. Newest first. Version markers (`## vX.Y.Z`) mark release
 boundaries on top of the dated entries -- see `docs/VERSIONING.md` for the
 full branch/release process.
 
+## 2026-09-01 (rmpc theme, round three: no bg fill on selection, plus a real silent-failure bug found)
+
+Direct follow-up: "the active item should not get the background
+colorf but instead have a rounded colord border. and that quee
+directories artists row elements should be colored each differentlly
+right also same goes for that normal text as well." Pulled rmpc's own
+Rust source this time rather than guess what's actually possible.
+
+No per-item border capability exists in rmpc at all (confirmed from
+source: `current_item_style` is a plain ratatui `Style`, fg/bg/
+modifiers only, applied to a whole `ListItem`/`Row` -- no border
+concept for individual rows anywhere, only around whole panes). Closest
+honest substitute: dropped `bg` entirely, `current_item_style` is now
+`fg: "#cba6f7"` with `Bold | Underlined` instead of a solid fill.
+
+Found a real, serious bug building that: first wrote the modifiers as
+`"Bold, Underlined"` (comma-separated) -- valid RON, wrong for how
+`Modifiers` actually deserializes (rmpc uses `bitflags` v2, whose serde
+support expects its own `Flag | Flag` format). This didn't just fail
+that one field -- it silently dropped the **entire config** back to
+built-in defaults, no error logged anywhere. Caught by comparing
+`rmpc debuginfo` (correctly resolved every path standalone) against the
+actual running instance's own log, whose `Resolved config` showed
+`cache_dir: None` and every color as a plain ANSI name instead of any
+real hex value. Fixed with the format the crate actually expects.
+
+Also: traced `song_table_format`'s real row-rendering path and
+confirmed (unlike the browser tabs) it genuinely applies per-column
+`style` to actual row content, not just headers -- so Queue/Playlists/
+Search table rows are now colored per column throughout, not only in
+the header. And found a real, unfixable-via-config limit for the
+browser tabs (Directories/Artists/Album Artists/Albums): their song
+rows go through a different, style-blind render path
+(`Property<SongProperty>::as_string` discards `style` entirely,
+confirmed in the function body) -- only the one-character type marker
+per row is a real color lever there; left the inert per-field theme
+values in place with a comment explaining why rather than deleting
+them.
+
+Verified live, including hitting the actual bug live before finding
+its cause: relaunched, confirmed the full-default fallback via the log
+comparison, fixed the modifiers syntax, relaunched again, confirmed
+real hex values back in the resolved config, screenshotted the Queue
+tab with a real song actually queued, and pixel-matched all four
+column colors -- exact RGB matches. Ruled out a leftover background
+block on the selected row via row-by-row pixel distribution, not a
+single broad scan.
+
 ## 2026-09-01 (rmpc's theme, round two: colored everything still left plain)
 
 Immediate follow-up: "can't we add some more colors to this tui and

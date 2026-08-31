@@ -1141,6 +1141,89 @@ broken. Every color checked came back an exact RGB match; the inactive-
 tab off-gray came back the right color family across 575 sampled
 pixels once a genuine multi-tab screen was on-screen to sample from.
 
+## rmpc's theme, round three: no more background fill on selection, and a real silent-failure bug found
+
+Direct follow-up: "the active item should not get the background
+colorf but instead have a rounded colord border. and that quee
+directories artists row elements should be colored each differentlly
+right also same goes for that normal text as well." Pulled rmpc's own
+Rust source directly for this one (`ui/dirstack/mod.rs`,
+`ui/panes/queue.rs`, `config/theme/style.rs`) instead of guessing at
+what a request like "a rounded border around one row" could even mean
+in a ratatui-based TUI.
+
+**No per-item border capability exists, confirmed from the source, not
+assumed absent.** `current_item_style` is a plain ratatui `Style`
+(`fg`/`bg`/`modifiers` -- confirmed the exact fields on `StyleFile`'s
+own struct definition) applied via `.style()` directly on a
+`ListItem`/`Row`. There's no border concept for an individual list row
+anywhere in the renderer -- borders only ever wrap whole panes. Closest
+honest substitute available: dropped `bg` entirely, changed
+`current_item_style` to `fg: "#cba6f7"` with `Bold | Underlined` --
+no solid fill block, an accent-colored underline standing in for the
+outline that genuinely can't be drawn here.
+
+**A real, serious bug found while building that, not just a cosmetic
+miss**: first wrote the modifiers as `"Bold, Underlined"`
+(comma-separated) -- valid RON syntax, but wrong for how `Modifiers`
+actually deserializes. rmpc uses the `bitflags` crate (v2) for that
+type, and its serde support parses combined flags in the crate's own
+`Flag | Flag` format, not comma-separated -- read the `bitflags!` macro
+invocation directly to get the real answer instead of guessing from the
+single-modifier examples already in use elsewhere in this file. The
+serious part: this didn't just fail to apply that one field -- it
+silently took down the **entire config load**, not only the theme.
+Found this by comparing `rmpc debuginfo` (run standalone, correctly
+resolved every config/theme path) against the actual running instance's
+own log: its `Resolved config` dump showed `cache_dir: None` (a
+`config.ron`-level setting that has nothing to do with the theme file
+at all) and every color rendered as a plain ANSI name (`.yellow()`,
+rmpc's own literal built-in default), not any real hex value from this
+theme -- meaning one malformed field in the theme file doesn't just
+lose its own color, it silently drops the whole `Config` back to
+`Default::default()`, no error or warning logged anywhere. Fixed by
+using the format the crate actually expects, `"Bold | Underlined"`, and
+reconfirmed via the same log comparison: real `Rgb(...)` values back in
+`Resolved config`, `cache_dir` back to the configured path.
+
+**Queue/Playlists/Search tables now genuinely colored per column, row
+content included, not just headers.** Traced `song_table_format`'s
+actual row-rendering path (`queue.rs`'s `as_line_ellipsized`/
+`as_line_scrolling` -> `song_ext.rs`'s `as_line`) and confirmed it
+*does* apply each column's `prop.style` to the real row text, not only
+`label_prop` headers -- so Artist/Title/Album/Duration row content now
+matches its own column's header color (Lavender/Sky/Rosewater/Peach)
+instead of only Album ever having had an (redundant) explicit color.
+
+**A real, unfixable-via-config limit found for the browser tabs**
+(Directories/Artists/Album Artists/Albums): the *other* render path
+songs take there (`dirstack/mod.rs`'s `to_list_item`) calls
+`Property<SongProperty>::as_string`, which discards `style` completely
+-- confirmed directly in the function body, not inferred. This means
+`browser_song_format`'s per-field colors (set in the very first
+theming pass, earlier the same evening) were already genuinely inert
+dead configuration for real song rows in these tabs, and no theme-level
+fix can change that -- only the one-character
+type marker before each name
+(`symbols.song_style`/`dir_style`/`playlist_style`, already colored
+from that first pass) is real there. Left the inert `style:` fields in
+the theme file rather than quietly deleting them, with a comment
+explaining exactly why, so a future reader (or future me) doesn't
+waste time re-discovering the same limitation.
+
+Verified live the same way as every theming pass before it, including
+hitting the actual bug live before finding its cause: relaunched,
+confirmed via the log comparison above that the config had genuinely
+fallen back to full defaults, fixed the modifiers syntax, relaunched
+again, confirmed real hex values back in the resolved config,
+screenshotted the Queue tab with one real song actually queued (added
+it through rmpc's own UI on the real Directories tab, not assumed),
+and pixel-matched all four column colors -- exact RGB matches for each.
+Ruled out a leftover solid background block on the selected row by
+checking row-by-row pixel-count distribution rather than a single
+broad scan -- the only full-width Mauve match is the pane's own
+horizontal border line, not a fill across the row's own content.
+
 ## music-search.py: replacing termusic's broken search with a direct-to-yt-dlp tool
 
 Follow-up to the search diagnosis below: asked directly to build a

@@ -13,7 +13,7 @@
     preview_label_style: (fg: "#f9e2af"),
     preview_metadata_group_style: (fg: "#89b4fa", modifiers: "Bold"),
     highlighted_item_style: (fg: "#cba6f7", modifiers: "Bold"),
-    current_item_style: (fg: "#11111b", bg: "#cba6f7", modifiers: "Bold"),
+    current_item_style: (fg: "#cba6f7", modifiers: "Bold | Underlined"),
     borders_style: (fg: "#cba6f7"),
     highlight_border_style: (fg: "#cba6f7"),
     symbols: (
@@ -53,6 +53,17 @@
     lyrics: (
         timestamp: false
     ),
+    // Per-field `style:` below (Artist/Title) is confirmed INERT for this
+    // specific list -- read rmpc's own source (ui/dirstack/mod.rs) directly:
+    // songs shown while browsing (Directories/Artists/Album Artists/Albums)
+    // render through Property<SongProperty>::as_string, which discards
+    // style entirely; only song_table_format (Queue/Playlists/Search)
+    // goes through the style-aware as_line path. Left set anyway rather
+    // than stripped -- harmless, and starts working for free if rmpc ever
+    // adds style support here. The only real color lever for these rows
+    // is symbols.song_style/dir_style/playlist_style below, which colors
+    // just the one-character type marker before each name, not the name
+    // itself.
     browser_song_format: [
         (
             kind: Group([
@@ -71,29 +82,29 @@
     ],
     song_table_format: [
         (
-            prop: (kind: Property(Artist),
-                default: (kind: Text("Unknown"))
+            prop: (kind: Property(Artist), style: (fg: "#b4befe"),
+                default: (kind: Text("Unknown"), style: (fg: "#b4befe"))
             ),
             label_prop: (kind: Text("Artist"), style: (fg: "#b4befe")),
             width: "20%",
         ),
         (
-            prop: (kind: Property(Title),
-                default: (kind: Text("Unknown"))
+            prop: (kind: Property(Title), style: (fg: "#89dceb"),
+                default: (kind: Text("Unknown"), style: (fg: "#89dceb"))
             ),
             label_prop: (kind: Text("Title"), style: (fg: "#89dceb")),
             width: "35%",
         ),
         (
-            prop: (kind: Property(Album), style: (fg: "#cdd6f4"),
-                default: (kind: Text("Unknown Album"), style: (fg: "#cdd6f4"))
+            prop: (kind: Property(Album), style: (fg: "#f5e0dc"),
+                default: (kind: Text("Unknown Album"), style: (fg: "#f5e0dc"))
             ),
             label_prop: (kind: Text("Album"), style: (fg: "#f5e0dc")),
             width: "30%",
         ),
         (
-            prop: (kind: Property(Duration),
-                default: (kind: Text("-"))
+            prop: (kind: Property(Duration), style: (fg: "#fab387"),
+                default: (kind: Text("-"), style: (fg: "#fab387"))
             ),
             label_prop: (kind: Text("Duration"), style: (fg: "#fab387")),
             width: "15%",
