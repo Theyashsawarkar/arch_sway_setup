@@ -104,22 +104,29 @@ bindsym $mod+Shift+n exec ~/.local/bin/toggle-popup.sh notifhistory wofi ~/.loca
 # obvious to the eye which button Tab landed on.
 bindsym $mod+Shift+p exec ~/.local/bin/toggle-popup.sh powermenu nwg-bar nwg-bar -i 40
 
-# termusic -- terminal music player, no Spotify/YouTube Premium needed
-# (streams/downloads via yt-dlp, see docs/ARCHITECTURE.md for the full
-# story). Opens in its own floating kitty window rather than tiling --
-# a music player is something you glance at and dismiss, not something
-# that should permanently claim a slot in the tiling layout the way an
+# rmpc -- terminal music player, replacing termusic entirely (removed:
+# its own search was the only thing ever broken, but the whole tool got
+# swapped out rather than kept around as a half-used shell -- see
+# docs/ARCHITECTURE.md for the full story). rmpc is an MPD client, not
+# standalone -- mpd.service (systemd --user, shipped by the mpd package
+# itself, `mpd/` package in this repo is just its mpd.conf) indexes and
+# actually plays from ~/Music; rmpc is only ever the UI on top of it.
+# Opens in its own floating kitty window rather than tiling -- a music
+# player is something you glance at and dismiss, not something that
+# should permanently claim a slot in the tiling layout the way an
 # editor or browser does. Toggles via sway's scratchpad, not
-# process-kill like the wofi-based popups above -- termusic-server keeps
-# playing music in the background with no TUI attached, so hiding the
-# window should never stop playback. See termusic-toggle.sh.
-bindsym $mod+Shift+m exec ~/.local/bin/termusic-toggle.sh
+# process-kill like the wofi-based popups above -- MPD keeps playing
+# with no client attached at all (it's a real, independent daemon, more
+# decoupled from its UI than termusic's own client/server split even
+# was), so hiding the window should never stop playback. See
+# rmpc-toggle.sh.
+bindsym $mod+Shift+m exec ~/.local/bin/rmpc-toggle.sh
 
 # Matches the app_id kitty is launched with above -- floating, sized to
 # 60% width / 50% height of the output, centered, and moved into the
 # scratchpad + shown immediately so it's visible the moment it first
 # opens rather than launching hidden.
-for_window [app_id="^termusic$"] floating enable, resize set 1152 540, move position center, move scratchpad, scratchpad show
+for_window [app_id="^rmpc$"] floating enable, resize set 1152 540, move position center, move scratchpad, scratchpad show
 
 # Search + download a song straight from YouTube -- replaces termusic's
 # own `s` popup, which turned out to depend entirely on the public

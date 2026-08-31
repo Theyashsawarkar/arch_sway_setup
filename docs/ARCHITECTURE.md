@@ -29,7 +29,8 @@ happens on `develop`; `main` only ever moves via a tested, tagged release.
 | `networkmanager-dmenu` | `~/.config/networkmanager-dmenu/` | Wi-Fi picker triggered from waybar's `network` module `on-click` -- replaced `nwg-bar`'s static wifi.json (On/Off/Settings buttons, no scan list) with a real scan → click a network → password-prompt-if-needed → connect flow, plus Wi-Fi on/off toggle and a `nm-connection-editor` shortcut, all in one menu. From the official `extra` repo, not AUR. Uses `wofi --dmenu` as its menu backend (`dmenu_command = wofi` in `config.ini`) -- confirmed via reading the tool's own source (`networkmanager_dmenu`, the Python script itself) that it has first-class wofi support, not just generic dmenu-protocol compatibility: it auto-detects `wofi` and appends wofi's own `-P`/`--password` flag for the passphrase prompt (masks input, confirmed via `wofi --help` that flag exists locally), and has wofi-specific highlight markup for the currently-connected network. Smoke-tested `wofi --dmenu` with a piped test list before wiring this up, given this repo's prior history of real wofi `--dmenu` bugs (see the `nwg-bar` row above) -- rendered a normal solid popup with no issue, since those earlier bugs were specifically about forcing a *button-grid* layout through `--dmenu`, not this tool's plain vertical list usage. List entries show icon+name only (`format = {icon}  {name}` in `config.ini`) -- no visible signal%/bars/security text, `wifi_icons` (5 Material Design strength glyphs, `U+F092F`..`U+F0928`, verified present in the installed font via `fc-query` the same way every other icon in this repo is verified) carries the strength instead. **Wofi's dmenu list has no per-item hover-tooltip support at all** (checked: no such feature exists in wofi) -- so "see full detail on hover" genuinely isn't achievable with this tool, not a partial implementation of it. |
 | `wifi-picker.py` | `~/.local/bin/wifi-picker.py` (`scripts/` package) | Themed wrapper around the installed `networkmanager_dmenu` -- waybar's `network` module `on-click` runs this instead of calling `networkmanager_dmenu` directly. Adds category-based colors (Sky for a real network, Peach for a command like Rescan/Enable/Disable/Launch-Editor, Teal for a saved connection) so the menu's different kinds of rows are visually distinguishable at a glance -- upstream only colors the single active/connected line, everything else renders identically. Loads `/usr/bin/networkmanager_dmenu` at runtime via `importlib` (`spec_from_loader` with an explicit `SourceFileLoader`, since `spec_from_file_location` can't infer a loader for a file with no `.py` extension -- returns `None` silently rather than raising, confirmed by hitting it) and monkeypatches exactly two functions (`get_wofi_highlight_markup`, `get_selection`) rather than forking the whole ~1500-line script -- every actual NetworkManager interaction still runs the real, maintained upstream code. Category is detected via `Action.func` identity (`process_ap` == a real network; `toggle_wifi`/`rescan_wifi`/`launch_connection_editor`/`delete_connection`/`show_wifi_password`/`prompt_saved` == a command) plus the `":SAVED"` suffix upstream already appends to saved-connection names -- wrapped in a `try/except AttributeError` so an upstream refactor degrades to "no color" instead of crashing the whole picker. **A real, confirmed pitfall while verifying this**: a background-launched test process reliably vanished between one tool call and the next in this remote session (`setsid ... &` in one shell invocation, checked with `pgrep` in a separate one) even though `setsid` should detach it -- the remote execution environment doesn't appear to preserve backgrounded processes across separate calls the way a persistent terminal would. This produced a false "the colors aren't rendering" result once, from screenshotting a stale/empty window. The real fix for testing this kind of thing here: launch, wait, and screenshot all within one single tool call -- confirmed correct rendering (Sky/Mauve/Teal all found via pixel search in a live window) once tested that way. |
 | `mako`     | `~/.config/mako/`                       | Notifications |
-| `termusic` | `~/.config/termusic/`                   | Terminal music player, streams/downloads via `yt-dlp` -- no Spotify/YouTube Premium needed. Only `tui.toml`/`server.toml`/one theme file tracked, not the whole directory -- see its own `README.md` for why. |
+| `mpd`      | `~/.config/mpd/`                        | Music Player Daemon -- the actual player/backend, replacing termusic entirely. Runs as `mpd.service` (systemd --user, shipped by the package itself). See its own `README.md`. |
+| `rmpc`     | `~/.config/rmpc/`                       | Terminal music player UI, an MPD client -- no playback logic of its own. Paired with `music-search.py` (`scripts/` package) for search/download via `yt-dlp` -- no Spotify/YouTube Premium needed. See its own `README.md`. |
 | `kitty`    | `~/.config/kitty/`                      | Terminal, incl. the Nerd Font setting everything else depends on |
 | `tmux`     | `~/.config/tmux/`, `~/.tmux/scripts/`   | Multiplexer config + the docker status-bar script |
 | `nvim`     | `~/.config/nvim/`                       | Editor |
@@ -748,6 +749,134 @@ Verified by pixel-comparing a cell's right border against its neighbor's
 left border at the same row: both sides now render the same color
 consistently (e.g. `(70,62,88)` on both, at multiple rows) -- symmetric,
 not just "present."
+
+## music-search.py: real thumbnails in the results list
+
+Reported directly: "only text doesn't make that much sense, show
+thumbnail and title in each row" -- a fair point, a title-only list
+doesn't actually tell you much about a video the way seeing its
+thumbnail would.
+
+wofi's own `img:` dmenu markup handles this directly (`--allow-images`,
+the exact same mechanism `notification-history.py` already uses
+elsewhere in this repo) -- nothing bespoke needed. The only real
+question was where to get a thumbnail image cheaply: yt-dlp's own
+`--flat-playlist` JSON does include a `thumbnails` array, but every URL
+in it carries a signed, per-request query string (confirmed by reading
+one directly) -- not something worth depending on staying valid or
+parsing correctly. YouTube's plain, unsigned
+`https://i.ytimg.com/vi/<id>/mqdefault.jpg` URL shape (320x180, ~11-18KB)
+resolves reliably without needing any of that (confirmed directly with
+a real `curl`, not assumed from convention), so that's what's used
+instead -- one fixed, well-known pattern, not something parsed out of a
+response.
+
+Fetched for all ~10 results concurrently (`ThreadPoolExecutor`) rather
+than one at a time -- confirmed directly this matters: ~0.4s for all 10
+fetched together versus what would have been several seconds doing them
+serially. Downloaded into a per-run temp directory
+(`tempfile.mkdtemp`), cleaned up unconditionally after the picker
+closes either way (picked a result or cancelled) -- these files only
+ever needed to exist long enough for wofi to read them while the list
+was open.
+
+Verified live, not just "should render": checked the temp directory's
+actual contents *while* the real results wofi popup was open (triggered
+through the real `$mod+Shift+y` keybinding with real typed input, not
+the script run manually) -- ten real, valid JPEG files, one per result,
+confirmed with `file` directly rather than just trusting they existed.
+
+## termusic removed entirely: mpd + rmpc instead
+
+Direct feedback once it was clear termusic's search was going to stay
+broken for the foreseeable future (the public Invidious network it
+depends on, see the entries below): *"termusic isn't of any use then,
+lets use a better tui or cli local music player then and remove this
+damn termusic."* Rather than keep patching around termusic's one real
+problem forever with `music-search.py` doing all the actual useful
+work, the player itself got swapped out too.
+
+**`termusic/` is gone from this repo** -- `~/.config/termusic/`
+unstowed and deleted, package uninstalled
+(`sudo pacman -R termusic`), `termusic-toggle.sh` removed. Every entry
+below this one that talks about termusic is left exactly as it was
+written -- real history of real bugs found and fixed at the time, not
+rewritten to pretend termusic was never here. The **Package map**
+above reflects the current, actual state (`mpd`/`rmpc`), not history.
+
+**`mpd`** (official `extra` repo, `mpd.service` shipped by the package
+itself -- no unit file needed in this repo) is now the actual player.
+This is a real architectural improvement, not just a different UI on
+the same risk: MPD has zero third-party API dependency of any kind, it
+only ever plays real files already sitting in `music_directory` --
+there's no equivalent "public instance network could go dark" failure
+mode the way termusic's Invidious-based search had. Confirmed MPD's own
+filesystem watcher (`auto_update "yes"`) actually works, not just
+trusted the option's name: dropped a file into `~/Music` with zero
+clients connected and watched it get indexed within seconds in MPD's
+own log -- a real improvement over termusic, which had no such watcher
+at all (confirmed by reading its source, back when it was still here).
+
+**`rmpc`** (also official `extra` repo, 3.3k GitHub stars, actively
+maintained, its own tagline: *"A beautiful and configurable TUI client
+for MPD"*) is the new UI. A genuinely validating find while picking it:
+rmpc ships its **own** yt-dlp-based YouTube downloader
+(`shared/ytdlp/` in its source, confirmed by reading it directly --
+real yt-dlp, not Invidious) -- independent proof the same approach
+`music-search.py` already took was the architecturally sound one, not
+just a workaround invented here. rmpc's own CLI picker for it uses a
+plain text list with no thumbnails though, so `music-search.py` stays
+the actual search tool -- rmpc just plays whatever lands in `~/Music`
+afterward.
+
+**Theme, sizing, transparency, toggle -- all rebuilt for rmpc, applying
+what termusic's own setup already taught rather than rediscovering it**:
+- Theme built the same "read the tool's own real defaults, don't guess
+  the format" way as termusic's theme was -- `rmpc theme` dumps rmpc's
+  actual default (confirmed this is genuinely how it bootstraps a
+  custom theme), which turned out to be one deeply nested RON structure
+  with named colors ("blue", "yellow", "black", ...) woven through the
+  entire layout definition, not a separate flat palette the way
+  termusic's was. Every occurrence systematically substituted for its
+  Catppuccin Mocha hex equivalent -- `"blue"` specifically mapped to
+  Mauve (`#cba6f7`), not Catppuccin's own literal Blue, since "blue" is
+  the color rmpc's own default theme uses for every "this is active/
+  current/selected" role, exactly Mauve's existing role everywhere else
+  in this desktop.
+- `background_color`/`header_background_color` left `None` from the
+  start this time -- applying termusic's own hard-won lesson
+  (`Color::Reset`/no explicit paint lets kitty's `background_opacity`
+  actually blend) immediately rather than shipping an opaque background
+  and rediscovering the exact same bug a second time. Verified live:
+  screenshotted the real running window and found zero pixels of any
+  solid background color, Mauve clearly dominant across borders
+  (~26,000 matching pixels) -- the glass effect worked on the very
+  first real launch.
+- Sizing (`1152x540`, 60%/50% of the real `1920x1080` output) and the
+  scratchpad-based toggle (`rmpc-toggle.sh`) are close to line-for-line
+  the same mechanism already proven for termusic -- no reason to
+  redesign what was already verified working, MPD's own daemon/client
+  split just makes the "hiding the window never stops playback"
+  guarantee even stronger than termusic's client/server split was
+  (MPD keeps running with *zero* clients connected at all, not just a
+  hidden one).
+
+**A real image-protocol scare, resolved by finding the actual cause
+rather than assuming the setup was broken**: `rmpc debuginfo`, run
+directly in this same non-interactive session, reported the album-art
+protocol as `Block` (a crude ASCII fallback) instead of `Kitty` --
+despite `$KITTY_WINDOW_ID` and `$TERM=xterm-kitty` both being set.
+Traced it to the actual cause before assuming a real bug: `tty` in this
+exact session reports "not a tty" -- the environment variables are
+inherited from a parent process, but this session's own shell was never
+attached to a genuine terminal device, which is what kitty's graphics
+protocol actually needs regardless of which env vars happen to be set.
+Checked rmpc's *own* log from the real, actual launch path instead
+(`kitty --class rmpc -e rmpc`, the same command the real keybinding
+uses) and found `resolved_backend="Kitty"`, `kitty_graphics="true"` --
+the real graphics protocol is genuinely active for the path that
+actually matters, the failed detection was purely an artifact of how
+this one diagnostic command happened to be run.
 
 ## music-search.py: replacing termusic's broken search with a direct-to-yt-dlp tool
 

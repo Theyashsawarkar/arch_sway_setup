@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
 """Search + download a song straight from YouTube, no Invidious involved.
 
-Built to replace termusic's own `s` (youtube_search) popup, which turned
-out to be entirely dependent on the public Invidious instance network --
-confirmed dead across the board (checked the live instance directory
-directly: 0 of 11 currently-listed public instances have their API
-enabled at all), not something a termusic upgrade would fix either
-(checked upstream's own changelog -- still Invidious-based, no
-alternative backend exists). yt-dlp itself was independently confirmed
-to search and download from YouTube directly with zero involvement from
-that broken network, so this rebuilds "search, pick a result, get an
-mp3 in ~/Music" on top of that instead -- matching this repo's own
-established pattern (wifi-picker.py, bluetooth-picker.py) of building a
-small, self-contained script when no existing tool actually does the
-job reliably.
+Originally built to replace termusic's own `s` (youtube_search) popup,
+which turned out to be entirely dependent on the public Invidious
+instance network -- confirmed dead across the board (checked the live
+instance directory directly: 0 of 11 currently-listed public instances
+have their API enabled at all). termusic itself has since been replaced
+entirely (rmpc + MPD now, see docs/ARCHITECTURE.md), but this script's
+own job hasn't changed: search+download was never MPD's or rmpc's
+problem to solve, it's the same standalone "get a real mp3 into
+~/Music" step regardless of which player actually plays it afterward.
+yt-dlp itself was independently confirmed to search and download from
+YouTube directly with zero involvement from Invidious, so this rebuilds
+"search, pick a result, get an mp3 in ~/Music" on top of that --
+matching this repo's own established pattern (wifi-picker.py,
+bluetooth-picker.py) of building a small, self-contained script when no
+existing tool actually does the job reliably.
 
 Flow: wofi prompt for a query -> yt-dlp search (fast, ~2-3s, --flat-playlist
 so it only fetches search-result-page metadata, not per-video detail) ->
@@ -33,18 +35,26 @@ downloaded cleanly every time with this flag -- a known, standard
 workaround (the android player API isn't gated behind the same
 web-based verification), not something invented here.
 
-Termusic doesn't auto-detect new files while running (no filesystem
-watcher in its source, confirmed by reading it -- library scanning only
-happens at startup and on explicit navigation) -- a track downloaded
-here while termusic is already open won't appear until you navigate out
-of the music root and back in, or restart it. Not solved further here;
-just worth knowing rather than assuming it "just works".
+MPD (rmpc's own backend, replacing termusic) has a real filesystem
+watcher (`auto_update "yes"`, `mpd/.config/mpd/mpd.conf`) -- unlike
+termusic, which had none in its source (confirmed by reading it, back
+when that was still the player here) -- so a track downloaded here
+shows up in rmpc's library on its own, no restart or manual rescan
+needed. Confirmed directly, not just assumed from the config option's
+name: watched MPD's own log after dropping a file into ~/Music outside
+of any client being open at all, and it picked up the change
+unprompted.
 """
+import concurrent.futures
 import glob
+import html
 import json
 import os
+import shutil
 import subprocess
 import sys
+import tempfile
+import urllib.request
 
 MUSIC_DIR = os.path.expanduser("~/Music")
 
@@ -107,35 +117,78 @@ def format_duration(seconds):
     return f"{seconds // 60}:{seconds % 60:02d}"
 
 
-def pick_result(results):
-    lines = []
-    lookup = {}
-    for d in results:
-        title = (d.get("title") or "?").replace("\n", " ")
-        uploader = d.get("uploader") or d.get("channel") or "?"
-        dur = format_duration(d.get("duration"))
-        line = f"{title}  --  {uploader}  ({dur})"
-        lines.append(line)
-        lookup[line] = d
+def fetch_thumbnail(video_id, dest_dir):
+    """YouTube's `mqdefault.jpg` is a fixed, unsigned URL shape (no
+    per-request query-string tokens the way the URLs in yt-dlp's own
+    `thumbnails` JSON array have) -- confirmed directly it resolves
+    (200, ~11-18KB, a real 320x180 jpeg) without needing to parse or
+    pick from that array at all. Small enough that fetching all ~10
+    results concurrently is fast (confirmed directly: ~0.4s for 10, not
+    the multiple-seconds-serial it'd be one at a time)."""
+    path = os.path.join(dest_dir, f"{video_id}.jpg")
+    try:
+        with urllib.request.urlopen(
+            f"https://i.ytimg.com/vi/{video_id}/mqdefault.jpg", timeout=5
+        ) as r:
+            with open(path, "wb") as f:
+                f.write(r.read())
+        return path
+    except Exception:
+        return None
 
-    proc = subprocess.run(
-        [
-            "wofi",
-            "--dmenu",
-            "--insensitive",
-            "--matching",
-            "fuzzy",
-            "--prompt",
-            "Pick a track...",
-            "--lines",
-            "10",
-        ],
-        input="\n".join(lines),
-        capture_output=True,
-        text=True,
-    )
-    sel = proc.stdout.strip()
-    return lookup.get(sel)
+
+def pick_result(results):
+    # A row with just text ("only text doesn't make that much sense",
+    # reported directly) doesn't actually tell you much about a video --
+    # the thumbnail is what makes a search result recognizable at a
+    # glance the way it would be on YouTube itself. wofi's own `img:`
+    # dmenu markup (--allow-images, already used the same way in
+    # notification-history.py) handles this directly; no need to build
+    # anything bespoke.
+    thumb_dir = tempfile.mkdtemp(prefix="music-search-thumbs-")
+    try:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as ex:
+            thumb_paths = list(
+                ex.map(lambda d: fetch_thumbnail(d.get("id"), thumb_dir), results)
+            )
+
+        lines = []
+        lookup = {}
+        for d, thumb in zip(results, thumb_paths):
+            title = (d.get("title") or "?").replace("\n", " ")
+            uploader = d.get("uploader") or d.get("channel") or "?"
+            dur = format_duration(d.get("duration"))
+            text = f"<b>{html.escape(title)}</b>  --  {html.escape(uploader)}  ({dur})"
+            prefix = f"img:{thumb}:text:" if thumb else "text:"
+            line = f"{prefix}{text}"
+            lines.append(line)
+            lookup[line] = d
+
+        proc = subprocess.run(
+            [
+                "wofi",
+                "--dmenu",
+                "--allow-images",
+                "--allow-markup",
+                "--insensitive",
+                "--matching",
+                "fuzzy",
+                "--prompt",
+                "Pick a track...",
+                "--lines",
+                "10",
+            ],
+            input="\n".join(lines),
+            capture_output=True,
+            text=True,
+        )
+        sel = proc.stdout.strip()
+        return lookup.get(sel)
+    finally:
+        # Only needed for wofi to have something to read while the list
+        # is open -- nothing downstream (the download step) touches
+        # these, so they're safe to clean up unconditionally afterward.
+        shutil.rmtree(thumb_dir, ignore_errors=True)
 
 
 def download(video_id, title):
@@ -207,8 +260,8 @@ def download(video_id, title):
     # The separate thumbnail file's only purpose was this notification
     # icon -- the mp3 already has the same art embedded
     # (--embed-thumbnail above). Removing it afterward keeps ~/Music a
-    # clean folder of just tracks for termusic's own library scan,
-    # instead of a stray image file sitting next to every song.
+    # clean folder of just tracks for MPD's own library scan, instead
+    # of a stray image file sitting next to every song.
     for t in thumbs:
         try:
             os.remove(t)

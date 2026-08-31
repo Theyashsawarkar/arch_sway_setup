@@ -35,6 +35,7 @@ linux
 linux-firmware
 mako
 mesa-utils
+mpd
 neovim
 networkmanager
 networkmanager-dmenu
@@ -56,6 +57,7 @@ qt6-multimedia-ffmpeg
 qt6-svg
 qt6-virtualkeyboard
 ripgrep
+rmpc
 sddm
 seahorse
 slurp
@@ -65,7 +67,6 @@ sudo
 swaybg
 swayidle
 swayimg
-termusic
 thunar
 tmux
 tree

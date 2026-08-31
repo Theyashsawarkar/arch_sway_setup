@@ -5,6 +5,64 @@ along the way. Newest first. Version markers (`## vX.Y.Z`) mark release
 boundaries on top of the dated entries -- see `docs/VERSIONING.md` for the
 full branch/release process.
 
+## 2026-08-31 (termusic removed entirely: mpd + rmpc instead)
+
+Direct feedback: "termusic isn't of any use then, lets use a better tui
+or cli local music player then and remove this damn termusic." Rather
+than keep patching around its one real problem forever, swapped the
+player out too.
+
+termusic fully removed: package uninstalled, ~/.config/termusic/
+deleted, termusic/ package and termusic-toggle.sh gone from this repo.
+Every historical entry that talks about termusic is left as written --
+real history, not rewritten.
+
+mpd (official extra repo, mpd.service shipped by the package itself) is
+the new backend -- zero third-party API dependency at all, just plays
+real files. Confirmed its filesystem watcher genuinely works (dropped a
+file into ~/Music with no clients connected, watched it get indexed
+within seconds), a real improvement over termusic which had none.
+
+rmpc (official extra repo, 3.3k stars, actively maintained) is the new
+UI, an MPD client with no playback logic of its own. Validating find:
+rmpc ships its own yt-dlp-based YouTube downloader too (confirmed
+reading its source, real yt-dlp not Invidious) -- independent proof
+music-search.py's own approach was the right one. Its own picker has no
+thumbnails though, so music-search.py stays the actual search tool.
+
+Theme/sizing/transparency/toggle rebuilt applying termusic's own
+lessons instead of rediscovering them: rmpc theme dumped its real
+default (one big RON structure with named colors threaded through the
+whole layout, not a flat palette) and every color got substituted for
+Catppuccin Mocha ("blue" specifically mapped to Mauve, matching its
+role as this desktop's own "active" accent). background_color left
+None from the start this time -- verified live, zero pixels of solid
+background, Mauve dominant, glass worked on the first real launch, no
+rediscovering the bug termusic needed a dedicated fix for.
+
+Real scare resolved by finding the actual cause: rmpc debuginfo
+reported the album-art protocol as the crude "Block" fallback instead
+of "Kitty" -- traced to this session's own shell not being a real tty
+(env vars inherited, not backed by a real terminal), not an actual
+setup problem. Checked rmpc's own log from the real launch path instead
+and found resolved_backend="Kitty", kitty_graphics="true" -- genuinely
+active for the path that matters.
+
+## 2026-08-31 (music-search.py: real thumbnails in the results list)
+
+Reported directly: "only text doesn't make that much sense, show
+thumbnail and title in each row." wofi's own img: dmenu markup handles
+it (same mechanism notification-history.py already uses) -- just needed
+a thumbnail source. YouTube's plain https://i.ytimg.com/vi/<id>/mqdefault.jpg
+URL (confirmed directly with curl, not assumed) is simpler and more
+reliable than the signed URLs in yt-dlp's own thumbnails JSON. Fetched
+for all ~10 results concurrently (confirmed: ~0.4s together vs several
+seconds serial), cleaned up after the picker closes either way.
+
+Verified live: checked the temp directory's actual contents while the
+real results popup was open (through the real keybinding, real typed
+input) -- ten real, valid JPEG files, confirmed with `file`.
+
 ## 2026-08-31 (music-search.py: replacing termusic's broken search with our own tool)
 
 Asked directly to build a replacement rather than live with the
