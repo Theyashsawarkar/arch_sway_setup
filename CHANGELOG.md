@@ -5,6 +5,46 @@ along the way. Newest first. Version markers (`## vX.Y.Z`) mark release
 boundaries on top of the dated entries -- see `docs/VERSIONING.md` for the
 full branch/release process.
 
+## 2026-08-31 (termusic: CLI music player, no local library or Premium needed)
+
+Asked for a "beautiful CLI" music player with no local library and no
+Spotify/YouTube Premium to lean on. Picked termusic -- its own README
+says directly it downloads from YouTube/NetEase/Migu/KuGou for free, no
+paid membership needed. Ruled out spotify-player/ncspot (both need
+Spotify Premium to actually play anything, a restriction Spotify itself
+enforces) and rmpc/cmus (both local-library-only, no cloud fetch at
+all) directly against the constraint rather than assuming.
+
+Confirmed the actual mechanic from its own source: `s` opens a
+"Download url or search" popup, picks a YouTube result, downloads via
+yt-dlp into ~/Music, plays -- works from a genuinely empty library.
+Directly in Arch's official extra repo, no AUR/source build. Added
+yt-dlp alongside it in packages/pacman.txt.
+
+Real version mismatch found by checking: upstream master ships an
+official Catppuccin-Mocha theme, but the installed package (0.13.2-1)
+predates it -- confirmed directly by launching termusic and checking its
+own bundled themes/ directory, genuinely missing. Copied the file in by
+hand. Theme baked into tui.toml's [theme] section rather than left as a
+manual step -- avoided guessing the TOML shape blind by launching once
+with no config, reading termusic's own generated defaults, then writing
+into that confirmed real shape.
+
+Only tui.toml/server.toml/the one theme file stowed, not the whole
+~/.config/termusic/ -- data.db/library2.db/playlist.log are runtime
+state, same config-vs-state line this repo already draws for
+~/.local/state/. Works because the directory already existed as real
+(termusic creates it itself) before stowing -- confirmed with
+`stow -n -v` that individual files get symlinked in, not the whole
+directory.
+
+$mod+Shift+m opens it in its own floating kitty window (sized/centered
+via a for_window rule). Verified live: triggered the real keybinding via
+simulated keypress, confirmed the floating window's position/size via
+swaymsg, screenshotted it running -- 88.6% of its pixels are the exact
+Catppuccin Mocha background hex, confirming the theme is genuinely
+active in the real instance.
+
 ## v1.0.1 -- 2026-08-30
 
 Patch release. The entire power-menu arc since v1.0.0 -- keybinding,

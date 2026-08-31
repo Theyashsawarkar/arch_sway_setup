@@ -29,6 +29,7 @@ happens on `develop`; `main` only ever moves via a tested, tagged release.
 | `networkmanager-dmenu` | `~/.config/networkmanager-dmenu/` | Wi-Fi picker triggered from waybar's `network` module `on-click` -- replaced `nwg-bar`'s static wifi.json (On/Off/Settings buttons, no scan list) with a real scan → click a network → password-prompt-if-needed → connect flow, plus Wi-Fi on/off toggle and a `nm-connection-editor` shortcut, all in one menu. From the official `extra` repo, not AUR. Uses `wofi --dmenu` as its menu backend (`dmenu_command = wofi` in `config.ini`) -- confirmed via reading the tool's own source (`networkmanager_dmenu`, the Python script itself) that it has first-class wofi support, not just generic dmenu-protocol compatibility: it auto-detects `wofi` and appends wofi's own `-P`/`--password` flag for the passphrase prompt (masks input, confirmed via `wofi --help` that flag exists locally), and has wofi-specific highlight markup for the currently-connected network. Smoke-tested `wofi --dmenu` with a piped test list before wiring this up, given this repo's prior history of real wofi `--dmenu` bugs (see the `nwg-bar` row above) -- rendered a normal solid popup with no issue, since those earlier bugs were specifically about forcing a *button-grid* layout through `--dmenu`, not this tool's plain vertical list usage. List entries show icon+name only (`format = {icon}  {name}` in `config.ini`) -- no visible signal%/bars/security text, `wifi_icons` (5 Material Design strength glyphs, `U+F092F`..`U+F0928`, verified present in the installed font via `fc-query` the same way every other icon in this repo is verified) carries the strength instead. **Wofi's dmenu list has no per-item hover-tooltip support at all** (checked: no such feature exists in wofi) -- so "see full detail on hover" genuinely isn't achievable with this tool, not a partial implementation of it. |
 | `wifi-picker.py` | `~/.local/bin/wifi-picker.py` (`scripts/` package) | Themed wrapper around the installed `networkmanager_dmenu` -- waybar's `network` module `on-click` runs this instead of calling `networkmanager_dmenu` directly. Adds category-based colors (Sky for a real network, Peach for a command like Rescan/Enable/Disable/Launch-Editor, Teal for a saved connection) so the menu's different kinds of rows are visually distinguishable at a glance -- upstream only colors the single active/connected line, everything else renders identically. Loads `/usr/bin/networkmanager_dmenu` at runtime via `importlib` (`spec_from_loader` with an explicit `SourceFileLoader`, since `spec_from_file_location` can't infer a loader for a file with no `.py` extension -- returns `None` silently rather than raising, confirmed by hitting it) and monkeypatches exactly two functions (`get_wofi_highlight_markup`, `get_selection`) rather than forking the whole ~1500-line script -- every actual NetworkManager interaction still runs the real, maintained upstream code. Category is detected via `Action.func` identity (`process_ap` == a real network; `toggle_wifi`/`rescan_wifi`/`launch_connection_editor`/`delete_connection`/`show_wifi_password`/`prompt_saved` == a command) plus the `":SAVED"` suffix upstream already appends to saved-connection names -- wrapped in a `try/except AttributeError` so an upstream refactor degrades to "no color" instead of crashing the whole picker. **A real, confirmed pitfall while verifying this**: a background-launched test process reliably vanished between one tool call and the next in this remote session (`setsid ... &` in one shell invocation, checked with `pgrep` in a separate one) even though `setsid` should detach it -- the remote execution environment doesn't appear to preserve backgrounded processes across separate calls the way a persistent terminal would. This produced a false "the colors aren't rendering" result once, from screenshotting a stale/empty window. The real fix for testing this kind of thing here: launch, wait, and screenshot all within one single tool call -- confirmed correct rendering (Sky/Mauve/Teal all found via pixel search in a live window) once tested that way. |
 | `mako`     | `~/.config/mako/`                       | Notifications |
+| `termusic` | `~/.config/termusic/`                   | Terminal music player, streams/downloads via `yt-dlp` -- no Spotify/YouTube Premium needed. Only `tui.toml`/`server.toml`/one theme file tracked, not the whole directory -- see its own `README.md` for why. |
 | `kitty`    | `~/.config/kitty/`                      | Terminal, incl. the Nerd Font setting everything else depends on |
 | `tmux`     | `~/.config/tmux/`, `~/.tmux/scripts/`   | Multiplexer config + the docker status-bar script |
 | `nvim`     | `~/.config/nvim/`                       | Editor |
@@ -747,6 +748,95 @@ Verified by pixel-comparing a cell's right border against its neighbor's
 left border at the same row: both sides now render the same color
 consistently (e.g. `(70,62,88)` on both, at multiple rows) -- symmetric,
 not just "present."
+
+## termusic: a CLI music player with no local library and no Premium subscription
+
+Asked for a "beautiful CLI" music player, explicit constraints: no
+local music library to start from, no Spotify or YouTube Premium
+subscription to lean on -- it needs to actually fetch music from the
+cloud itself.
+
+**Picked termusic specifically because it says the quiet part out
+loud** in its own README: *"You can download from YouTube, NetEase,
+Migu and KuGou for free. No need to register for monthly paid
+memberships."* Ruled out the other well-known "beautiful TUI music
+player" options directly against that constraint rather than assuming:
+`spotify-player`/`ncspot` both require Spotify Premium to actually play
+anything (a restriction Spotify itself enforces on third-party
+Connect/librespot clients, not something either project can route
+around); `rmpc`/`cmus` are both local-library-only, no built-in way to
+pull anything from the cloud at all. termusic was the only candidate
+that actually solves "flashy *and* no subscription *and* no existing
+library" simultaneously.
+
+**Confirmed the actual cloud-fetch mechanic from its own source before
+relying on it**, not assumed from the README's marketing copy alone:
+`s` (default `library_keys.youtube_search` binding) opens a "Download
+url or search:" popup -- type a song/artist name, pick a result, it
+downloads the audio via `yt-dlp` straight into `~/Music`, adds it to
+the playlist, and plays. Works from a genuinely empty `~/Music` --
+nothing needs to exist beforehand, the library builds itself purely
+from searching.
+
+**Directly in Arch's official `extra` repo** (`packages/pacman.txt`) --
+no AUR, no building a Rust project from source, which its own MSRV
+requirement (`1.90.0`) would have made a real wait. `yt-dlp` added
+alongside it (the actual thing that lets it reach YouTube at all);
+`ffmpeg`/`kitty` were already installed.
+
+**A real version mismatch, found by checking rather than assuming
+current-upstream matches the installed package**: upstream `master`
+ships an official `Catppuccin-Mocha.yml` theme in its own source tree
+(exact ANSI-color match to the canonical Catppuccin terminal spec, not
+a close approximation) -- but the Arch package here is `0.13.2-1`,
+built before that theme existed upstream. Confirmed directly: launched
+termusic once, let it create its own `~/.config/termusic/themes/`
+(214 bundled files), and it genuinely wasn't among them. Copied the
+file in by hand from upstream's source tree instead of trusting the
+installed version to already have it.
+
+**Theme selection baked in, not left as a manual first-run step** --
+avoided guessing the TOML shape of a nested Rust config struct blind
+(a real risk this session has been burned by more than once elsewhere,
+e.g. waybar's broken `format-icons` threshold form): launched termusic
+with no config at all first, let it generate its own real defaults, and
+read the actual resulting `tui.toml`'s `[theme]`/`[theme.primary]`/
+`[theme.cursor]`/`[theme.normal]`/`[theme.bright]` shape directly before
+writing anything, rather than inferring it from the Rust source's field
+names alone. Wrote the Catppuccin Mocha hex values into that exact
+confirmed shape.
+
+**Config vs. state, same line this repo draws everywhere else**: only
+`tui.toml`, `server.toml`, and the one theme file are stowed into this
+repo -- `~/.config/termusic/` also holds `data.db`/`library2.db`/
+`playlist.log` (a real SQLite library index and playback queue, not
+configuration) and termusic's own 213 other bundled theme files, all
+deliberately left as real local files, not symlinked in, the same
+config-vs-state boundary already established for
+`~/.local/state/notification-mode/` and `~/.local/state/caffeine/`.
+This works cleanly because `~/.config/termusic/` already existed as a
+real directory (termusic creates it itself on first run) *before* this
+package was ever stowed -- confirmed with `stow -n -v` first that GNU
+Stow's own tree-folding behavior symlinks the three individual files in
+rather than replacing the whole directory with one symlink, which would
+have pulled the runtime databases into version control right along with
+them.
+
+**Launch**: `$mod+Shift+m` opens it in its own floating kitty window
+(`kitty --class termusic -e termusic`, sized/centered via
+`for_window [app_id="^termusic$"]` in `sway/config`) -- floating on
+purpose, not tiled, the same reasoning as every other "glance at it,
+dismiss it" tool in this setup rather than something that permanently
+claims a tiling slot.
+
+**Verified live end to end, not just "should work"**: triggered the
+real `$mod+Shift+m` keybinding via a simulated keypress (not the launch
+command run manually), confirmed via `swaymsg -t get_tree` that a
+900x700 floating window opened at the expected centered position, and
+screenshotted the actual running window -- 88.6% of its pixels are the
+exact Catppuccin Mocha background hex (`#1e1e2e`), confirming the theme
+is genuinely active in the real keybinding-launched instance, not just
+a separately-tested one.
 
 ## Power menu, polish pass: label rename, thinner icons, real icon/label gap
 

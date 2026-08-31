@@ -65,6 +65,7 @@ sudo
 swaybg
 swayidle
 swayimg
+termusic
 thunar
 tmux
 tree
@@ -84,6 +85,7 @@ xdg-desktop-portal-wlr
 xorg-xwayland
 yazi
 ydotool
+yt-dlp
 zed
 zenity
 zoxide
