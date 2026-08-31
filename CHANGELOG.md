@@ -5,6 +5,41 @@ along the way. Newest first. Version markers (`## vX.Y.Z`) mark release
 boundaries on top of the dated entries -- see `docs/VERSIONING.md` for the
 full branch/release process.
 
+## 2026-09-01 (rmpc's theme, round two: colored everything still left plain)
+
+Immediate follow-up: "can't we add some more colors to this tui and
+make it more colorfull like our status bar?" The first theming pass
+only touched the playback header and toggle cluster -- the file
+browser, table column headers, preview metadata, tab bar, scrollbar,
+and elapsed/bitrate line were all still plain default text. Went
+through every remaining unstyled field, reusing the same waybar-matched
+hues plus the two waybar colors nothing had used yet (Blue `#89b4fa` =
+waybar's `#clock.time`, Rosewater `#f5e0dc` = waybar's wallpaper
+button):
+
+- Browser row markers (`symbols.song_style`/`dir_style`/
+  `playlist_style`, all `None` before): Sky, Blue, Rosewater.
+- Browser row text (Artist/Title, previously unstyled): Lavender and
+  Sky, deliberately matching the playback header's own colors for the
+  same fields.
+- Table column headers (Artist/Title/Album/Duration, previously
+  unstyled): Lavender/Sky/Rosewater/Peach -- header row only, actual
+  song rows stayed mostly neutral so a long table stays scannable.
+- `tab_bar.inactive_style` (previously empty): waybar's own off-gray
+  `#6c7086` -- doubles as a real legibility fix, not just decoration.
+- `preview_metadata_group_style` (was identical Yellow to its own
+  label): Blue, now genuinely distinct from the label.
+- `elapsed_and_bitrate` (had zero color): Green `#a6e3a1`.
+- `scrollbar.ends_style` (previously empty): same off-gray as inactive
+  tabs.
+
+Verified the same way as before: relaunched, zero theme-parse errors,
+screenshotted and pixel-matched. `dir_style`'s Blue only shows on the
+Directories tab (Queue is the default), so switched tabs with a real
+simulated keypress before screenshotting rather than treating a
+zero-match result as evidence of a bug. Every color checked came back
+an exact RGB match.
+
 ## 2026-09-01 (rmpc's theme: recolored by role, matched to waybar's own palette)
 
 Direct feedback: "can we improve the theming of the music player here i

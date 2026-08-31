@@ -11,7 +11,7 @@
     modal_background_color: "#11111b",
     modal_backdrop: false,
     preview_label_style: (fg: "#f9e2af"),
-    preview_metadata_group_style: (fg: "#f9e2af", modifiers: "Bold"),
+    preview_metadata_group_style: (fg: "#89b4fa", modifiers: "Bold"),
     highlighted_item_style: (fg: "#cba6f7", modifiers: "Bold"),
     current_item_style: (fg: "#11111b", bg: "#cba6f7", modifiers: "Bold"),
     borders_style: (fg: "#cba6f7"),
@@ -22,9 +22,9 @@
         playlist: "P",
         marker: "M",
         ellipsis: "...",
-        song_style: None,
-        dir_style: None,
-        playlist_style: None,
+        song_style: (fg: "#89dceb"),
+        dir_style: (fg: "#89b4fa"),
+        playlist_style: (fg: "#f5e0dc"),
     ),
     level_styles: (
         info: (fg: "#74c7ec", bg: "#11111b"),
@@ -43,12 +43,12 @@
     scrollbar: (
         symbols: ["│", "█", "▲", "▼"],
         track_style: (),
-        ends_style: (),
+        ends_style: (fg: "#6c7086"),
         thumb_style: (fg: "#cba6f7"),
     ),
     tab_bar: (
         active_style: (fg: "#11111b", bg: "#cba6f7", modifiers: "Bold"),
-        inactive_style: (),
+        inactive_style: (fg: "#6c7086"),
     ),
     lyrics: (
         timestamp: false
@@ -62,9 +62,9 @@
         ),
         (
             kind: Group([
-                (kind: Property(Artist)),
+                (kind: Property(Artist), style: (fg: "#b4befe")),
                 (kind: Text(" - ")),
-                (kind: Property(Title)),
+                (kind: Property(Title), style: (fg: "#89dceb")),
             ]),
             default: (kind: Property(Filename))
         ),
@@ -74,28 +74,28 @@
             prop: (kind: Property(Artist),
                 default: (kind: Text("Unknown"))
             ),
-            label_prop: (kind: Text("Artist")),
+            label_prop: (kind: Text("Artist"), style: (fg: "#b4befe")),
             width: "20%",
         ),
         (
             prop: (kind: Property(Title),
                 default: (kind: Text("Unknown"))
             ),
-            label_prop: (kind: Text("Title")),
+            label_prop: (kind: Text("Title"), style: (fg: "#89dceb")),
             width: "35%",
         ),
         (
             prop: (kind: Property(Album), style: (fg: "#cdd6f4"),
                 default: (kind: Text("Unknown Album"), style: (fg: "#cdd6f4"))
             ),
-            label_prop: (kind: Text("Album")),
+            label_prop: (kind: Text("Album"), style: (fg: "#f5e0dc")),
             width: "30%",
         ),
         (
             prop: (kind: Property(Duration),
                 default: (kind: Text("-"))
             ),
-            label_prop: (kind: Text("Duration")),
+            label_prop: (kind: Text("Duration"), style: (fg: "#fab387")),
             width: "15%",
             alignment: Right,
         ),
@@ -188,12 +188,12 @@
         ),
         "elapsed_and_bitrate": Pane(Property(
             content: [
-                (kind: Property(Status(Elapsed))), 
+                (kind: Property(Status(Elapsed)), style: (fg: "#a6e3a1")), 
                 (kind: Text(" / ")), 
-                (kind: Property(Status(Duration))), 
+                (kind: Property(Status(Duration)), style: (fg: "#a6e3a1")), 
                 (kind: Group([
                     (kind: Text(" (")), 
-                    (kind: Property(Status(Bitrate))), 
+                    (kind: Property(Status(Bitrate)), style: (fg: "#a6e3a1")), 
                     (kind: Text(" kbps)")),
                 ])),
             ],

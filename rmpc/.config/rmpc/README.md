@@ -122,6 +122,50 @@ and color family, consistent with `#6c7086` plus the terminal's own
 anti-aliased glyph-edge pixels, but qualitatively confirmed rather than
 assumed.
 
+**Second follow-up**, immediately after: "can't we add some more
+colors to this tui and make it more colorfull like our status bar?" --
+the first pass had only touched the playback header and toggle
+cluster; everything else (the file browser, table column headers,
+preview metadata, tab bar, scrollbar, elapsed/bitrate line) was still
+plain default text. Went through every remaining unstyled field in the
+theme and colored it, reusing the same waybar-matched hues plus the
+two waybar colors nothing had used yet (`#89b4fa` Blue -- waybar's
+`#clock.time`, and `#f5e0dc` Rosewater -- waybar's wallpaper-refresh
+button):
+
+- `symbols.song_style`/`dir_style`/`playlist_style` (the browser's
+  per-row-type marker color, all three previously `None`): Sky, Blue,
+  Rosewater.
+- `browser_song_format`'s Artist/Title fields (the actual row text in
+  the file browser, previously unstyled): Lavender and Sky, matching
+  the playback header's own colors for the same two fields -- ties the
+  browser directly to "now playing" visually.
+- `song_table_format`'s column headers (Playlists/Search tabs, all four
+  previously unstyled): Artist Lavender, Title Sky, Album Rosewater,
+  Duration Peach -- header row only, left the actual song rows in each
+  column mostly neutral so a full table of many songs stays scannable
+  rather than turning into a wall of competing colors.
+- `tab_bar.inactive_style` (previously empty, default text): waybar's
+  own literal off-gray `#6c7086` -- doubles as a real legibility win,
+  not just decoration, since active (Mauve bg) vs. inactive tabs now
+  actually read differently instead of only differing by which one has
+  a filled background.
+- `preview_metadata_group_style` (previously identical Yellow to its
+  own label): Blue, so the label and the actual value read as two
+  different things.
+- `elapsed_and_bitrate` (previously zero color, plain text): Green
+  `#a6e3a1`.
+- `scrollbar.ends_style` (previously empty): the same off-gray as the
+  inactive tabs.
+
+Verified the same way as the first pass: relaunched, confirmed zero
+theme-parse errors and the process still alive, screenshotted, and
+pixel-matched. Song title/dir marker (Blue only shows on the
+Directories tab, so switched to it with a real simulated keypress
+first) and the elapsed-line Green all came back exact RGB matches;
+inactive tabs came back the right off-gray family across 575 sampled
+pixels once actually on a multi-tab screen.
+
 `background_color`/`header_background_color` left as `None` --
 confirmed hex colors are supported at all first (`grep`'d rmpc's own
 theme-parsing source for a hex test case before trusting it), then

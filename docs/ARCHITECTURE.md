@@ -1093,6 +1093,54 @@ low-contrast blue-gray in the right position and color family for
 on tiny anti-aliased glyph-edge pixels (too fine-grained a target for
 this method), but qualitatively confirmed rather than assumed correct.
 
+**Immediate follow-up**: "can't we add some more colors to this tui and
+make it more colorfull like our status bar?" The first pass only
+touched the playback header and the toggle cluster -- everything else
+(file browser rows, table column headers, preview metadata, tab bar,
+scrollbar, the elapsed/bitrate line) was still plain, unstyled default
+text. Went through every remaining `None`/empty style field in the
+theme this time, reusing the same waybar-matched hues plus the two
+waybar colors nothing had used yet: Blue `#89b4fa` (waybar's
+`#clock.time`) and Rosewater `#f5e0dc` (waybar's wallpaper-refresh
+button).
+
+- `symbols.song_style`/`dir_style`/`playlist_style` (the file browser's
+  per-row-type marker, all three previously `None`): Sky, Blue,
+  Rosewater respectively.
+- `browser_song_format`'s Artist/Title fields (actual browser row text,
+  previously unstyled): Lavender and Sky -- deliberately matching the
+  playback header's own Artist/Title colors, so the browser visually
+  ties back to "now playing" instead of being a separate, uncolored
+  world.
+- `song_table_format`'s column headers (Playlists/Search tabs): Artist
+  Lavender, Title Sky, Album Rosewater, Duration Peach. Header row
+  only -- left the actual per-song table rows mostly neutral on
+  purpose, so a long table of songs stays scannable instead of turning
+  into a wall of competing colors row after row.
+- `tab_bar.inactive_style` (previously empty/default text): waybar's
+  own off-gray `#6c7086` -- a real legibility improvement alongside the
+  aesthetic one, since active (filled Mauve) vs. inactive tabs
+  previously only differed by which one had a background fill, not by
+  any text-color difference too.
+- `preview_metadata_group_style` (previously identical Yellow to its
+  own `preview_label_style`): Blue, so a label and its value read as
+  two distinct things instead of one indistinguishable color.
+- `elapsed_and_bitrate` (previously zero color): Green `#a6e3a1`.
+- `scrollbar.ends_style` (previously empty): same off-gray as the
+  inactive tabs.
+
+Verified the same way as the first pass, not just "compiled without
+error": relaunched through the real keybinding, confirmed zero
+theme-parse errors and the process still alive, screenshotted, and
+pixel-matched. Most of these rendered immediately; `dir_style`'s Blue
+specifically only appears on the Directories tab (rmpc's default tab on
+launch is Queue), so switched tabs with a real simulated `2` keypress
+(`SwitchToTab("Directories")`, per `config.ron`) before screenshotting
+that one rather than accepting a zero-match result as evidence it was
+broken. Every color checked came back an exact RGB match; the inactive-
+tab off-gray came back the right color family across 575 sampled
+pixels once a genuine multi-tab screen was on-screen to sample from.
+
 ## music-search.py: replacing termusic's broken search with a direct-to-yt-dlp tool
 
 Follow-up to the search diagnosis below: asked directly to build a
