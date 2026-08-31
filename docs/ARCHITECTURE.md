@@ -966,6 +966,62 @@ rather than the original 50%. Changed `resize set 1152 540` to
 confirmed live via `swaymsg -t get_tree` showing the real window's rect
 at exactly `1152x648`, centered.
 
+## Every popup closes on Escape -- rmpc's floating window was the one real gap
+
+Direct feedback: "all popup modals should also hide when esc key is
+pressed as well." Audited every popup this desktop has rather than
+assuming which ones needed fixing:
+
+- **Every wofi-based popup** (`toggle-popup.sh`'s clients: launcher,
+  calc, clipboard, emoji, wifi, bluetooth, docker, notification
+  history, keybind search, music search) -- already closed on Escape,
+  confirmed by the comment already in `toggle-popup.sh` from when it
+  was built: wofi handles this itself natively, sway was never
+  intercepting or needing to intercept that key for these.
+- **nwg-bar (power menu)** -- tested live rather than assumed: opened it
+  via the real `$mod+Shift+p` path, sent a real synthetic Escape
+  keypress (`ydotool key 1:1 1:0`, keycode 1 = Escape), confirmed the
+  process exited and `toggle-popup.sh`'s own marker file was cleaned up
+  -- already correct, GTK's native handling again, no fix needed.
+- **rmpc's floating window** -- tested the same way, and this one really
+  was broken: focused the window, sent the same synthetic Escape, and
+  it stayed open. Root cause: rmpc's own `config.ron` already binds
+  `"<Esc>": Close` under `keybinds.navigation`, but that's rmpc's own
+  internal action for closing a modal *inside* rmpc (a save-playlist
+  prompt, etc.) -- it has no idea sway's scratchpad exists, so with no
+  internal modal open, Escape was a no-op as far as the window's
+  visibility was concerned.
+
+Fixed with a new dedicated script, `rmpc-hide.sh` (just
+`swaymsg '[app_id="^rmpc$"] scratchpad show'`, the same hide rmpc-
+toggle.sh's second press already does), wired in via a **per-window**
+kitty keybinding override on rmpc's own launch line only:
+`-o "map escape launch --type=background $HOME/.local/bin/rmpc-hide.sh"`
+-- rebinds Escape for this one kitty instance before it ever reaches
+rmpc's pty, `kitty/kitty.conf`'s own global map table untouched. A
+separate script rather than inlining the `swaymsg` call directly in
+that `-o` value: the value already needs one layer of shell quoting to
+reach kitty as a single argument, and nesting `[app_id="^rmpc$"]`'s own
+quotes inside that is exactly the kind of thing that goes silently
+wrong instead of erroring loudly -- a real script file sidesteps it.
+
+Verified live end-to-end through the real mechanism, not just that the
+override was accepted: killed the running rmpc, relaunched via the real
+`$mod+Shift+m` keybinding, confirmed via `swaymsg -t get_tree` the
+window was visible, focused it, sent a synthetic Escape, confirmed
+`visible` flipped to `false` -- and confirmed the rmpc process itself
+was still alive and `mpd.service` still active (hiding never touches
+either, exactly like every other press of the same keybinding). Then
+toggled it back open once more to confirm the existing show-path
+(`rmpc-toggle.sh`'s `pgrep -x rmpc` branch) still worked normally.
+
+**Known, deliberate tradeoff**: this makes rmpc's own internal
+`Close` action unreachable via Escape specifically for this window
+(kitty eats the key before rmpc ever sees it). Not a real loss, though
+-- `"<C-c>": Close` is bound to the exact same action in `config.ron`
+already, so closing an internal rmpc modal still has a working key,
+just Ctrl+C instead of Escape from now on.
+
 ## music-search.py: replacing termusic's broken search with a direct-to-yt-dlp tool
 
 Follow-up to the search diagnosis below: asked directly to build a

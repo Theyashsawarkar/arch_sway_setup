@@ -46,5 +46,16 @@ else
     # behind it. Matched that same ratio here instead of re-deriving a
     # new one: kitty's global 0.85 was already correct, blur was the
     # missing piece, not opacity.
-    setsid kitty --class rmpc -e rmpc >/dev/null 2>&1 &
+    #
+    # -o "map escape launch ..." rebinds Escape for THIS kitty instance
+    # only (kitty/kitty.conf's own global map table is untouched) to run
+    # rmpc-hide.sh instead of passing the key through to rmpc's own pty --
+    # makes Escape hide the whole popup, matching every other popup in
+    # this desktop (wofi's are native, nwg-bar's is native, this one
+    # wasn't). See rmpc-hide.sh's own comment for why a separate script
+    # instead of inlining the swaymsg call here, and for the tradeoff
+    # this makes with rmpc's own internal Esc-bound `Close` action.
+    setsid kitty --class rmpc \
+        -o "map escape launch --type=background $HOME/.local/bin/rmpc-hide.sh" \
+        -e rmpc >/dev/null 2>&1 &
 fi

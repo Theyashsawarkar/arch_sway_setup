@@ -5,6 +5,35 @@ along the way. Newest first. Version markers (`## vX.Y.Z`) mark release
 boundaries on top of the dated entries -- see `docs/VERSIONING.md` for the
 full branch/release process.
 
+## 2026-08-31 (every popup closes on Escape -- rmpc's window was the one real gap)
+
+Direct feedback: "all popup modals should also hide when esc key is
+pressed as well." Audited every popup rather than guessing which ones
+needed it: every wofi-based popup (`toggle-popup.sh`'s clients) already
+closed on Escape natively, and nwg-bar (power menu) did too, confirmed
+live with a real synthetic Escape keypress (`ydotool key 1:1 1:0`) after
+opening each through its real keybinding.
+
+rmpc's floating window was the actual gap -- tested the same way and it
+stayed open. rmpc's own `config.ron` binds `"<Esc>": Close` already, but
+that's an internal rmpc action (closes a modal *inside* rmpc), not
+anything that knows about sway's scratchpad, so Escape was a no-op with
+no internal modal open.
+
+Fixed with a new script (`scripts/.local/bin/rmpc-hide.sh`, just the
+same `swaymsg scratchpad show` rmpc-toggle.sh's second press already
+runs) wired in via a per-window kitty keybinding override on rmpc's own
+launch line -- rebinds Escape for that one instance only, before it
+reaches rmpc's pty, `kitty.conf`'s global map table untouched. Verified
+end-to-end through the real keybinding: window opened, focused,
+Escape sent, `swaymsg -t get_tree` confirmed `visible: false`, rmpc
+process and mpd.service both still alive throughout, then toggled back
+open once more to confirm the existing show-path still works.
+
+Known tradeoff, not a real loss: rmpc's own internal `Close` action is
+also bound to `<C-c>` already, so it still has a working key, just
+Ctrl+C instead of Escape for this window from now on.
+
 ## 2026-08-31 (rmpc: real compositor blur, not opacity tricks, plus a bigger window)
 
 Direct, immediate follow-up to the entry right below: "lets make its
