@@ -67,10 +67,22 @@ confirmed hex colors are supported at all first (`grep`'d rmpc's own
 theme-parsing source for a hex test case before trusting it), then
 applied the same lesson termusic's own transparency fix already
 established this session: `None` here means "don't paint an explicit
-background at all", letting kitty's own `background_opacity 0.85`
-(`kitty/kitty.conf`, already set globally) blend against the desktop
-wallpaper behind it, unprompted -- didn't have to rediscover that
-problem a second time.
+background at all", letting kitty's own `background_opacity` blend
+against the desktop wallpaper behind it.
+
+That mechanism alone technically worked at kitty's global default
+(0.85), but not perceptibly so on a window this large (1152x540, over
+half the screen) -- direct feedback afterward was "lets make its
+background glass like", i.e. 0.85 wasn't actually reading as glass in
+practice. Fixed with a per-window override, not a global one --
+`-o background_opacity=0.3` on rmpc's own kitty launch line
+(`../../scripts/.local/bin/rmpc-toggle.sh`), leaving `kitty/kitty.conf`
+itself untouched for every other terminal use. See that script's own
+comment block for the full measurement methodology (whole-window pixel
+averaging was tried first and proved too noisy to trust; a fixed,
+confirmed-empty patch sampled at the real toggle-triggered window
+position is what actually gave a reliable, repeatable signal) and the
+final verified numbers.
 
 ## Verified live, not assumed correct from reading the config alone
 
@@ -79,9 +91,11 @@ problem a second time.
   window opened at the expected centered position.
 - Screenshotted the running window: found Mauve (`#cba6f7`, ~26,000
   matching pixels) clearly dominant across borders/highlights, and zero
-  pixels of the theme's own solid background color -- confirming the
-  same real glass blending termusic needed a dedicated fix for here
-  worked immediately, on the first real launch.
+  pixels of the theme's own solid background color -- confirming
+  `background_color: None` itself was correctly wired from the first
+  real launch. The perceptual strength of the resulting blend still
+  needed its own follow-up (see "Theme" above) once it became clear
+  0.85 alone wasn't glass-like enough on a window this size.
 - `rmpc debuginfo`, run directly from this same non-interactive
   session, reported the image protocol as "Block" (the crude ASCII
   fallback) rather than "Kitty" -- traced this to the session's own

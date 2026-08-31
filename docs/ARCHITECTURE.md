@@ -878,6 +878,64 @@ the real graphics protocol is genuinely active for the path that
 actually matters, the failed detection was purely an artifact of how
 this one diagnostic command happened to be run.
 
+## rmpc's floating window: actually glass, not just technically transparent
+
+Direct feedback right after the migration above: "lets make its
+background glass like." The theme already had `background_color: None`
+(carried over proactively from termusic's own transparency fix, see
+below), and kitty's global `background_opacity 0.85` was blending
+against it -- technically working, but not perceptibly so on a window
+this large (1152x540, over half this machine's screen). A subtle blend
+that reads fine on a small popup (wofi, mako) is much easier to miss on
+something covering that much of the display.
+
+Fixed with a **per-window** kitty override, not a global one:
+`-o background_opacity=0.3` added to rmpc's own kitty launch line in
+`scripts/.local/bin/rmpc-toggle.sh`. `kitty/kitty.conf`'s global 0.85
+stays untouched -- every other terminal use is unaffected.
+
+Landing on a trustworthy number took several wrong turns worth
+recording, since the methodology mistakes are easy to repeat:
+
+- **First attempt**: compared kitty 0.85 vs. 0.5 via whole-window pixel
+  averaging against a same-region wallpaper-only screenshot, but at a
+  DIFFERENT screen position than rmpc's actual `for_window`-matched
+  spot -- looked convincing (0.5 showed a much bigger delta) but wasn't
+  measuring the real window position at all.
+- **Second attempt**: re-tested through the real toggle keybinding, at
+  the real window position -- deltas came back much smaller and
+  inconsistent between 0.5 and a follow-up 0.3 test (0.3 briefly looked
+  like it produced a *smaller* wallpaper delta than 0.5, backwards from
+  what lower opacity should do). Root cause: whole-window averages are
+  skewed by however much text/UI happens to be rendered at the moment
+  of capture -- not a stable signal to compare opacity values against
+  each other.
+- **What actually worked**: sample one fixed, deliberately empty patch
+  of the window (confirmed blank via a direct ASCII-art luminance dump
+  first, not assumed), at the real toggle-triggered window position,
+  and diff it against a screenshot of the identical screen region with
+  no window there. At 0.3: rgb(16.9, 15.0, 10.6) vs. wallpaper-only
+  rgb(24.0, 21.3, 15.1) for the same region -- a real, reproducible ~7-9
+  point shift per channel.
+
+That shift runs *darker* than the wallpaper, not lighter -- initially
+looked backwards (shouldn't lower opacity mean *more* wallpaper
+showing through, i.e. a result closer to it?) until worked through
+directly: `background_opacity` is the weight of kitty's own (near-
+black, unpainted) cell fill, not the wallpaper's -- at 0.3 that's 30%
+near-black mixed with 70% wallpaper, which lands almost exactly on the
+observed numbers. A lower value means *less* of that black mixed in,
+so 0.3 is already near the practical floor for "still visibly kitty's
+own window" -- and a darker-than-wallpaper "smoked glass" look matches
+every other translucent surface already established across this
+desktop (waybar, mako, wofi, nwg-bar all use Deep Midnight `#11111B`
+tints, none lightened), so this is the correct visual family, not a
+bug to chase further.
+
+Confirmed text legibility held up at 0.3 with a direct ASCII luminance
+dump of real rendered text (not just averages) -- glyphs stayed crisp
+and high-contrast, no regression from lowering opacity past 0.5.
+
 ## music-search.py: replacing termusic's broken search with a direct-to-yt-dlp tool
 
 Follow-up to the search diagnosis below: asked directly to build a

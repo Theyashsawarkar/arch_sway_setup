@@ -5,6 +5,36 @@ along the way. Newest first. Version markers (`## vX.Y.Z`) mark release
 boundaries on top of the dated entries -- see `docs/VERSIONING.md` for the
 full branch/release process.
 
+## 2026-08-31 (rmpc's floating window: actually glass, not just technically transparent)
+
+Direct feedback right after the mpd/rmpc migration below: "lets make
+its background glass like." `background_color: None` was already set
+in the theme (carried over proactively from termusic's own fix), and
+kitty's global `background_opacity 0.85` was blending against it -- but
+on a window this large (1152x540, over half the screen), that blend
+wasn't perceptible enough to read as glass.
+
+Fixed with a per-window kitty override on rmpc's own launch line only
+(`-o background_opacity=0.3`, `scripts/.local/bin/rmpc-toggle.sh`) --
+`kitty/kitty.conf`'s global 0.85 stays untouched for every other
+terminal use.
+
+Getting to a trustworthy number took a few wrong turns, worth recording
+since they're easy to repeat: whole-window pixel averaging (comparing
+against a same-position wallpaper-only screenshot) gave inconsistent,
+sometimes backwards-looking deltas between opacity values, because the
+average is skewed by however much text/UI happens to be on screen at
+capture time, not just the background blend. Switched to sampling one
+fixed, confirmed-empty patch of the window instead, at the real
+toggle-triggered window position -- that gave a clean, reproducible
+result: at 0.3, rgb(16.9, 15.0, 10.6) vs. a wallpaper-only rgb(24.0,
+21.3, 15.1) for the identical region, a real ~7-9 point shift per
+channel, in the same "dark glass" direction as every other translucent
+surface in this desktop (waybar, mako, wofi, nwg-bar all read as
+Deep-Midnight-tinted, not lightened). Confirmed text legibility held up
+at 0.3 via a direct ASCII luminance dump of real rendered text, not
+just the averages.
+
 ## 2026-08-31 (termusic removed entirely: mpd + rmpc instead)
 
 Direct feedback: "termusic isn't of any use then, lets use a better tui
