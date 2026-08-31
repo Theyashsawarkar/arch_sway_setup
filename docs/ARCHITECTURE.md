@@ -885,56 +885,86 @@ background glass like." The theme already had `background_color: None`
 (carried over proactively from termusic's own transparency fix, see
 below), and kitty's global `background_opacity 0.85` was blending
 against it -- technically working, but not perceptibly so on a window
-this large (1152x540, over half this machine's screen). A subtle blend
-that reads fine on a small popup (wofi, mako) is much easier to miss on
-something covering that much of the display.
+this large (1152x540 at the time, over half this machine's screen). A
+subtle blend that reads fine on a small popup (wofi, mako) is much
+easier to miss on something covering that much of the display.
 
-Fixed with a **per-window** kitty override, not a global one:
-`-o background_opacity=0.3` added to rmpc's own kitty launch line in
-`scripts/.local/bin/rmpc-toggle.sh`. `kitty/kitty.conf`'s global 0.85
-stays untouched -- every other terminal use is unaffected.
+**First attempt, since revised**: tried lowering opacity per-window
+(kitty's `-o background_opacity`), reasoning more transparency would
+mean more glass. Chasing a trustworthy number this way surfaced a real
+methodology trap worth recording: whole-window pixel averaging against
+a same-position wallpaper-only screenshot gave noisy, sometimes
+backwards-looking deltas between opacity values (skewed by however
+much text/UI happened to be on screen at capture time), until narrowed
+down to sampling one fixed, confirmed-empty patch of the window at the
+real toggle-triggered position instead -- that gave a clean, real
+signal (a measurable, reproducible shift per opacity value). But even
+with a clean signal, the fix was aimed at the wrong variable: at low
+opacity, what showed through was the wallpaper completely *sharp* and
+unblurred -- correctly measurable as "more transparent", but reading as
+"see-through window", not glass.
 
-Landing on a trustworthy number took several wrong turns worth
-recording, since the methodology mistakes are easy to repeat:
+**Second, direct follow-up**: "lets make its background glass like
+blury... increase it size follow the 60 percent width and increase the
+height accordingly" -- named the missing piece directly: blur.
+Confirmed this machine runs SwayFX (`sway --version` -> `swayfx 0.6`,
+not plain sway), which adds real compositor-level GLES2 blur -- already
+in use for wofi via `layer_effects` (see the wofi section below), just
+not yet wired up for rmpc. Read SwayFX's own README (extracted from the
+cached AUR build tarball, not guessed) to confirm the exact mechanism
+for a plain toplevel window rather than a layer-shell surface: `blur`,
+`corner_radius`, and `shadows` are all regular `for_window`-settable
+properties for ordinary windows (no `layer_effects` block needed --
+that's specifically for layer-shell surfaces like wofi/waybar/mako,
+matched by namespace), so `blur enable` was added directly to rmpc's
+existing `for_window [app_id="^rmpc$"]` rule in `sway/config`.
+`corner_radius`/`shadows` weren't set there since rmpc already inherits
+the *global* `corner_radius 12` / `shadows on` defaults every ordinary
+window gets -- only wofi needed its own explicit values, since layer-
+shell surfaces are exempt from those per-window toplevel defaults.
 
-- **First attempt**: compared kitty 0.85 vs. 0.5 via whole-window pixel
-  averaging against a same-region wallpaper-only screenshot, but at a
-  DIFFERENT screen position than rmpc's actual `for_window`-matched
-  spot -- looked convincing (0.5 showed a much bigger delta) but wasn't
-  measuring the real window position at all.
-- **Second attempt**: re-tested through the real toggle keybinding, at
-  the real window position -- deltas came back much smaller and
-  inconsistent between 0.5 and a follow-up 0.3 test (0.3 briefly looked
-  like it produced a *smaller* wallpaper delta than 0.5, backwards from
-  what lower opacity should do). Root cause: whole-window averages are
-  skewed by however much text/UI happens to be rendered at the moment
-  of capture -- not a stable signal to compare opacity values against
-  each other.
-- **What actually worked**: sample one fixed, deliberately empty patch
-  of the window (confirmed blank via a direct ASCII-art luminance dump
-  first, not assumed), at the real toggle-triggered window position,
-  and diff it against a screenshot of the identical screen region with
-  no window there. At 0.3: rgb(16.9, 15.0, 10.6) vs. wallpaper-only
-  rgb(24.0, 21.3, 15.1) for the same region -- a real, reproducible ~7-9
-  point shift per channel.
+Deliberately did **not** set `blur_xray`, unlike wofi's rule -- SwayFX's
+own README says so explicitly for regular floating windows ("You
+probably want to set this to disable :)"), since `blur_xray` is for
+layer-shell panels that need to blur the *true desktop background*
+specifically; a floating window blurring whatever's actually behind it
+(the wallpaper, since this one is centered above everything) is already
+the right result.
 
-That shift runs *darker* than the wallpaper, not lighter -- initially
-looked backwards (shouldn't lower opacity mean *more* wallpaper
-showing through, i.e. a result closer to it?) until worked through
-directly: `background_opacity` is the weight of kitty's own (near-
-black, unpainted) cell fill, not the wallpaper's -- at 0.3 that's 30%
-near-black mixed with 70% wallpaper, which lands almost exactly on the
-observed numbers. A lower value means *less* of that black mixed in,
-so 0.3 is already near the practical floor for "still visibly kitty's
-own window" -- and a darker-than-wallpaper "smoked glass" look matches
-every other translucent surface already established across this
-desktop (waybar, mako, wofi, nwg-bar all use Deep Midnight `#11111B`
-tints, none lightened), so this is the correct visual family, not a
-bug to chase further.
+With real blur doing the work, the earlier per-window opacity override
+became unnecessary and was removed -- `rmpc-toggle.sh` now launches
+plain `kitty --class rmpc -e rmpc`, back on kitty's global 0.85. That
+number turned out to already match the desktop's own established
+"real glass" ratio: `wofi/style.css`'s own working glass panel also
+runs its background at 0.85 alpha, paired with real blur -- mostly
+opaque, with a blurred (not sharp) wallpaper hint behind it, not a
+mostly-see-through window. The earlier low-opacity investigation wasn't
+wasted, though: it's what proved `background_color: None` +
+`background_opacity` blending was wired correctly at all, before blur
+turned that correct-but-weak signal into an actually convincing one.
 
-Confirmed text legibility held up at 0.3 with a direct ASCII luminance
-dump of real rendered text (not just averages) -- glyphs stayed crisp
-and high-contrast, no regression from lowering opacity past 0.5.
+**Verification**, done with a cleaner test than the earlier
+whole-window/empty-patch approaches: screenshotted the live window and
+the identical screen region with the window hidden (`scratchpad show`
+toggling it away and back), found the highest-texture 40x40 pixel block
+in the wallpaper-only shot (real edge detail, luminance swinging ~4 to
+~151 -- picked programmatically, not by eye, specifically so the test
+has real detail to blur), then compared local horizontal-gradient
+energy in that identical region between the two shots: 9.85
+(wallpaper, sharp) vs. 0.83 (through the window) -- a ~92% drop -- and
+the actual rendered pixels there were a smooth, consistent blended tone
+(~24, 33, 46), not the sharp original texture and not a flat theme
+color either (confirming it's genuine alpha-blended blur, not a solid
+pane happening to sit there). Text legibility reconfirmed via a direct
+ASCII luminance dump of real rendered text with both blur and 0.85
+active -- glyphs stayed crisp and high-contrast.
+
+**Size**: the same follow-up request also asked to keep the window at
+60% width (already was: 1152 of 1920) and grow the height to match,
+rather than the original 50%. Changed `resize set 1152 540` to
+`resize set 1152 648` (1080 * 0.6) in the same `for_window` rule --
+confirmed live via `swaymsg -t get_tree` showing the real window's rect
+at exactly `1152x648`, centered.
 
 ## music-search.py: replacing termusic's broken search with a direct-to-yt-dlp tool
 

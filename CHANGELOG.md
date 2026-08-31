@@ -5,6 +5,38 @@ along the way. Newest first. Version markers (`## vX.Y.Z`) mark release
 boundaries on top of the dated entries -- see `docs/VERSIONING.md` for the
 full branch/release process.
 
+## 2026-08-31 (rmpc: real compositor blur, not opacity tricks, plus a bigger window)
+
+Direct, immediate follow-up to the entry right below: "lets make its
+background glass like blury background and increase it size follow
+the 60 percent width and increase the height accordinglly." The
+opacity-only fix below turned out to be the wrong lever -- lowering it
+just showed the wallpaper completely sharp through the window, which
+reads as "see-through", not glass.
+
+Real fix: this machine runs SwayFX (confirmed via `sway --version`),
+which has genuine compositor-level blur already proven for wofi
+(`layer_effects`). Added `blur enable` to rmpc's own `for_window` rule
+in `sway/config` -- a plain `for_window`-settable property for ordinary
+toplevel windows (no `layer_effects` block needed, that's layer-shell-
+only), deliberately without `blur_xray` per SwayFX's own README
+guidance for regular floating windows. The earlier per-window kitty
+`background_opacity=0.3` override was removed once blur made it
+unnecessary -- back to kitty's global 0.85, which turns out to match
+wofi's own real working ratio (0.85 alpha + real blur) exactly.
+
+Verified with a cleaner pixel test than the previous entry's: found the
+highest-texture patch in a wallpaper-only screenshot, compared it
+against the same screen region through the live window -- local
+gradient energy dropped ~92% (9.85 -> 0.83), and the rendered pixels
+were a smooth blended tone, not the sharp original or a flat color.
+Text legibility reconfirmed intact.
+
+Also resized: window was 1152x540 (60%/50% of the 1920x1080 output),
+now 1152x648 (60%/60%) -- kept width as-is, grew height to match the
+same percentage instead of a smaller, mismatched one. Confirmed live
+via `swaymsg -t get_tree`.
+
 ## 2026-08-31 (rmpc's floating window: actually glass, not just technically transparent)
 
 Direct feedback right after the mpd/rmpc migration below: "lets make

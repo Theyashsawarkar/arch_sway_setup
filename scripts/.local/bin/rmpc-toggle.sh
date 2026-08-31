@@ -25,32 +25,26 @@ else
     # descriptors staying open for as long as kitty runs, rather than
     # returning immediately the way a background launch should.
     #
-    # -o background_opacity=0.3 overrides kitty's own global 0.85
-    # (kitty/kitty.conf) for this window specifically, not everywhere.
+    # No per-window opacity override here (there was one, briefly:
+    # -o background_opacity=0.3, tuned before real blur was wired in --
+    # removed once blur made it unnecessary, see below). Runs at kitty's
+    # own global background_opacity 0.85 (kitty/kitty.conf), same as
+    # every other terminal window.
     #
-    # Confirmed directly, not just theory, and worth recording since the
-    # first two attempts at measuring this were misleading: whole-window
-    # pixel averages are too noisy (skewed by however much text/UI is on
-    # screen at the moment of capture) to compare opacity values against
-    # each other reliably. The methodology that actually held up: sample
-    # ONE fixed, genuinely empty patch of the window (confirmed blank via
-    # a direct ASCII-art luminance dump) at the real toggle-triggered
-    # window position, and diff it against a screenshot of the same exact
-    # screen region with no window there at all. At 0.3, that patch reads
-    # rgb(16.9, 15.0, 10.6) vs. a wallpaper-only rgb(24.0, 21.3, 15.1) for
-    # the identical region -- a real, consistent ~7-9 point shift per
-    # channel, in the same direction kitty's own default (near-black,
-    # unpainted) cell background always pulls a blend: `background_opacity`
-    # is kitty's OWN-fill weight, not the wallpaper's, so a LOWER value
-    # means less of kitty's black mixed in, not more -- 0.3 is already the
-    # more-transparent end of what's usable here, and the shift this small
-    # is exactly what "30% of a near-black fill" should produce. This
-    # matches the same dark-glass look already used everywhere else in
-    # this desktop (waybar, mako, wofi, nwg-bar all use Deep Midnight
-    # #11111B translucent surfaces, not light ones), so a darker- rather
-    # than lighter-than-wallpaper shift is the correct visual family, not
-    # a bug. Text legibility reconfirmed directly at 0.3 via a fresh ASCII
-    # luminance dump of real rendered text -- glyphs stayed crisp and high
-    # contrast, no legibility regression from lowering opacity further.
-    setsid kitty --class rmpc -o background_opacity=0.3 -e rmpc >/dev/null 2>&1 &
+    # The actual "glass" look comes from real compositor-level blur now
+    # (`blur enable`, sway/config's own rmpc for_window rule), not from
+    # opacity tuning -- worth recording since an earlier pass chased the
+    # wrong variable first. Before blur was added, lowering opacity was
+    # the only lever available, and pushing it down to 0.3 did produce a
+    # measurable, verified pixel shift -- but what actually showed
+    # through at low opacity was the wallpaper completely SHARP and
+    # unblurred, which reads as "see-through window", not glass. wofi's
+    # own real glass panel (wofi/style.css) runs at 0.85 alpha, not
+    # something low -- paired with real blur (layer_effects "wofi" in
+    # sway/config), that's what a frosted-glass panel actually looks
+    # like: mostly opaque, with a blurred (not sharp) wallpaper hint
+    # behind it. Matched that same ratio here instead of re-deriving a
+    # new one: kitty's global 0.85 was already correct, blur was the
+    # missing piece, not opacity.
+    setsid kitty --class rmpc -e rmpc >/dev/null 2>&1 &
 fi

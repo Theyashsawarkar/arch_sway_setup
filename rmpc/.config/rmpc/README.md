@@ -38,7 +38,7 @@ afterward, same as any other track.
 
 `$mod+Shift+m` (`sway/config`) opens it in its own floating kitty
 window (`kitty --class rmpc -e rmpc`, `for_window [app_id="^rmpc$"]`
-sizes it to 1152x540 -- 60%/50% of this machine's actual output -- and
+sizes it to 1152x648 -- 60%/60% of this machine's actual output -- and
 centers it), toggling via sway's scratchpad on a second press
 (`rmpc-toggle.sh`) -- same pattern already proven for termusic before
 it, still correct here: hiding the window only ever changes visibility,
@@ -71,23 +71,30 @@ background at all", letting kitty's own `background_opacity` blend
 against the desktop wallpaper behind it.
 
 That mechanism alone technically worked at kitty's global default
-(0.85), but not perceptibly so on a window this large (1152x540, over
+(0.85), but not perceptibly so on a window this large (1152x648, over
 half the screen) -- direct feedback afterward was "lets make its
 background glass like", i.e. 0.85 wasn't actually reading as glass in
-practice. Fixed with a per-window override, not a global one --
-`-o background_opacity=0.3` on rmpc's own kitty launch line
-(`../../scripts/.local/bin/rmpc-toggle.sh`), leaving `kitty/kitty.conf`
-itself untouched for every other terminal use. See that script's own
-comment block for the full measurement methodology (whole-window pixel
-averaging was tried first and proved too noisy to trust; a fixed,
-confirmed-empty patch sampled at the real toggle-triggered window
-position is what actually gave a reliable, repeatable signal) and the
-final verified numbers.
+practice. First fix attempt lowered opacity per-window instead
+(`-o background_opacity=0.3`) -- that did move the pixels, but what
+showed through at low opacity was the wallpaper completely sharp and
+unblurred, which reads as "see-through window", not glass. The actual
+fix was real compositor-level blur: `blur enable` on rmpc's own
+`for_window` rule in `sway/config` (SwayFX, same `scenefx0.4`
+mechanism wofi's `layer_effects` rule already uses, just reached
+differently -- rmpc is a plain toplevel window, not a layer-shell
+surface, so it's a regular `for_window`-settable property, no
+`layer_effects` block needed, and deliberately without `blur_xray`,
+which SwayFX's own README says is for layer-shell panels specifically
+and not recommended for floating toplevel windows). Once blur was
+doing the actual smoothing, the per-window opacity override became
+unnecessary and was removed -- back to kitty's global 0.85, matching
+wofi's own real working ratio (`wofi/style.css` runs its glass panel at
+0.85 alpha too) instead of a separately-tuned value.
 
 ## Verified live, not assumed correct from reading the config alone
 
 - Triggered the real `$mod+Shift+m` keybinding via a simulated
-  keypress, confirmed via `swaymsg -t get_tree` a 1152x540 floating
+  keypress, confirmed via `swaymsg -t get_tree` a 1152x648 floating
   window opened at the expected centered position.
 - Screenshotted the running window: found Mauve (`#cba6f7`, ~26,000
   matching pixels) clearly dominant across borders/highlights, and zero
@@ -96,6 +103,21 @@ final verified numbers.
   real launch. The perceptual strength of the resulting blend still
   needed its own follow-up (see "Theme" above) once it became clear
   0.85 alone wasn't glass-like enough on a window this size.
+- Real blur, confirmed with a clean, position-matched pixel test rather
+  than trusting the config reloaded without error: screenshotted the
+  live window and the same exact screen region with the window hidden,
+  found the highest-texture 40x40 block in the wallpaper-only shot
+  (real edge detail, pixel luminance swinging from ~4 to ~151), then
+  compared local horizontal-gradient energy in that identical region
+  between the two shots -- the window's own rendering of that spot
+  averaged 0.83 vs. the wallpaper's own 9.85, a ~92% drop, and the
+  actual pixel values there were a smooth, consistent blended tone
+  (~24, 33, 46) rather than either the sharp original texture or a flat
+  theme color -- genuine blur, not just alpha dimming or a solid pane
+  happening to sit there.
+- Text legibility reconfirmed directly afterward (ASCII luminance dump
+  of real rendered text with both blur and 0.85 opacity active) --
+  glyphs stayed crisp and high-contrast.
 - `rmpc debuginfo`, run directly from this same non-interactive
   session, reported the image protocol as "Block" (the crude ASCII
   fallback) rather than "Kitty" -- traced this to the session's own
