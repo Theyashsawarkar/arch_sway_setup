@@ -749,6 +749,78 @@ left border at the same row: both sides now render the same color
 consistently (e.g. `(70,62,88)` on both, at multiple rows) -- symmetric,
 not just "present."
 
+## music-search.py: replacing termusic's broken search with a direct-to-yt-dlp tool
+
+Follow-up to the search diagnosis below: asked directly to build a
+replacement rather than just live with the workaround (pasting a raw
+YouTube URL) -- "patch up termusic with our own scraping script...
+implement our own set of tools that does the same job maybe
+differently."
+
+**Checked the obvious existing alternative first, not assumed one
+didn't exist**: `ytfzf` (4.1k stars, markets itself as *"without
+API"*) -- read its actual source and found its default search path,
+`scrape_youtube()`, is a direct alias for `scrape_invidious_search()`.
+Same broken dependency, same dead network already confirmed for
+termusic. Ruled out rather than adopted.
+
+**Built on the one piece already proven solid**: `yt-dlp`'s own
+`ytsearchN:<query>` search, confirmed completely independent of
+Invidious and fast (~2-3s for 10 results with `--flat-playlist`, which
+reads only the search-results page itself rather than each video's
+full metadata). `mpv`/`ffmpeg` were already installed;
+`music-search.py` (new, `scripts/.local/bin/`) wraps this into the same
+wofi-search-then-list shape every other picker in this repo already
+uses: `$mod+Shift+y` opens a wofi prompt for a query, then a second
+wofi list of up to 10 results (title, uploader, duration -- duration
+shown deliberately, after accidentally downloading a 3+ hour video once
+during testing when a search matched a long-form background-music
+stream instead of an actual song), then downloads the picked one as an
+mp3 with embedded cover art and metadata into `~/Music`.
+
+**A real, concrete reliability problem found and fixed while building
+this, not assumed away**: 2 of 3 real test downloads (different
+videos, not livestreams) hit YouTube's *"Sign in to confirm you're not
+a bot"* wall using yt-dlp's default extraction path. Confirmed the
+standard, documented workaround directly rather than trusting it
+blind: `--extractor-args "youtube:player_client=android"` -- the same
+exact URLs that failed with the default web client downloaded cleanly
+every time with this flag added. Baked into every download this script
+does.
+
+**A second real bug caught by testing the actual downloaded state, not
+just "did the command exit 0"**: the first version tried to find the
+track's own thumbnail (used as the completion notification's icon,
+same "use the real fetched image as its own icon" pattern
+`fetch_wallpaper.sh` already established) by reconstructing the
+expected filename from the search result's raw `title` string --
+worked in reasoning, failed on a real download: yt-dlp's own
+filesystem sanitization replaced a literal `|` in the title with a
+fullwidth `｜` (U+FF5C) when actually writing the file, so the
+reconstructed glob matched nothing, silently leaving the thumbnail
+file undeleted and falling back to a generic icon instead of the real
+one. Fixed by finding the *newest* image file in `~/Music` by mtime
+instead of predicting yt-dlp's own naming rules at all -- confirmed via
+`makoctl history -j` afterward that the completion notification
+correctly references the real thumbnail path, and that the leftover
+`.webp` file is gone from `~/Music` post-run.
+
+**Verified fully live, through the actual keybinding and real typed
+input** (`ydotool key`/`ydotool type`, not the script run directly):
+triggered `$mod+Shift+y`, typed a real query, read the actual search
+results back via wofi's own AT-SPI accessibility tree (confirmed real,
+relevant titles/uploaders/durations, not placeholder data), picked a
+short result, and confirmed the full download completed: `ffprobe`
+shows a valid `mp3`-codec audio stream at the expected duration plus an
+embedded `png` cover-art stream, and termusic's own startup log
+(launched fresh afterward) reports `Finished Scanning "/home/yash/Music"
+with 1 created or updated` -- the file is genuinely indexed by
+termusic's real library scanner, not just sitting on disk.
+
+termusic's own `s` key is left untouched (still bound to its default,
+still technically works if a public Invidious instance ever recovers)
+-- `$mod+Shift+y` is just the reliable path now.
+
 ## Every popup toggles now, plus termusic: real glass, correct size, and why search fails
 
 Three asks together: every keybinding-launched popup in this repo

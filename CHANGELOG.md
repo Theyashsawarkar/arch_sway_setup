@@ -5,6 +5,41 @@ along the way. Newest first. Version markers (`## vX.Y.Z`) mark release
 boundaries on top of the dated entries -- see `docs/VERSIONING.md` for the
 full branch/release process.
 
+## 2026-08-31 (music-search.py: replacing termusic's broken search with our own tool)
+
+Asked directly to build a replacement rather than live with the
+URL-paste workaround. Checked ytfzf first (the obvious existing
+alternative) and ruled it out -- read its source, its default search
+path is a direct alias for Invidious search too, same dead network
+already confirmed for termusic.
+
+Built music-search.py on yt-dlp's own direct search instead (confirmed
+independent of Invidious, ~2-3s for 10 results). $mod+Shift+y: wofi
+prompt for a query, wofi list of results (title/uploader/duration --
+duration shown after accidentally downloading a 3+ hour video once
+during testing), downloads the pick as mp3 with embedded art/metadata
+into ~/Music.
+
+Two real bugs found and fixed while building this: (1) 2 of 3 real
+test downloads hit YouTube's bot-check wall with yt-dlp's default
+extraction -- fixed with --extractor-args
+"youtube:player_client=android", confirmed directly that the same URLs
+downloaded cleanly with it every time. (2) the completion
+notification's icon (the track's own thumbnail) failed to load and the
+thumbnail file was left undeleted -- yt-dlp sanitizes filenames
+differently than the raw search-result title (a literal "|" becomes a
+fullwidth "｜"), so reconstructing the filename from title silently
+matched nothing. Fixed by finding the newest image file by mtime
+instead of predicting yt-dlp's naming.
+
+Verified fully live through the real keybinding with real typed input
+(ydotool, not the script run directly): read actual search results
+back via wofi's AT-SPI tree, downloaded a real track, confirmed with
+ffprobe it's valid audio with embedded cover art, and confirmed via
+termusic's own startup log ("1 created or updated") that it's genuinely
+indexed by termusic's real library scanner. termusic's own `s` key is
+left as-is; $mod+Shift+y is just the reliable path now.
+
 ## 2026-08-31 (every popup toggles now; termusic gets real glass, correct size, and a search diagnosis)
 
 Three asks together: every keybinding-launched popup should toggle

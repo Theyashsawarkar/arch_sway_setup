@@ -11,25 +11,47 @@ Directly in Arch's official `extra` repo (`packages/pacman.txt`) --
 no AUR, no building Rust from source. `yt-dlp` is what actually lets it
 pull tracks from YouTube; `ffmpeg`/`kitty` were already installed.
 
-## How the cloud-fetch actually works
+## How the cloud-fetch actually works -- and why termusic's own `s` doesn't
 
-Confirmed straight from termusic's own source before relying on it,
-not assumed: press `s` (default keybinding, `library_keys.youtube_search`
-in `tui.toml`) and a popup opens -- *"Download url or search:"*. Type a
-song/artist name (or paste a YouTube URL directly), pick a result, and
-it downloads the audio via `yt-dlp` into `music_dirs` (`server.toml`,
-set to `~/Music`), adds it to the playlist, and plays. Starting from a
-genuinely empty `~/Music` works fine -- there's nothing to have
-beforehand, the library builds itself as you search.
+termusic's own built-in search (`s`, `library_keys.youtube_search` in
+`tui.toml`, *"Download url or search:"*) turned out to depend entirely
+on the public Invidious instance network for the *search* step
+(confirmed reading its own source, `lib/src/invidious.rs`) -- and that
+network is dead across the board right now (confirmed directly: 0 of
+11 currently-listed public instances have their search API enabled at
+all; tried termusic's five hardcoded fallbacks individually too, each
+fails for a different concrete reason -- disabled, unauthorized,
+anti-bot challenge, or just unreachable). Not fixable by upgrading
+termusic either -- checked upstream's current changelog, still
+Invidious-based.
+
+**Use `$mod+Shift+y` instead** (`music-search.py`, see
+`scripts/.local/bin/`) -- a small companion tool built specifically to
+route around this: searches YouTube directly via `yt-dlp` (confirmed
+completely independent of Invidious), shows results with title/
+uploader/duration in a wofi popup, and downloads the picked one as an
+mp3 with embedded art and metadata straight into `~/Music`
+(`server.toml`'s `music_dirs`). termusic doesn't watch the filesystem
+for new files while running (no watcher in its source) -- a track
+downloaded this way while termusic is already open needs a restart, or
+navigating out of the music root and back in, to actually show up.
+
+termusic's own `s` key still exists and still technically works if a
+public Invidious instance ever comes back up, so it's left bound to
+its default -- `$mod+Shift+y` is just the one that's actually reliable
+right now.
 
 ## Launch
 
 `$mod+Shift+m` (`sway/config`) opens it in its own floating kitty
 window (`kitty --class termusic -e termusic`, `for_window
-[app_id="^termusic$"]` sizes and centers it at 900x700) -- floating on
-purpose, not tiled: a music player is something you glance at and
-dismiss, not something that should permanently claim a slot in the
-tiling layout.
+[app_id="^termusic$"]` sizes it to 1152x540 -- 60%/50% of this
+machine's actual output -- and centers it) -- floating on purpose, not
+tiled: a music player is something you glance at and dismiss, not
+something that should permanently claim a slot in the tiling layout.
+Toggles via sway's scratchpad on a second press (`termusic-toggle.sh`)
+-- playback never stops while hidden, only the window's visibility
+changes.
 
 ## Theme
 
