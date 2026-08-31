@@ -5,6 +5,17 @@ along the way. Newest first. Version markers (`## vX.Y.Z`) mark release
 boundaries on top of the dated entries -- see `docs/VERSIONING.md` for the
 full branch/release process.
 
+## v1.1.0 -- 2026-08-31
+
+termusic replaced entirely with mpd + rmpc (a real MPD daemon plus a
+proper TUI client, zero third-party API dependency left in the music
+stack), music-search.py gained real thumbnails in its results list,
+rmpc's floating window got genuine compositor-level glass (SwayFX
+blur, not opacity tricks) at a larger 60%/60% size, and every popup in
+this desktop -- rmpc's window included now -- closes on Escape. MINOR
+bump: new capability (mpd/rmpc replacing a whole subsystem), not just
+a fix to something that was broken.
+
 ## 2026-08-31 (every popup closes on Escape -- rmpc's window was the one real gap)
 
 Direct feedback: "all popup modals should also hide when esc key is
