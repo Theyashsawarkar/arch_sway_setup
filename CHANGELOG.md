@@ -5,6 +5,21 @@ along the way. Newest first. Version markers (`## vX.Y.Z`) mark release
 boundaries on top of the dated entries -- see `docs/VERSIONING.md` for the
 full branch/release process.
 
+## v1.2.0 -- 2026-09-01
+
+rmpc's theme went from a flat, two-color mapping to a richly-colored, deliberately
+waybar-matched palette across three passes (playback header and toggles;
+everything still left plain -- browser rows, table headers, preview metadata, tab
+bar; then a request for a border-style selection instead of a filled background,
+which surfaced and fixed a real bug where a malformed RON modifiers string
+silently dropped rmpc's entire config back to built-in defaults). Also fixed a
+real, reproducible-on-every-boot bug: `swayidle.service` staying dead after a
+fresh reboot because systemd's own auto-start exhausts its restart budget before
+the repo's own ordering fix gets a chance to run. MINOR bump: real new capability
+(the richer theme) plus real fixes to things that were actually broken, found via
+direct source-reading and a genuine post-reboot stability sweep, not assumed
+correct from the config alone.
+
 ## 2026-09-01 (swayidle: fixed a real "dead on every boot" bug, found during a stability sweep)
 
 Asked directly to check whole-system stability before cutting a release. A real
