@@ -61,7 +61,14 @@ Verified live the same way as every other change this session: pushed,
 waited for the real Jekyll build to report `"status":"built"` (not just a
 successful API response), then `curl`'d the actual homepage and every linked
 doc page for real HTTP 200s and real content, not assumed correct from the
-config alone.
+config alone -- caught one real miss this way: `README.html` 404'd (Jekyll
+skips files with no front matter, same rule used deliberately for
+`index.html`, just biting somewhere unwanted this time). Tried the standard
+fix (empty front matter) and reverted it after checking GitHub's own README
+renderer first -- it doesn't strip front matter, and rendered two literal
+horizontal rules at the top of the actual repo page. Left `README.md` as a
+plain passthrough instead; nothing on the site links to a local copy of it
+anyway. Full reasoning in `docs/ARCHITECTURE.md`.
 
 ## v1.2.1 -- 2026-09-01
 

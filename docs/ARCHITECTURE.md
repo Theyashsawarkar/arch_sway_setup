@@ -3246,9 +3246,24 @@ Pages' own precedence rule made this possible without extra config: an
 (static passthrough, no theme layout wrapping it) and always wins over
 `README.md`/`index.md` as the site root when more than one exists — so the
 custom homepage and the still-Jekyll-built doc pages (`CHANGELOG.html`,
-`docs/ARCHITECTURE.html`, `docs/VERSIONING.html`, and `README.md` itself,
-still reachable as its own page, just not the homepage anymore) coexist in
-one build with zero conflict.
+`docs/ARCHITECTURE.html`, `docs/VERSIONING.html`) coexist in one build with
+zero conflict.
+
+**`README.md` itself is deliberately left as a raw passthrough, not a
+Jekyll-built page** -- caught this live, not assumed: `README.html` 404'd
+after the first deploy, traced it to the same "no front matter -> served
+untouched" rule used deliberately for `index.html` above, this time
+applying somewhere it wasn't wanted. The obvious fix (an empty `---\n---\n`
+front-matter block, the standard Jekyll trick to force processing) was
+tried and reverted after checking GitHub's *own* README renderer against it
+first (`gh api repos/.../readme`) -- it doesn't strip front matter the way
+Jekyll does, and rendered it as two literal `<hr>` elements at the very top
+of the actual GitHub repo page, the single most-visible view of this
+project. Not worth trading that for a themed mirror of a page nothing on
+the site even links to (`index.html` links out to the GitHub-native README
+directly, not a local copy) -- reverted, left `README.md` as a plain
+passthrough (still fetchable at `/README.md` on the Pages site, just not
+rendered as HTML there).
 
 Layout follows the pattern asked for directly: a hero section with the name,
 tagline, install snippet, and CTA buttons on the left, a real screenshot of
