@@ -3403,3 +3403,90 @@ Verified live the same way as the rest of this session's site work: pushed,
 polled the Pages build API until it reported `"status":"built"` rather than
 assuming a quick build had finished, then `curl`'d the actual homepage and
 every linked doc page for real HTTP 200s and real content.
+
+## The doc pages: a real layout, a sidebar TOC, and the Package map table gone
+
+Direct feedback, same evening, pointed at the live `docs/ARCHITECTURE.html`
+page specifically: "take a look at this optimize this ui and make it more
+asthetic. instead of putting it in the table find other way to better
+structure this page instead."
+
+**The table really was a bad fit for its own content, not just visually
+plain.** Reread it before changing anything: 20 rows, and their actual
+description lengths ranged from a 6-character one-liner (`nvim` — "Editor")
+to a single cell over 2,400 characters long (`bluetooth-picker.py`'s row,
+genuinely several paragraphs of history and reasoning). A markdown table
+forces every row into the same fixed column widths regardless — exactly
+wrong for content this uneven, not something better CSS on the `<table>`
+tag alone could fix.
+
+**Replaced it with a responsive card grid + native `<details>` for the long
+entries**, entirely inside `docs/ARCHITECTURE.md` itself (not a
+site-only copy) so both the GitHub-native view and the Pages site benefit,
+and there's still exactly one source of truth. Parsed the original table
+with a small Python script rather than retype ~1,800 words of hard-won
+documentation by hand — checked first that no row's content contained a
+literal `|` that could confuse a naive split (`grep`-counted pipes per line,
+all exactly 4, meaning exactly 3 columns, safe to split on) before trusting
+the automated pass, then diffed the extracted text against what was
+actually in the file to confirm nothing was corrupted or dropped. The five
+genuinely long entries (`nwg-bar`, `docker-picker.py`,
+`bluetooth-picker.py`, `networkmanager-dmenu`, `wifi-picker.py`) get a
+hand-written one-line summary visible by default plus their full original
+text, verbatim, inside a `<details>`; the other fifteen just show their
+short description directly, no accordion needed for one sentence.
+`markdown="1"` on the wrapping `<div>`/`<details>` tells kramdown to still
+process the markdown inside a raw HTML block (backticks → real `<code>`,
+`*emphasis*` → real `<em>`) — verified this actually worked by checking the
+built page's real HTML output for `<code class="language-plaintext...">`
+tags, not literal backtick characters.
+
+**Added a real custom layout (`_layouts/docs.html`) instead of relying on
+the built-in Jekyll theme any further** — a sidebar table of contents (built
+by `assets/docs.js` from whatever `<h2>` elements are actually on the page
+at build/view time, not a hand-maintained list that would drift out of sync
+with a 3,500-line, 58-section document) with scroll-based active-section
+highlighting via `IntersectionObserver`, and the same Catppuccin Mocha
+variables already used on the homepage (`assets/style.css`) extended into
+`assets/docs.css` for consistent typography, code blocks, and the new
+package cards — one palette across the whole site, not the homepage looking
+different from everything else in it.
+
+**How the layout gets applied without ever touching the source files'
+own front matter** — the same GitHub-native-rendering constraint already
+hit once for `README.md` applies here too: `docs/ARCHITECTURE.md`,
+`docs/VERSIONING.md`, and `CHANGELOG.md` are all read directly on GitHub
+(linked straight from `README.md`), and adding a `---` front-matter block
+to any of them would show up as literal horizontal rules on the actual
+GitHub page, the same regression already caught and reverted once for
+`README.md`. Used `_config.yml`'s `defaults:` key instead — `scope: {path:
+"docs/ARCHITECTURE.md"}` with `values: {layout: "docs", title:
+"Architecture"}`, one block per file — which assigns a layout and title by
+path with **zero change to the source file itself**. Worth noting since it
+wasn't obvious going in: these three files were already building into real
+`.html` pages even *before* this, with no front matter and no `defaults:`
+entry at all (confirmed live earlier this session) — unlike `README.md`,
+which Jekyll appears to specifically exclude from conversion by filename
+convention. `defaults:` only had to solve "assign the right layout/title",
+never "make these files build at all".
+
+Considered, then discarded, a more complex alternative first: thin wrapper
+pages (`pages/architecture.md` etc.) with real front matter, transcluding
+the actual file's content via `{% include_relative %}` + the `markdownify`
+filter. Built and even started testing this before realizing `defaults:`
+solved the exact same problem with no new files, no transclusion
+indirection, and no risk of the included copy ever silently drifting from
+what `{% include_relative %}` actually reads — deleted it once `defaults:`
+was confirmed working live.
+
+Verified all of this the same way as everything else on this site: pushed
+straight to `main` specifically to get a real Pages build to test against
+(this was itself the verification step, not a separate "trust the config"
+pass), polled for `"status":"built"`, then pulled the real built HTML for
+all three doc pages and grepped it directly — confirmed `<title>Architecture
+| Vayu</title>` etc. (the per-file `defaults:` title actually applied),
+`docs-layout`/`docs-sidebar`/`pkg-card` present in the real output (not just
+written in the source), all 20 package cards accounted for, and the
+markdown-inside-`<details>` processing working correctly by finding real
+`<code>`/`<em>` tags in the built page rather than literal markdown
+characters.

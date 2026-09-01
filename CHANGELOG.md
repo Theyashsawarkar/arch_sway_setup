@@ -5,6 +5,46 @@ along the way. Newest first. Version markers (`## vX.Y.Z`) mark release
 boundaries on top of the dated entries -- see `docs/VERSIONING.md` for the
 full branch/release process.
 
+## v1.2.4 -- 2026-09-01
+
+Direct feedback pointed at the live Architecture page: "optimize this ui and
+make it more asthetic. instead of putting it in the table find other way to
+better structure this page instead." The "Package map" table really was a
+bad fit for its own content, not just visually plain -- 20 rows ranging from
+a 6-character description to one over 2,400 characters, all forced into the
+same fixed table columns.
+
+Replaced it with a responsive card grid + native `<details>` for the five
+genuinely long entries, entirely inside `docs/ARCHITECTURE.md` itself (one
+source of truth, GitHub-native view benefits too) -- parsed the original
+table with a small script rather than retype ~1,800 words by hand, verified
+no content was corrupted or dropped before trusting it.
+
+Added a real custom layout (`_layouts/docs.html`, `assets/docs.css`,
+`assets/docs.js`) instead of the built-in Jekyll theme: a sidebar table of
+contents built from the page's own real `<h2>` elements at view time (not a
+hand-maintained list to drift out of sync with a 58-section document), with
+scroll-based active-section highlighting, and the same Catppuccin Mocha
+palette already used on the homepage. Applied via `_config.yml`'s
+`defaults:` key (scoped per file path) rather than front matter in the
+source files -- the same GitHub-native-rendering constraint hit once already
+for `README.md` applies to `CHANGELOG.md`/`docs/*.md` too (all linked
+directly from `README.md`), and `defaults:` assigns a layout/title with zero
+change to the source file itself.
+
+Considered a more complex transclusion-based alternative first (wrapper
+pages + `include_relative`), built and started testing it, then discarded it
+once `defaults:` was confirmed to solve the same problem with no new files
+and no indirection.
+
+Verified live: pushed straight to `main` specifically to get a real Pages
+build to test against, polled for a real `"status":"built"`, then pulled the
+actual built HTML for all three doc pages and grepped it directly -- correct
+per-file titles, the new layout/cards present in the real output, all 20
+package cards accounted for, and markdown processing inside the `<details>`
+blocks confirmed via real `<code>`/`<em>` tags in the output, not literal
+markdown characters.
+
 ## v1.2.3 -- 2026-09-01
 
 Corrected a real inaccuracy in the previous release's own documentation,
