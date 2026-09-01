@@ -5,6 +5,31 @@ along the way. Newest first. Version markers (`## vX.Y.Z`) mark release
 boundaries on top of the dated entries -- see `docs/VERSIONING.md` for the
 full branch/release process.
 
+## 2026-09-01 (swayidle: fixed a real "dead on every boot" bug, found during a stability sweep)
+
+Asked directly to check whole-system stability before cutting a release. A real
+reboot had happened since the last check, which mattered: found
+`swayidle.service` `inactive (dead)` on a completely fresh boot, not leftover
+state. The existing idle-management entry already flagged this exact gap ("no
+real reboot to verify against") -- the reboot found what the simulation missed.
+
+Root cause: systemd's own auto-start (`WantedBy=default.target`) races
+`dbus-update-activation-environment` and fails 4 times in ~7 seconds
+(`WAYLAND_DISPLAY` not set yet) -- enough to hit systemd's default
+start-limit-burst before `swayidle-startup.sh` (the script `sway/config`
+already `exec`s later specifically to fix this ordering) ever runs. A plain
+`systemctl --user restart` against a unit already in `start-limit-hit` is a
+silent no-op -- no error anywhere.
+
+Fixed with `systemctl --user reset-failed swayidle.service` added to the top of
+`swayidle-startup.sh`. Confirmed the theory in isolation first (restart alone:
+no effect; reset-failed + restart: active in under a second), then verified the
+real fixed script in both its own branches (caffeine-on/off) live.
+
+`sway-audio-idle-inhibit.service` has its own real crash history
+(`coredumpctl`, several SIGABRTs on separate days) -- confirmed currently
+healthy since this boot, not chased further since it isn't reproducing now.
+
 ## 2026-09-01 (rmpc theme, round three: no bg fill on selection, plus a real silent-failure bug found)
 
 Direct follow-up: "the active item should not get the background

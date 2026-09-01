@@ -16,6 +16,21 @@
 # by systemd at login can predate dbus-update-activation-environment).
 STATE_FILE="$HOME/.local/state/caffeine/enabled"
 
+# reset-failed first -- found live, not assumed: systemd's own
+# auto-start (WantedBy=default.target) races dbus-update-activation-
+# environment and fails 4 times in ~7 seconds, well before this script
+# ever runs, which burns through systemd's default start-limit-burst
+# (5 failures / 10s). Once that limit is hit, the unit sits in
+# "start-limit-hit" and a plain `restart` from here is a silent no-op --
+# confirmed directly: swayidle stayed inactive (dead) after a real
+# reboot, on every boot, and `systemctl --user restart` alone did
+# nothing until `reset-failed` ran first. This is exactly the same
+# WAYLAND_DISPLAY race sway-audio-idle-inhibit.service already had a
+# comment about, just needing this extra step since that one only
+# fails once (not enough to hit the burst limit) where swayidle fails
+# fast enough to exhaust it every time.
+systemctl --user reset-failed swayidle.service
+
 if [ -e "$STATE_FILE" ]; then
     systemctl --user stop swayidle.service
 else

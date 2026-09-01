@@ -200,6 +200,45 @@ systemd, and hit a real hang: the backgrounded process ended up stuck as a direc
 child of the toggle script (visible via `pstree` and `/proc/<pid>/wchan` = `do_wait`).
 Systemd unit start/stop doesn't have that failure mode.
 
+**The gap the entry above flagged (no real reboot to test against) turned out to
+matter.** A genuine system reboot happened during a later session, and a routine
+"check whole-system stability before cutting a release" sweep found
+`swayidle.service` sitting `inactive (dead)` -- on a completely fresh boot, not
+some leftover state. `journalctl --user -u swayidle.service -b` showed exactly
+what the ordering comment above already predicted: 4 rapid failures in ~7
+seconds, all `"Unable to connect to the compositor... check WAYLAND_DISPLAY"`,
+before `swayidle-startup.sh` (the actual fix, `exec`'d later in `sway/config`)
+ever got a chance to run. The part the manual simulation upstream missed: those
+4 failures land inside systemd's default start-limit-burst (5 failures / 10s
+interval), so by the time `swayidle-startup.sh`'s own `systemctl --user restart`
+finally runs, the unit is already in `start-limit-hit` -- and a plain `restart`
+against a unit in that state is a **silent no-op**, no error, nothing in the
+script's own output to catch. Manually running `systemctl --user start` once (as
+the original verification did, simulating "the next login") never reproduces
+this, since one manual start attempt can't rack up 4 failures the way systemd's
+own auto-restart loop does in the first few seconds of a real boot -- a genuine
+example of a simulated test passing while the real trigger it stood in for still
+had a live bug.
+
+Fixed by adding `systemctl --user reset-failed swayidle.service` to the top of
+`swayidle-startup.sh`, before either branch. Confirmed the theory directly before
+writing the fix, not just assumed it: reproduced the dead state, ran
+`systemctl --user restart` alone against it (no change, still dead, matching the
+no-op theory), then `reset-failed` immediately followed by `restart` (came up
+active in under a second) -- isolated proof before touching the real script.
+Verified the actual fixed script afterward too: ran it live in both of its own
+branches (caffeine-on -> correctly stops a freshly-reset unit; caffeine-off ->
+correctly restarts and stays active), and relaunched rmpc from cold afterward to
+confirm the reboot hadn't quietly broken anything else in the same session
+(config/theme loaded correctly, `cache_dir` resolved, zero errors -- see the rmpc
+theme entries above).
+
+`sway-audio-idle-inhibit.service` has a real crash history of its own
+(`coredumpctl list` shows several SIGABRTs across separate days, unrelated to
+this reboot), but confirmed currently healthy and running since this exact boot
+with no crash -- not chased further here since it isn't reproducing right now,
+noted for awareness rather than fixed blind.
+
 ## The wallpaper pipeline is the ONLY wallpaper pipeline
 
 There used to be a second, untracked script (`~/scripts/fetch-bing.sh`) firing on
