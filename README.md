@@ -1,5 +1,3 @@
----
----
 # 🌬️ Vayu
 
 *Named after the Hindu god of wind -- Sway tiles and moves windows the same way air moves, and "sway" itself means exactly that.*
