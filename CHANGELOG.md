@@ -5,6 +5,16 @@ along the way. Newest first. Version markers (`## vX.Y.Z`) mark release
 boundaries on top of the dated entries -- see `docs/VERSIONING.md` for the
 full branch/release process.
 
+## v1.2.2 -- 2026-09-01
+
+Renamed the repository to Vayu (after the Hindu god of wind -- Sway
+tiles/moves windows the same way air moves) and replaced the docs site's
+homepage with a real, custom, dark hero-layout page (name/tagline/install on
+the left, a real desktop screenshot on the right) instead of the previous
+stacked README-as-homepage layout, with the rest of the site switched to a
+dark Jekyll theme to match. PATCH bump: identity/presentation and repo-
+completeness work, not a change to how the desktop itself behaves.
+
 ## 2026-09-01 (renamed to Vayu, and a real custom dark hero-layout site)
 
 Direct ask: rename the repo to something from Hindu mythology/history, make
