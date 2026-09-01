@@ -5,6 +5,17 @@ along the way. Newest first. Version markers (`## vX.Y.Z`) mark release
 boundaries on top of the dated entries -- see `docs/VERSIONING.md` for the
 full branch/release process.
 
+## v1.2.3 -- 2026-09-01
+
+Corrected a real inaccuracy in the previous release's own documentation,
+found via the site's own live verification: `docs/ARCHITECTURE.md` claimed
+`README.md` was reachable as a Jekyll-rendered page on the docs site --
+`README.html` actually 404'd. Tried the standard fix and reverted it after
+checking GitHub's own README renderer first (it renders unstripped front
+matter as literal horizontal rules on the actual repo page). No content
+change to `README.md` itself (net zero diff from v1.2.2). PATCH bump:
+correcting a wrong claim in already-published documentation.
+
 ## v1.2.2 -- 2026-09-01
 
 Renamed the repository to Vayu (after the Hindu god of wind -- Sway
