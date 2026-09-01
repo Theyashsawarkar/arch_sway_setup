@@ -1,5 +1,10 @@
 # 🏔️ Arch Sway Setup
 
+📖 **[Browse the full docs site →](https://theyashsawarkar.github.io/arch_sway_setup/)**
+(this same README, plus [CHANGELOG.md](CHANGELOG.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md),
+and [docs/VERSIONING.md](docs/VERSIONING.md) -- built from this repo directly, not a separate
+copy to keep in sync.)
+
 A minimal, keyboard-driven Arch Linux desktop built around Wayland, Sway, and modern terminal-based development tools.
 
 This repository contains the complete configuration for my daily development environment, managed with GNU Stow for reproducible setup and easy maintenance.
@@ -73,6 +78,14 @@ to `$HOME`, what `install.sh` does step by step, and what's deliberately exclude
 | GUI Editor      | Zed      |
 | Shell           | Zsh      |
 
+### Media
+
+| Component     | Software                                          |
+| -------------- | -------------------------------------------------- |
+| Music Daemon   | MPD (real filesystem watcher, zero third-party API) |
+| Music Client   | rmpc (TUI, Catppuccin Mocha themed, real compositor glass) |
+| Search/Download | `music-search.py` (wofi-based, real thumbnails, yt-dlp) |
+
 ---
 
 ## 📂 Repository Structure
@@ -86,9 +99,11 @@ Each directory represents an independent package managed by GNU Stow.
 ├── gtk/             # GTK 3/4 settings.ini (Catppuccin Mocha theme)
 ├── kitty/
 ├── mako/
+├── mpd/             # MPD daemon config (music_directory, auto_update)
 ├── networkmanager-dmenu/  # wofi-backed Wi-Fi picker (scan/connect/toggle)
 ├── nvim/
 ├── nwg-bar/         # power menu (lock/logout/suspend/reboot/shutdown)
+├── rmpc/            # MPD TUI client + Catppuccin Mocha theme
 ├── scripts/         # ~/.local/bin utilities used by sway keybindings
 ├── sway/
 ├── systemd/         # ~/.config/systemd/user units (wallpaper, swayidle,
@@ -140,6 +155,7 @@ Install individual packages:
 ```bash
 stow kitty tmux nvim zed zsh scripts systemd gtk xdg
 stow sway waybar mako wofi nwg-bar networkmanager-dmenu
+stow mpd rmpc
 ```
 
 Or install everything (`packages/` and `docs/` aren't stow packages, so they're excluded):

@@ -3164,3 +3164,55 @@ fix or silently skipping them:
   `install.sh` or wired into any stow package — deliberately opt-in, since it changes
   network-filtering behavior and hasn't been tested against this system (no `sudo` in
   this session).
+
+## A public docs site, and README.md fixing itself along the way
+
+Asked directly: "i think we don't have a website for our repo create one with
+github i guess there is some setup for it right." Confirmed there wasn't --
+`gh api repos/.../pages` returned a plain 404, GitHub Pages was never enabled.
+
+Checked `README.md` before building anything on top of it, since it was about to
+become the site's actual homepage -- found it genuinely stale: its "Desktop
+Stack" table and "Repository Structure" tree had no `mpd`/`rmpc` at all (the
+whole termusic-replacement this session did), and the manual `stow` example in
+Installation was missing them too. Fixed all three rather than build a public
+site on top of known-wrong content.
+
+Deliberately did **not** write a separate `docs/index.md` as the site's actual
+homepage. GitHub Pages/Jekyll uses `README.md` as the homepage automatically
+when there's no `index.md`/`index.html` at the source root -- and README.md was
+already a genuinely complete "installation guide + documentation" page (Quick
+Start, Features, Desktop Stack, Repository Structure, full Installation walk-
+through, Managing Configurations, Local Configuration, Goals) once the stale
+parts were fixed. A separate site-only copy would just be a second thing to
+keep in sync with the real README forever -- one file, reused as-is, avoids that
+entirely. `CHANGELOG.md` and `docs/*.md` are reachable from the same build for
+the same reason (Pages sourced from the repo root, not a `/docs` subfolder --
+`CHANGELOG.md` lives at the root, not inside `docs/`, so scoping the build to
+`/docs` alone would have silently left it unreachable from the site).
+
+Added one new file, `_config.yml` at the repo root: `theme: jekyll-theme-cayman`
+(one of GitHub Pages' own built-in supported themes -- no Gemfile, no build
+step beyond that one line, confirmed via pages.github.com/themes before
+picking it, not guessed) plus an `exclude:` list for every actual dotfile
+package directory (`sway/`, `waybar/`, `kitty/`, etc.) so Jekyll's build only
+ever processes the real documentation, not several hundred unrelated config
+files this repo also happens to contain.
+
+**Did not take a live screenshot for the README's existing placeholder
+section**, even though the tooling to do it was right there (`grim`, a real
+running desktop matching everything documented). Checked what was actually on
+screen first (`swaymsg -t get_tree`) and found a real browser window with a
+personal email address in its title bar and a live ngrok tunnel URL, both part
+of the user's actual live session -- a public GitHub Pages screenshot is a
+published, hard-to-fully-reverse artifact once it's live and possibly indexed,
+and there wasn't a way to fully vet or sanitize a live desktop capture (tmux
+pane content, other window titles) well enough to publish it without asking
+first. Left the existing honest placeholder in place instead of taking that
+risk unprompted.
+
+Enabled Pages via the API once the content actually existed on `main` (source:
+`main` branch, path `/`, matching the branch this repo already treats as "the
+public, stable state" — see `docs/VERSIONING.md`), then verified the real build
+succeeded and the site was actually reachable (`curl` the resulting URL, not
+just trusted the API call returning success) before considering this done.

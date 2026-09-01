@@ -5,6 +5,41 @@ along the way. Newest first. Version markers (`## vX.Y.Z`) mark release
 boundaries on top of the dated entries -- see `docs/VERSIONING.md` for the
 full branch/release process.
 
+## 2026-09-01 (a real public docs site, and README.md fixing itself along the way)
+
+Asked directly for a GitHub Pages site with an installation guide and detailed
+docs. Confirmed it genuinely didn't exist yet (`gh api repos/.../pages` -> 404),
+not assumed.
+
+Checked `README.md` before building on top of it, since it was about to become
+the site's homepage -- found it stale (no `mpd`/`rmpc` anywhere in the Desktop
+Stack table, Repository Structure tree, or the manual `stow` example, despite
+this session's whole termusic-replacement). Fixed all three.
+
+No separate `docs/index.md` written -- Pages/Jekyll uses `README.md` as the
+homepage automatically with no `index.md` present, and README.md was already a
+complete install guide once the stale parts were fixed; a second site-only copy
+would just be one more thing to keep in sync forever. `CHANGELOG.md` and
+`docs/*.md` are reachable from the same build since Pages is sourced from the
+repo root, not a `/docs` subfolder (`CHANGELOG.md` lives at the root, scoping to
+`/docs` alone would have left it unreachable).
+
+Added one file, `_config.yml` (repo root): `theme: jekyll-theme-cayman`, a
+GitHub-Pages-supported built-in theme (no Gemfile, no extra build step,
+confirmed via pages.github.com/themes) plus an `exclude:` list for every real
+dotfile package directory so Jekyll only processes actual documentation.
+
+Deliberately skipped taking a live screenshot for the README's existing
+placeholder, even with the tooling right there -- checked what was actually on
+screen first and found a real browser window with a personal email address in
+its title and a live ngrok tunnel URL, part of the user's real session. A public
+Pages screenshot is a published, hard-to-fully-reverse artifact; left the
+existing honest placeholder rather than risk it unprompted.
+
+Enabled Pages via the API once the content existed on `main` (source: `main`,
+path `/`), then verified the actual build succeeded and the site was reachable
+via a direct `curl`, not just a successful API response.
+
 ## v1.2.0 -- 2026-09-01
 
 rmpc's theme went from a flat, two-color mapping to a richly-colored, deliberately

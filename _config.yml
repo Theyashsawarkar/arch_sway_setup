@@ -1,0 +1,41 @@
+# GitHub Pages config -- sourced from main branch, repo root, so README.md
+# is the site's homepage automatically (Jekyll/Pages default behavior when
+# no separate index.md/index.html exists) and CHANGELOG.md/docs/*.md are
+# reachable from the same build, no separate/duplicated site content to
+# keep in sync with the real docs.
+#
+# theme: a GitHub-Pages-supported built-in theme (no gem install, no build
+# step beyond this line -- confirmed supported without a Gemfile at
+# https://pages.github.com/themes/).
+title: Arch Sway Setup
+description: >-
+  A minimal, keyboard-driven Arch Linux desktop built around Wayland, Sway,
+  and modern terminal-based development tools -- Sway, Waybar, MPD/rmpc,
+  Kitty, Neovim, Tmux, managed with GNU Stow.
+theme: jekyll-theme-cayman
+show_downloads: false
+
+# Everything below is real config/dotfile content, not documentation --
+# excluded so the Jekyll build only ever processes the actual docs
+# (README.md, CHANGELOG.md, docs/*.md), not several hundred unrelated
+# config files this repo also happens to contain.
+exclude:
+  - gtk/
+  - kitty/
+  - mako/
+  - mpd/
+  - networkmanager-dmenu/
+  - nvim/
+  - nwg-bar/
+  - packages/
+  - rmpc/
+  - scripts/
+  - sway/
+  - systemd/
+  - tmux/
+  - waybar/
+  - wofi/
+  - xdg/
+  - zed/
+  - zsh/
+  - install.sh
