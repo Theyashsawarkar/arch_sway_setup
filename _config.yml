@@ -2,31 +2,47 @@
 #
 # index.html (repo root) is a fully custom static page -- no Jekyll
 # front matter, so Pages serves it untouched instead of wrapping it in
-# `theme`'s layout. It's the actual homepage (index.html always wins
+# a theme layout. It's the actual homepage (index.html always wins
 # over README.md/index.md as the site root when both exist).
 #
-# `theme` below still applies to everything else Jekyll DOES process
-# normally: CHANGELOG.md, docs/ARCHITECTURE.md, docs/VERSIONING.md,
-# README.md itself (still reachable as its own page, just not the
-# homepage anymore). jekyll-theme-slate -- one of GitHub Pages' own
-# built-in supported themes (no Gemfile, no extra build step, confirmed
-# at pages.github.com/themes) -- picked specifically because it's dark
-# by default, matching the custom index.html instead of clashing with
-# it (jekyll-theme-cayman, used before this, is a light theme).
+# CHANGELOG.md and docs/*.md deliberately have NO front matter either
+# (they're read directly on GitHub too -- linked from README.md -- and
+# a `---` front-matter block isn't stripped by GitHub's own renderer,
+# it shows up as literal horizontal rules on the real repo page,
+# confirmed live once already for README.md and reverted). `defaults:`
+# below assigns the custom `docs` layout to each of them by path
+# instead, with zero change to the source files themselves.
 title: Vayu
 description: >-
   A minimal, keyboard-driven Arch Linux desktop built around Wayland, Sway,
   and modern terminal-based development tools -- Sway, Waybar, MPD/rmpc,
   Kitty, Neovim, Tmux, managed with GNU Stow. Named after the Hindu god of
   wind.
-theme: jekyll-theme-slate
-show_downloads: false
+
+defaults:
+  - scope:
+      path: "docs/ARCHITECTURE.md"
+    values:
+      layout: "docs"
+      title: "Architecture"
+  - scope:
+      path: "docs/VERSIONING.md"
+    values:
+      layout: "docs"
+      title: "Versioning"
+  - scope:
+      path: "CHANGELOG.md"
+    values:
+      layout: "docs"
+      title: "Changelog"
 
 # Everything below is real config/dotfile content, not documentation --
 # excluded so the Jekyll build only ever processes the actual docs
-# (README.md, CHANGELOG.md, docs/*.md, index.html, assets/), not
-# several hundred unrelated config files this repo also happens to
-# contain.
+# (CHANGELOG.md, docs/*.md, index.html, assets/), not several hundred
+# unrelated config files this repo also happens to contain. README.md
+# is left unexcluded but is a raw passthrough regardless (no front
+# matter, and unlike the files above, it's the one Jekyll won't build
+# into README.html at all -- confirmed live, see docs/ARCHITECTURE.md).
 exclude:
   - gtk/
   - kitty/

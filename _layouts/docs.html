@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ page.title }} | Vayu</title>
+<link rel="stylesheet" href="{{ '/assets/style.css' | relative_url }}">
+<link rel="stylesheet" href="{{ '/assets/docs.css' | relative_url }}">
+</head>
+<body class="docs-body">
+<nav class="topnav">
+  <a class="brand" href="{{ '/' | relative_url }}">🌬️ Vayu</a>
+  <div class="navlinks">
+    <a href="{{ '/' | relative_url }}#features">Features</a>
+    <a href="{{ '/' | relative_url }}#install">Install</a>
+    <a href="{{ '/docs/ARCHITECTURE.html' | relative_url }}">Architecture</a>
+    <a href="{{ '/CHANGELOG.html' | relative_url }}">Changelog</a>
+    <a href="https://github.com/Theyashsawarkar/vayu">GitHub</a>
+  </div>
+</nav>
+
+<div class="docs-layout">
+  <aside class="docs-sidebar" id="docs-toc">
+    <p class="toc-label">On this page</p>
+    <nav id="toc-list"><!-- built by docs.js from the real h2s below --></nav>
+  </aside>
+  <main class="docs-content">
+    <h1 class="docs-title">{{ page.title }}</h1>
+    <article id="docs-article">
+      {{ content }}
+    </article>
+  </main>
+</div>
+
+<footer>
+  <p>Vayu · MIT License · <a href="https://github.com/Theyashsawarkar/vayu/tags">Latest release</a></p>
+</footer>
+
+<script src="{{ '/assets/docs.js' | relative_url }}"></script>
+</body>
+</html>

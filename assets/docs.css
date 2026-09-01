@@ -1,0 +1,130 @@
+/* Styling for the Jekyll-built doc pages (Architecture, Changelog,
+   Versioning) -- layered on top of assets/style.css's Catppuccin Mocha
+   variables so both the custom homepage and these pages share one
+   palette, not two different "dark themes". */
+
+.docs-layout {
+  display: flex;
+  align-items: flex-start;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2.5rem 2.5rem 4rem;
+  gap: 3rem;
+}
+
+.docs-sidebar {
+  flex: 0 0 240px;
+  position: sticky;
+  top: 5.5rem;
+  max-height: calc(100vh - 7rem);
+  overflow-y: auto;
+}
+.toc-label {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.75rem;
+  color: var(--subtext);
+  margin: 0 0 0.75rem;
+  font-weight: 600;
+}
+#toc-list ul { list-style: none; margin: 0; padding: 0; }
+#toc-list li { margin: 0.1rem 0; }
+#toc-list a {
+  display: block;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  color: var(--subtext);
+  font-size: 0.85rem;
+  border-left: 2px solid transparent;
+}
+#toc-list a:hover { color: var(--text); text-decoration: none; background: var(--mantle); }
+#toc-list a.active {
+  color: var(--mauve);
+  border-left-color: var(--mauve);
+  background: var(--mantle);
+}
+
+.docs-content { flex: 1 1 auto; min-width: 0; }
+.docs-title {
+  font-size: 2.2rem;
+  margin: 0 0 1.5rem;
+  color: var(--text);
+}
+
+/* Article typography */
+#docs-article h2 {
+  font-size: 1.4rem;
+  margin: 3rem 0 1rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--surface0);
+  color: var(--mauve);
+  scroll-margin-top: 5.5rem; /* so the sticky topnav doesn't cover the target when jumped to */
+}
+#docs-article h2:first-of-type { border-top: none; margin-top: 0; }
+#docs-article h3 { font-size: 1.15rem; color: var(--sky); margin: 2rem 0 0.75rem; }
+#docs-article p, #docs-article li { color: var(--text); font-size: 0.96rem; max-width: 78ch; }
+#docs-article a { word-break: break-word; }
+#docs-article ul, #docs-article ol { padding-left: 1.4rem; }
+#docs-article pre {
+  background: var(--mantle);
+  border: 1px solid var(--surface0);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  overflow-x: auto;
+}
+#docs-article pre code { background: none; padding: 0; color: var(--green); }
+#docs-article blockquote {
+  border-left: 3px solid var(--mauve);
+  margin: 1rem 0;
+  padding: 0.25rem 1rem;
+  color: var(--subtext);
+}
+
+/* Package cards -- replaces what used to be a giant markdown table with
+   wildly uneven row lengths (some one-liners, some 1500+ word deep
+   dives). A responsive card grid + native <details> for the long ones
+   fits that content shape far better than a fixed-width table ever did. */
+.pkg-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+.pkg-card {
+  background: var(--mantle);
+  border: 1px solid var(--surface0);
+  border-radius: 8px;
+  padding: 1.1rem 1.3rem;
+  grid-column: span 1;
+}
+/* Cards with a <details> (the genuinely long entries) get more breathing
+   room and span the full width -- their content doesn't fit a narrow
+   column any better than the old table did. */
+.pkg-card:has(details) { grid-column: 1 / -1; }
+.pkg-card h4 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+.pkg-card h4 code { color: var(--mauve); background: none; padding: 0; font-size: 1rem; }
+.pkg-path { font-size: 0.8rem; }
+.pkg-path code { color: var(--subtext); background: none; padding: 0; }
+.pkg-card p { margin: 0; font-size: 0.9rem; color: var(--subtext); max-width: none; }
+.pkg-card details { margin-top: 0.75rem; }
+.pkg-card summary {
+  cursor: pointer;
+  color: var(--peach);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.pkg-card details[open] summary { margin-bottom: 0.75rem; }
+.pkg-card details p { color: var(--text); max-width: 78ch; }
+
+@media (max-width: 900px) {
+  .docs-layout { flex-direction: column; padding: 1.5rem; }
+  .docs-sidebar { position: static; max-height: none; width: 100%; }
+  .pkg-card:has(details) { grid-column: auto; }
+}
