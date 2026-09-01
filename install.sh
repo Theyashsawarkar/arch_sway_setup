@@ -4,14 +4,14 @@
 # Run from a TTY right after `archinstall` + first boot + login as your
 # normal (sudo-capable) user, with networking already up:
 #
-#   bash <(curl -fsSL https://raw.githubusercontent.com/Theyashsawarkar/arch_sway_setup/main/install.sh)
+#   bash <(curl -fsSL https://raw.githubusercontent.com/Theyashsawarkar/vayu/main/install.sh)
 #
 # Idempotent: safe to re-run (e.g. after adding a package to packages/*.txt).
 
 set -euo pipefail
 
 DOTFILES_DIR="$HOME/dotfiles"
-REPO_URL="https://github.com/Theyashsawarkar/arch_sway_setup.git"
+REPO_URL="https://github.com/Theyashsawarkar/vayu.git"
 BACKUP_DIR="$HOME/.dotfiles-backup"
 
 log() { printf '\n\033[1;34m==>\033[0m %s\n' "$1"; }

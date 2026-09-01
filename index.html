@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vayu — a minimal, keyboard-driven Arch Linux desktop</title>
+<meta name="description" content="Vayu: a minimal, keyboard-driven Arch Linux desktop built around Wayland, Sway, and modern terminal-based development tools. Named after the Hindu god of wind.">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="brand" href="#">🌬️ Vayu</a>
+  <div class="navlinks">
+    <a href="#features">Features</a>
+    <a href="#install">Install</a>
+    <a href="docs/ARCHITECTURE.html">Architecture</a>
+    <a href="CHANGELOG.html">Changelog</a>
+    <a href="https://github.com/Theyashsawarkar/vayu">GitHub</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="hero-text">
+    <p class="eyebrow">Arch Linux · Wayland · Sway</p>
+    <h1>Vayu</h1>
+    <p class="tagline">A minimal, keyboard-driven desktop, built to move as cleanly as its
+    namesake — <strong>Vayu</strong>, the Hindu god of wind. Sway tiles and arranges
+    windows the same way air moves: constantly, cleanly, out of your way.</p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="#install">Get started</a>
+      <a class="btn btn-ghost" href="https://github.com/Theyashsawarkar/vayu">View on GitHub</a>
+    </div>
+    <pre class="install-snippet"><code>bash &lt;(curl -fsSL https://raw.githubusercontent.com/Theyashsawarkar/vayu/main/install.sh)</code></pre>
+  </div>
+  <div class="hero-image">
+    <img src="assets/desktop.jpg" alt="Vayu desktop: Waybar status bar at the top, rmpc's Catppuccin-Mocha-themed music player open over a live wallpaper, real compositor blur visible behind it.">
+  </div>
+</header>
+
+<main>
+  <section id="features" class="features">
+    <h2>What's in it</h2>
+    <div class="feature-grid">
+      <div class="feature-card" style="--accent:#cba6f7">
+        <h3>Sway</h3>
+        <p>Tiling Wayland compositor (SwayFX fork — real compositor blur, rounded corners, shadows). Keyboard-first, no mouse required.</p>
+      </div>
+      <div class="feature-card" style="--accent:#89dceb">
+        <h3>Waybar</h3>
+        <p>Status bar with a fully custom Catppuccin Mocha palette — every module gets its own deliberate, distinct color.</p>
+      </div>
+      <div class="feature-card" style="--accent:#eba0ac">
+        <h3>MPD + rmpc</h3>
+        <p>A real MPD daemon (zero third-party API dependency) with a richly-themed rmpc TUI client — replaced termusic entirely.</p>
+      </div>
+      <div class="feature-card" style="--accent:#fab387">
+        <h3>Kitty + Tmux</h3>
+        <p>GPU-accelerated terminal, real glass transparency, session persistence via tmux-resurrect/continuum.</p>
+      </div>
+      <div class="feature-card" style="--accent:#a6e3a1">
+        <h3>Neovim</h3>
+        <p>A from-scratch, minimal Neovim config — no bloated distro, every plugin a deliberate choice.</p>
+      </div>
+      <div class="feature-card" style="--accent:#b4befe">
+        <h3>GNU Stow</h3>
+        <p>Every package here is a real, independent, symlinked stow package — reproducible, one command per tool, easy to audit.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="install" class="install">
+    <h2>Install</h2>
+    <p>On a fresh Arch install, after <code>archinstall</code> finishes and you're logged
+    into a TTY as your normal user with networking up:</p>
+    <pre class="install-snippet"><code>bash &lt;(curl -fsSL https://raw.githubusercontent.com/Theyashsawarkar/vayu/main/install.sh)</code></pre>
+    <p>This installs every package, stows every config in this repo, sets up zsh/tmux/the
+    Nerd Font the status bars need, and enables the required services. It backs up any
+    pre-existing conflicting dotfiles first, and is safe to re-run.</p>
+    <p>Full walkthrough, manual/step-by-step installation, and how to add your own
+    packages: see the <a href="https://github.com/Theyashsawarkar/vayu#readme">full README on GitHub</a>.</p>
+  </section>
+
+  <section class="docs-links">
+    <h2>Read more</h2>
+    <div class="docs-grid">
+      <a class="doc-card" href="docs/ARCHITECTURE.html">
+        <h3>Architecture</h3>
+        <p>How every package maps to <code>$HOME</code>, every real bug found and fixed, with the full reasoning — not a polished summary.</p>
+      </a>
+      <a class="doc-card" href="CHANGELOG.html">
+        <h3>Changelog</h3>
+        <p>Dated, detailed log of what changed and why, newest first — the real history, not rewritten.</p>
+      </a>
+      <a class="doc-card" href="docs/VERSIONING.html">
+        <h3>Versioning</h3>
+        <p>The <code>main</code>/<code>develop</code> branch model and release process this repo actually follows.</p>
+      </a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <p>Vayu · MIT License · <a href="https://github.com/Theyashsawarkar/vayu/tags">Latest release</a></p>
+</footer>
+</body>
+</html>

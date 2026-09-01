@@ -3216,3 +3216,68 @@ Enabled Pages via the API once the content actually existed on `main` (source:
 public, stable state" — see `docs/VERSIONING.md`), then verified the real build
 succeeded and the site was actually reachable (`curl` the resulting URL, not
 just trusted the API call returning success) before considering this done.
+
+## Renamed to Vayu, and a real custom dark hero-layout homepage
+
+Direct follow-up, same evening: rename the repo to something from Hindu
+mythology/history, make the site dark instead of light, and stop using the
+stacked README-as-homepage layout for something with a name/tagline on the
+left and a desktop image on the right instead.
+
+**Name**: `arch_sway_setup` → `vayu`, after the Hindu god of wind. The fit is
+direct, not decorative — Sway (the window manager this whole repo is built
+around) tiles and rearranges windows constantly, the same way air moves, and
+"sway" itself literally means to move that way. Renamed via `gh repo rename`,
+then explicitly updated the local `origin` remote to the new URL and ran a
+real `git fetch` through it to confirm the rename had actually propagated,
+not just trusted the API response. Grepped the whole repo for the old name
+(`arch_sway_setup`) to find every real reference rather than guess where it
+might appear — found exactly two files (`install.sh`'s own curl one-liner
+and `REPO_URL`; every GitHub/raw.githubusercontent link in `README.md`) and
+updated both. Also set the repo's GitHub description and homepage URL to
+match, and confirmed GitHub Pages carried the rename over automatically
+(`gh api repos/.../pages` still resolved correctly at the new
+`Theyashsawarkar/vayu` path immediately after).
+
+**Homepage**: replaced the previous "Pages serves README.md automatically"
+approach with a real, hand-written `index.html` at the repo root. Jekyll/
+Pages' own precedence rule made this possible without extra config: an
+`index.html` with no YAML front matter is served completely untouched
+(static passthrough, no theme layout wrapping it) and always wins over
+`README.md`/`index.md` as the site root when more than one exists — so the
+custom homepage and the still-Jekyll-built doc pages (`CHANGELOG.html`,
+`docs/ARCHITECTURE.html`, `docs/VERSIONING.html`, and `README.md` itself,
+still reachable as its own page, just not the homepage anymore) coexist in
+one build with zero conflict.
+
+Layout follows the pattern asked for directly: a hero section with the name,
+tagline, install snippet, and CTA buttons on the left, a real screenshot of
+the actual desktop on the right — the specific split-hero pattern common to
+project landing pages, even though it wasn't named as such in the request.
+Below that, a feature grid and links out to the full docs. Colors are this
+desktop's own Catppuccin Mocha values used directly (same hexes already in
+`rmpc`'s theme, `waybar/style.css`), not a generic "dark theme" — the site
+is meant to read as part of the same thing it's documenting. The *other*
+pages (still Jekyll-built) switched from `jekyll-theme-cayman` (light) to
+`jekyll-theme-slate` — one of GitHub Pages' own built-in themes, dark by
+default — specifically so the whole site is consistently dark, not just the
+new custom homepage while the doc pages stayed light underneath it.
+
+**The screenshot took real care, not just running `grim` where things stood.**
+Checked the actual window tree first (`swaymsg -t get_tree`) rather than
+assume the screen was safe to capture: a browser window on another
+workspace and a live tmux pane on the focused one, and since a floating
+`rmpc` window doesn't cover the full 1920x1080 output, capturing it directly
+where it was would have left that tmux pane visible in the margins around
+it. Switched to a genuinely empty workspace, moved `rmpc` there via the
+scratchpad, confirmed via the tree that it was the *only* node on that
+workspace before capturing anything, then restored the original focused
+workspace and hid `rmpc` back to the scratchpad afterward, leaving the real
+session exactly as found. Resized and re-encoded the result (1920x1080 PNG
+→ 1600x900 JPEG, ~230KB) rather than ship an untouched multi-megabyte
+screenshot as a page asset.
+
+Verified live the same way as the rest of this session's site work: pushed,
+polled the Pages build API until it reported `"status":"built"` rather than
+assuming a quick build had finished, then `curl`'d the actual homepage and
+every linked doc page for real HTTP 200s and real content.

@@ -5,6 +5,54 @@ along the way. Newest first. Version markers (`## vX.Y.Z`) mark release
 boundaries on top of the dated entries -- see `docs/VERSIONING.md` for the
 full branch/release process.
 
+## 2026-09-01 (renamed to Vayu, and a real custom dark hero-layout site)
+
+Direct ask: rename the repo to something from Hindu mythology/history, make
+the docs site dark instead of light, and redesign it around a specific
+pattern -- name/headline on the left, a desktop image on the right, not the
+previous stacked README-as-homepage layout.
+
+**Renamed `arch_sway_setup` -> `vayu`** (`gh repo rename`), after Vayu, the
+Hindu god of wind -- Sway tiles/arranges windows the same way air moves, and
+"sway" itself means exactly that. Updated the local `origin` remote to the
+new URL and confirmed a fetch actually works through it (not just assumed
+the rename propagated). Propagated the new name everywhere it was actually
+referenced: `install.sh`'s own curl one-liner and `REPO_URL`, and every
+`github.com`/`raw.githubusercontent.com` link in `README.md` -- grepped the
+whole repo for the old name first to find all of them, not guessed. Set the
+repo's GitHub description and homepage URL to match.
+
+**Replaced the stacked README-as-homepage site with a real custom
+`index.html`** (repo root, no Jekyll front matter, so Pages serves it
+untouched instead of wrapping it in a theme layout) -- a proper hero section
+(name + tagline + install snippet + CTAs on the left, a real desktop
+screenshot on the right), a feature grid, and links out to the full docs.
+Dark by default, using this desktop's own Catppuccin Mocha palette directly
+(the same colors already in `rmpc`'s own theme, `waybar/style.css`, etc.) so
+the site reads as part of the same thing it documents rather than a generic
+theme wrapper. Switched the Jekyll theme used for the *other* pages
+(`CHANGELOG.html`, `docs/ARCHITECTURE.html`, `docs/VERSIONING.html`) from
+`jekyll-theme-cayman` (light) to `jekyll-theme-slate` (one of GitHub Pages'
+own built-in dark themes) so the whole site is consistently dark, not just
+the new homepage.
+
+**The desktop screenshot needed real care, not just a `grim` call.**
+Checked the actual window tree first and found the real session had a
+browser window with visible content on another workspace and a live tmux
+pane on the currently-focused one -- a floating `rmpc` window doesn't cover
+the full screen, so screenshotting it directly would have left tmux visible
+in the margins. Switched to a genuinely empty workspace, moved `rmpc` there
+via the scratchpad (confirmed via `swaymsg -t get_tree` that it was the
+*only* thing on that workspace before capturing), then restored the
+original workspace/window state afterward. Resized/compressed the result
+(1920x1080 PNG -> 1600x900 JPEG, ~230KB) for a reasonable page weight.
+
+Verified live the same way as every other change this session: pushed,
+waited for the real Jekyll build to report `"status":"built"` (not just a
+successful API response), then `curl`'d the actual homepage and every linked
+doc page for real HTTP 200s and real content, not assumed correct from the
+config alone.
+
 ## v1.2.1 -- 2026-09-01
 
 A real public GitHub Pages docs site (README.md as the homepage, CHANGELOG.md

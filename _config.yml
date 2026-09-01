@@ -1,24 +1,32 @@
-# GitHub Pages config -- sourced from main branch, repo root, so README.md
-# is the site's homepage automatically (Jekyll/Pages default behavior when
-# no separate index.md/index.html exists) and CHANGELOG.md/docs/*.md are
-# reachable from the same build, no separate/duplicated site content to
-# keep in sync with the real docs.
+# GitHub Pages config -- sourced from main branch, repo root.
 #
-# theme: a GitHub-Pages-supported built-in theme (no gem install, no build
-# step beyond this line -- confirmed supported without a Gemfile at
-# https://pages.github.com/themes/).
-title: Arch Sway Setup
+# index.html (repo root) is a fully custom static page -- no Jekyll
+# front matter, so Pages serves it untouched instead of wrapping it in
+# `theme`'s layout. It's the actual homepage (index.html always wins
+# over README.md/index.md as the site root when both exist).
+#
+# `theme` below still applies to everything else Jekyll DOES process
+# normally: CHANGELOG.md, docs/ARCHITECTURE.md, docs/VERSIONING.md,
+# README.md itself (still reachable as its own page, just not the
+# homepage anymore). jekyll-theme-slate -- one of GitHub Pages' own
+# built-in supported themes (no Gemfile, no extra build step, confirmed
+# at pages.github.com/themes) -- picked specifically because it's dark
+# by default, matching the custom index.html instead of clashing with
+# it (jekyll-theme-cayman, used before this, is a light theme).
+title: Vayu
 description: >-
   A minimal, keyboard-driven Arch Linux desktop built around Wayland, Sway,
   and modern terminal-based development tools -- Sway, Waybar, MPD/rmpc,
-  Kitty, Neovim, Tmux, managed with GNU Stow.
-theme: jekyll-theme-cayman
+  Kitty, Neovim, Tmux, managed with GNU Stow. Named after the Hindu god of
+  wind.
+theme: jekyll-theme-slate
 show_downloads: false
 
 # Everything below is real config/dotfile content, not documentation --
 # excluded so the Jekyll build only ever processes the actual docs
-# (README.md, CHANGELOG.md, docs/*.md), not several hundred unrelated
-# config files this repo also happens to contain.
+# (README.md, CHANGELOG.md, docs/*.md, index.html, assets/), not
+# several hundred unrelated config files this repo also happens to
+# contain.
 exclude:
   - gtk/
   - kitty/

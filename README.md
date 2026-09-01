@@ -1,6 +1,8 @@
-# 🏔️ Arch Sway Setup
+# 🌬️ Vayu
 
-📖 **[Browse the full docs site →](https://theyashsawarkar.github.io/arch_sway_setup/)**
+*Named after the Hindu god of wind -- Sway tiles and moves windows the same way air moves, and "sway" itself means exactly that.*
+
+🌐 **[Browse the full docs site →](https://theyashsawarkar.github.io/vayu/)**
 (this same README, plus [CHANGELOG.md](CHANGELOG.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md),
 and [docs/VERSIONING.md](docs/VERSIONING.md) -- built from this repo directly, not a separate
 copy to keep in sync.)
@@ -17,7 +19,7 @@ After `archinstall` finishes, reboot, log in on the TTY as your normal user, mak
 sure networking is up (`iwctl` if it's Wi-Fi), and run:
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/Theyashsawarkar/arch_sway_setup/main/install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/Theyashsawarkar/vayu/main/install.sh)
 ```
 
 This installs every package (`packages/pacman.txt` + `packages/aur.txt`, bootstrapping
@@ -135,7 +137,7 @@ sudo pacman -S git stow
 ### Clone the Repository
 
 ```bash
-git clone https://github.com/Theyashsawarkar/arch_sway_setup.git ~/dotfiles
+git clone https://github.com/Theyashsawarkar/vayu.git ~/dotfiles
 cd ~/dotfiles
 ```
 
