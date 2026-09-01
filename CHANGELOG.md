@@ -5,6 +5,14 @@ along the way. Newest first. Version markers (`## vX.Y.Z`) mark release
 boundaries on top of the dated entries -- see `docs/VERSIONING.md` for the
 full branch/release process.
 
+## v1.2.1 -- 2026-09-01
+
+A real public GitHub Pages docs site (README.md as the homepage, CHANGELOG.md
+and docs/*.md reachable from the same build), with README.md's own staleness
+around mpd/rmpc fixed first since it was about to become that homepage. PATCH
+bump: a documentation/repo-completeness gap fixed, not a change to how the
+desktop itself behaves.
+
 ## 2026-09-01 (a real public docs site, and README.md fixing itself along the way)
 
 Asked directly for a GitHub Pages site with an installation guide and detailed
