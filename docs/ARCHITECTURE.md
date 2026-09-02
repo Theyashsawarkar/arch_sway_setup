@@ -4,7 +4,7 @@
 
 One repo, managed with [GNU Stow](https://www.gnu.org/software/stow/). Every top-level
 directory except `packages/` and `docs/` is a **stow package**: its internal path
-structure mirrors where it belongs under `$HOME`, and `stow <package>` symlinks it into
+structure mirrors where it belongs under `$HOME`, and `stow &lt;package&gt;` symlinks it into
 place. `tmux/.config/tmux/tmux.conf` becomes `~/.config/tmux/tmux.conf -> ../dotfiles/tmux/.config/tmux/tmux.conf`.
 Nothing here is copied onto the live system — it's all symlinks, so editing
 `~/.config/tmux/tmux.conf` and editing the file in this repo are the same action.
@@ -306,7 +306,7 @@ an actual reboot.
 
 An earlier version managed this with raw `pkill`/background-and-`disown` instead of
 systemd, and hit a real hang: the backgrounded process ended up stuck as a direct
-child of the toggle script (visible via `pstree` and `/proc/<pid>/wchan` = `do_wait`).
+child of the toggle script (visible via `pstree` and `/proc/&lt;pid&gt;/wchan` = `do_wait`).
 Systemd unit start/stop doesn't have that failure mode.
 
 **The gap the entry above flagged (no real reboot to test against) turned out to
@@ -915,7 +915,7 @@ question was where to get a thumbnail image cheaply: yt-dlp's own
 in it carries a signed, per-request query string (confirmed by reading
 one directly) -- not something worth depending on staying valid or
 parsing correctly. YouTube's plain, unsigned
-`https://i.ytimg.com/vi/<id>/mqdefault.jpg` URL shape (320x180, ~11-18KB)
+`https://i.ytimg.com/vi/&lt;id&gt;/mqdefault.jpg` URL shape (320x180, ~11-18KB)
 resolves reliably without needing any of that (confirmed directly with
 a real `curl`, not assumed from convention), so that's what's used
 instead -- one fixed, well-known pattern, not something parsed out of a
@@ -1136,7 +1136,7 @@ assuming which ones needed fixing:
 - **rmpc's floating window** -- tested the same way, and this one really
   was broken: focused the window, sent the same synthetic Escape, and
   it stayed open. Root cause: rmpc's own `config.ron` already binds
-  `"<Esc>": Close` under `keybinds.navigation`, but that's rmpc's own
+  `"&lt;Esc&gt;": Close` under `keybinds.navigation`, but that's rmpc's own
   internal action for closing a modal *inside* rmpc (a save-playlist
   prompt, etc.) -- it has no idea sway's scratchpad exists, so with no
   internal modal open, Escape was a no-op as far as the window's
@@ -1168,7 +1168,7 @@ toggled it back open once more to confirm the existing show-path
 **Known, deliberate tradeoff**: this makes rmpc's own internal
 `Close` action unreachable via Escape specifically for this window
 (kitty eats the key before rmpc ever sees it). Not a real loss, though
--- `"<C-c>": Close` is bound to the exact same action in `config.ron`
+-- `"&lt;C-c&gt;": Close` is bound to the exact same action in `config.ron`
 already, so closing an internal rmpc modal still has a working key,
 just Ctrl+C instead of Escape from now on.
 
@@ -1348,7 +1348,7 @@ instead of only Album ever having had an (redundant) explicit color.
 **A real, unfixable-via-config limit found for the browser tabs**
 (Directories/Artists/Album Artists/Albums): the *other* render path
 songs take there (`dirstack/mod.rs`'s `to_list_item`) calls
-`Property<SongProperty>::as_string`, which discards `style` completely
+`Property&lt;SongProperty&gt;::as_string`, which discards `style` completely
 -- confirmed directly in the function body, not inferred. This means
 `browser_song_format`'s per-field colors (set in the very first
 theming pass, earlier the same evening) were already genuinely inert
@@ -1390,7 +1390,7 @@ Same broken dependency, same dead network already confirmed for
 termusic. Ruled out rather than adopted.
 
 **Built on the one piece already proven solid**: `yt-dlp`'s own
-`ytsearchN:<query>` search, confirmed completely independent of
+`ytsearchN:&lt;query&gt;` search, confirmed completely independent of
 Invidious and fast (~2-3s for 10 results with `--flat-playlist`, which
 reads only the search-results page itself rather than each video's
 full metadata). `mpv`/`ffmpeg` were already installed;
@@ -1465,7 +1465,7 @@ source) -- neither needed anything added here.
 **Toggle needed real work**: `scripts/.local/bin/toggle-popup.sh`, a
 generic wrapper every wofi-based popup keybinding and the nwg-bar power
 menu now route through (`sway/config`). A marker file per keybinding
-(`~/.local/state/popup-toggle/<name>.pid`) tracks whether *that specific*
+(`~/.local/state/popup-toggle/&lt;name&gt;.pid`) tracks whether *that specific*
 popup is the one currently open -- not just "is a wofi process running
 somewhere", since every wofi-based picker in this repo shows up as a
 bare `wofi` process indistinguishable from any other one by name alone.
@@ -1844,7 +1844,7 @@ each, same range as before this change.
 
 Asked for a keybinding to open the power menu (same gap every other
 waybar-click-only picker in this repo already had fixed --
-`$mod+Shift+p`, matching the established `$mod+Shift+<letter>`
+`$mod+Shift+p`, matching the established `$mod+Shift+&lt;letter&gt;`
 convention for exactly this class of fix) and for Tab to move between
 its buttons.
 
@@ -2305,7 +2305,7 @@ perceptible once drawn). Those turned out to be two separate bugs.
 single `-symbolic`-suffixed icon in Papirus (and several of its plain
 `actions`-category icons too, e.g. `edit-copy`, `audio-volume-high`,
 `media-record`, `process-stop` -- the *symbolic style*, just without the
-`-symbolic` suffix on the name) uses `fill:currentColor` with a `<style>`
+`-symbolic` suffix on the name) uses `fill:currentColor` with a `&lt;style&gt;`
 block declaring `.ColorScheme-Text { color:#444444; }` as the default --
 a dark charcoal gray, designed for GTK's own symbolic-icon recoloring
 convention on *light* UI chrome (toolbars, panels). mako just renders
@@ -2447,8 +2447,8 @@ pleasant sound, mode-dependent waybar bell icon, and both keybindings and
 scroll to switch -- "soft and flawless".
 
 **mako already has the exact right native mechanism for this** -- not
-something to build from scratch. `[mode=<name>]` config sections apply
-conditionally based on the current mode (`makoctl mode -s <name>`), and
+something to build from scratch. `[mode=&lt;name&gt;]` config sections apply
+conditionally based on the current mode (`makoctl mode -s &lt;name&gt;`), and
 `invisible=1` inside one suppresses the popup without touching whether
 the notification gets recorded. Confirmed both independently with the
 notification's own distinctive Mauve border color as a screenshot signal
@@ -2457,7 +2457,7 @@ which turned out to just be picking up wallpaper content at one point,
 caught by comparing against a clean baseline with zero mauve pixels
 before trusting any of the mode-specific measurements).
 
-**Sound**: `on-notify=exec paplay <file>` -- documented directly in
+**Sound**: `on-notify=exec paplay &lt;file&gt;` -- documented directly in
 mako's own man page as the intended mechanism, not invented. Picked
 `/usr/share/sounds/freedesktop/stereo/message.oga` (the standard
 freedesktop sound theme's "new message" chime) by checking every
@@ -2555,7 +2555,7 @@ the standard "muted" bell), `md-bell-sleep` (dnd -- a bell with "zzz",
 distinct silhouette from bell-slash, and conceptually fits "do not
 disturb" better than a generic prohibition glyph). All three codepoints
 confirmed present in the installed JetBrainsMono Nerd Font via
-`fc-list ":charset=<hex>"` before use, same discipline as every other
+`fc-list ":charset=&lt;hex&gt;"` before use, same discipline as every other
 icon chosen this session, and the PUA-glyph-transport-corruption bug
 that's recurred repeatedly all session hit again writing these three --
 caught and fixed the same way as always: patch via Python `chr(0xXXXXX)`
@@ -2702,8 +2702,8 @@ installed doesn't fail loudly -- native GTK apps just silently keep
 rendering whatever they last successfully loaded, which looks
 indistinguishable from "the toggle did nothing."
 
-**Fixed**: `theme-toggle.sh` now checks `/usr/share/themes/<name>` and
-`/usr/share/icons/<name>` directly before writing either dconf key, and
+**Fixed**: `theme-toggle.sh` now checks `/usr/share/themes/&lt;name&gt;` and
+`/usr/share/icons/&lt;name&gt;` directly before writing either dconf key, and
 skips writing it (leaving the previous, working value in place) if the
 target isn't actually there -- with a clear notification naming what's
 missing and pointing at the install command, rather than silently
@@ -2817,9 +2817,9 @@ an empty diff.
 
 **Fixed properly the second time**, one package at a time instead of a
 combined bulk call, verifying after each: `rm` the broken real files, a
-single `stow -R -t ~ <one-package>`, confirm the result is a real
+single `stow -R -t ~ &lt;one-package&gt;`, confirm the result is a real
 symlink before moving to the next package. Final state verified three
-ways -- every `~/.config/<pkg>` directory is a genuine whole-directory
+ways -- every `~/.config/&lt;pkg&gt;` directory is a genuine whole-directory
 symlink (`ls -la` showing `lrwxrwxrwx`), `git status --short` clean, and
 `stow -n -v -t ~` (dry-run) across every package in the repo reporting
 zero pending actions.
@@ -2993,7 +2993,7 @@ What this desktop already has, unused until now: **SwayFX** (this repo's
 actual sway build, `packages/aur.txt` -- a sway fork adding real
 compositor-level blur/shadow/corner-radius via `scenefx0.4`, already used
 for window shadows and corner rounding, just never wired to any
-layer-shell surface). SwayFX's `layer_effects "<namespace>" { blur enable;
+layer-shell surface). SwayFX's `layer_effects "&lt;namespace&gt;" { blur enable;
 ... }` applies real background blur to a specific layer-shell surface by
 its namespace. Confirmed wofi's actual namespace live rather than assumed
 from the binary name -- `swaymsg -t get_outputs` while wofi was open lists
@@ -3139,7 +3139,7 @@ drift apart):
   typing "workspace 1" wouldn't match an entry whose only "1" appeared
   *before* the word "workspace" (as `Super+1`'s bare comment would have,
   with no command shown).
-- **Tmux**: reads `tmux list-keys` (the raw form, explicit `-T <table>` per
+- **Tmux**: reads `tmux list-keys` (the raw form, explicit `-T &lt;table&gt;` per
   line -- unambiguous about which key-table a binding is actually on) for
   the key inventory, and sources descriptions from two places: this repo's
   own tmux.conf, which now gives every custom bind an explicit `-N "note"`
@@ -3372,7 +3372,7 @@ applying somewhere it wasn't wanted. The obvious fix (an empty `---\n---\n`
 front-matter block, the standard Jekyll trick to force processing) was
 tried and reverted after checking GitHub's *own* README renderer against it
 first (`gh api repos/.../readme`) -- it doesn't strip front matter the way
-Jekyll does, and rendered it as two literal `<hr>` elements at the very top
+Jekyll does, and rendered it as two literal `&lt;hr&gt;` elements at the very top
 of the actual GitHub repo page, the single most-visible view of this
 project. Not worth trading that for a themed mirror of a page nothing on
 the site even links to (`index.html` links out to the GitHub-native README
@@ -3425,10 +3425,10 @@ description lengths ranged from a 6-character one-liner (`nvim` — "Editor")
 to a single cell over 2,400 characters long (`bluetooth-picker.py`'s row,
 genuinely several paragraphs of history and reasoning). A markdown table
 forces every row into the same fixed column widths regardless — exactly
-wrong for content this uneven, not something better CSS on the `<table>`
+wrong for content this uneven, not something better CSS on the `&lt;table&gt;`
 tag alone could fix.
 
-**Replaced it with a responsive card grid + native `<details>` for the long
+**Replaced it with a responsive card grid + native `&lt;details&gt;` for the long
 entries**, entirely inside `docs/ARCHITECTURE.md` itself (not a
 site-only copy) so both the GitHub-native view and the Pages site benefit,
 and there's still exactly one source of truth. Parsed the original table
@@ -3441,17 +3441,17 @@ actually in the file to confirm nothing was corrupted or dropped. The five
 genuinely long entries (`nwg-bar`, `docker-picker.py`,
 `bluetooth-picker.py`, `networkmanager-dmenu`, `wifi-picker.py`) get a
 hand-written one-line summary visible by default plus their full original
-text, verbatim, inside a `<details>`; the other fifteen just show their
+text, verbatim, inside a `&lt;details&gt;`; the other fifteen just show their
 short description directly, no accordion needed for one sentence.
-`markdown="1"` on the wrapping `<div>`/`<details>` tells kramdown to still
-process the markdown inside a raw HTML block (backticks → real `<code>`,
-`*emphasis*` → real `<em>`) — verified this actually worked by checking the
+`markdown="1"` on the wrapping `&lt;div&gt;`/`&lt;details&gt;` tells kramdown to still
+process the markdown inside a raw HTML block (backticks → real `&lt;code&gt;`,
+`*emphasis*` → real `&lt;em&gt;`) — verified this actually worked by checking the
 built page's real HTML output for `<code class="language-plaintext...">`
 tags, not literal backtick characters.
 
 **Added a real custom layout (`_layouts/docs.html`) instead of relying on
 the built-in Jekyll theme any further** — a sidebar table of contents (built
-by `assets/docs.js` from whatever `<h2>` elements are actually on the page
+by `assets/docs.js` from whatever `&lt;h2&gt;` elements are actually on the page
 at build/view time, not a hand-maintained list that would drift out of sync
 with a 3,500-line, 58-section document) with scroll-based active-section
 highlighting via `IntersectionObserver`, and the same Catppuccin Mocha
@@ -3491,10 +3491,10 @@ Verified all of this the same way as everything else on this site: pushed
 straight to `main` specifically to get a real Pages build to test against
 (this was itself the verification step, not a separate "trust the config"
 pass), polled for `"status":"built"`, then pulled the real built HTML for
-all three doc pages and grepped it directly — confirmed `<title>Architecture
+all three doc pages and grepped it directly — confirmed `&lt;title&gt;Architecture
 | Vayu</title>` etc. (the per-file `defaults:` title actually applied),
 `docs-layout`/`docs-sidebar`/`pkg-card` present in the real output (not just
 written in the source), all 20 package cards accounted for, and the
-markdown-inside-`<details>` processing working correctly by finding real
-`<code>`/`<em>` tags in the built page rather than literal markdown
+markdown-inside-`&lt;details&gt;` processing working correctly by finding real
+`&lt;code&gt;`/`&lt;em&gt;` tags in the built page rather than literal markdown
 characters.

@@ -14,7 +14,7 @@ bad fit for its own content, not just visually plain -- 20 rows ranging from
 a 6-character description to one over 2,400 characters, all forced into the
 same fixed table columns.
 
-Replaced it with a responsive card grid + native `<details>` for the five
+Replaced it with a responsive card grid + native `&lt;details&gt;` for the five
 genuinely long entries, entirely inside `docs/ARCHITECTURE.md` itself (one
 source of truth, GitHub-native view benefits too) -- parsed the original
 table with a small script rather than retype ~1,800 words by hand, verified
@@ -22,7 +22,7 @@ no content was corrupted or dropped before trusting it.
 
 Added a real custom layout (`_layouts/docs.html`, `assets/docs.css`,
 `assets/docs.js`) instead of the built-in Jekyll theme: a sidebar table of
-contents built from the page's own real `<h2>` elements at view time (not a
+contents built from the page's own real `&lt;h2&gt;` elements at view time (not a
 hand-maintained list to drift out of sync with a 58-section document), with
 scroll-based active-section highlighting, and the same Catppuccin Mocha
 palette already used on the homepage. Applied via `_config.yml`'s
@@ -41,8 +41,8 @@ Verified live: pushed straight to `main` specifically to get a real Pages
 build to test against, polled for a real `"status":"built"`, then pulled the
 actual built HTML for all three doc pages and grepped it directly -- correct
 per-file titles, the new layout/cards present in the real output, all 20
-package cards accounted for, and markdown processing inside the `<details>`
-blocks confirmed via real `<code>`/`<em>` tags in the output, not literal
+package cards accounted for, and markdown processing inside the `&lt;details&gt;`
+blocks confirmed via real `&lt;code&gt;`/`&lt;em&gt;` tags in the output, not literal
 markdown characters.
 
 ## v1.2.3 -- 2026-09-01
@@ -237,7 +237,7 @@ Search table rows are now colored per column throughout, not only in
 the header. And found a real, unfixable-via-config limit for the
 browser tabs (Directories/Artists/Album Artists/Albums): their song
 rows go through a different, style-blind render path
-(`Property<SongProperty>::as_string` discards `style` entirely,
+(`Property&lt;SongProperty&gt;::as_string` discards `style` entirely,
 confirmed in the function body) -- only the one-character type marker
 per row is a real color lever there; left the inert per-field theme
 values in place with a comment explaining why rather than deleting
@@ -345,7 +345,7 @@ live with a real synthetic Escape keypress (`ydotool key 1:1 1:0`) after
 opening each through its real keybinding.
 
 rmpc's floating window was the actual gap -- tested the same way and it
-stayed open. rmpc's own `config.ron` binds `"<Esc>": Close` already, but
+stayed open. rmpc's own `config.ron` binds `"&lt;Esc&gt;": Close` already, but
 that's an internal rmpc action (closes a modal *inside* rmpc), not
 anything that knows about sway's scratchpad, so Escape was a no-op with
 no internal modal open.
@@ -361,7 +361,7 @@ process and mpd.service both still alive throughout, then toggled back
 open once more to confirm the existing show-path still works.
 
 Known tradeoff, not a real loss: rmpc's own internal `Close` action is
-also bound to `<C-c>` already, so it still has a working key, just
+also bound to `&lt;C-c&gt;` already, so it still has a working key, just
 Ctrl+C instead of Escape for this window from now on.
 
 ## 2026-08-31 (rmpc: real compositor blur, not opacity tricks, plus a bigger window)
@@ -474,7 +474,7 @@ active for the path that matters.
 Reported directly: "only text doesn't make that much sense, show
 thumbnail and title in each row." wofi's own img: dmenu markup handles
 it (same mechanism notification-history.py already uses) -- just needed
-a thumbnail source. YouTube's plain https://i.ytimg.com/vi/<id>/mqdefault.jpg
+a thumbnail source. YouTube's plain https://i.ytimg.com/vi/&lt;id&gt;/mqdefault.jpg
 URL (confirmed directly with curl, not assumed) is simpler and more
 reliable than the signed URLs in yt-dlp's own thumbnails JSON. Fetched
 for all ~10 results concurrently (confirmed: ~0.4s together vs several
@@ -1048,13 +1048,13 @@ pleasant sound, a mode-dependent waybar bell icon, and both keybindings
 and scroll for switching, "soft and flawless".
 
 Built entirely on mako's own native mode system (`makoctl mode -s
-<name>` + `[mode=<name>]` config sections) rather than anything custom
+&lt;name&gt;` + `[mode=&lt;name&gt;]` config sections) rather than anything custom
 -- `invisible=1` suppresses the popup without touching history, exactly
 what "dnd" needed. Picked
 `/usr/share/sounds/freedesktop/stereo/message.oga` for the sound (the
 shortest of the plausible freedesktop chimes by actual `ffprobe`
 duration, not a filename guess, and the same file mako's own docs use
-as their `on-notify` example) via `on-notify=exec paplay <file>`.
+as their `on-notify` example) via `on-notify=exec paplay &lt;file&gt;`.
 
 Three real bugs found by testing, not assumed:
 
@@ -1182,7 +1182,7 @@ resolve to anything installed fails silently -- apps just keep rendering
 whatever they last loaded, indistinguishable from the toggle doing
 nothing.
 
-Fixed: now checks `/usr/share/themes/<name>`/`/usr/share/icons/<name>`
+Fixed: now checks `/usr/share/themes/&lt;name&gt;`/`/usr/share/icons/&lt;name&gt;`
 before writing either key, skips it (leaving the previous working value)
 if missing, and notifies clearly naming what's not installed instead of
 pretending it applied. `color-scheme` always writes regardless -- no
@@ -1228,7 +1228,7 @@ simultaneously in an inconsistent state within one combined restow.
 restore .` recovered everything in one command, verified by checking
 actual file content afterward (not just a clean `git status`). Fixed
 properly the second time, one package at a time with verification after
-each. Final state confirmed three ways: every `~/.config/<pkg>` is a real
+each. Final state confirmed three ways: every `~/.config/&lt;pkg&gt;` is a real
 symlink, `git status` clean, `stow -n` (dry-run) across every package
 reports zero pending actions.
 
@@ -1388,7 +1388,7 @@ picker.py` already share the exact Sky/Teal/Peach system and wofi's own
   pickers use) with a controlled test: piped markup-containing entries
   into wofi directly, searched a query that only matches one entry's
   visible text, confirmed via the actual selected output that fuzzy
-  matching operates on rendered text, not the raw `<span>` tags.
+  matching operates on rendered text, not the raw `&lt;span&gt;` tags.
 
 See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the full writeup.
 
@@ -2261,8 +2261,8 @@ had a hardcoded bolt glyph, no `{icon}`) whenever actually plugged in --
 capacity-tiering only ever worked while discharging.
 
 **Color**: `states` turns out to accept arbitrary names, not just
-warning/critical (`man waybar-states`: "Every entry consists of a `<name>` and
-a `<value>`"). Added a third tier, `"moderate": 60` -> Yellow, between the
+warning/critical (`man waybar-states`: "Every entry consists of a `&lt;name&gt;` and
+a `&lt;value&gt;`"). Added a third tier, `"moderate": 60` -> Yellow, between the
 existing warning (Peach) and critical (Red), positioned in the stylesheet
 between `.full` and `.warning` so a genuinely low battery still overrides it via
 the same source-order logic already used for the other states. Now: >60% Green,
@@ -2698,7 +2698,7 @@ settings files.
 
 **Tested whether this fixes the actual reported issue, rather than assuming**:
 launched wofi fresh after `swaymsg reload` and checked its real environment
-(`/proc/<pid>/environ`) -- still no `XCURSOR_THEME` there, meaning sway's
+(`/proc/&lt;pid&gt;/environ`) -- still no `XCURSOR_THEME` there, meaning sway's
 env-var export for the seat's cursor theme apparently only happens at sway's
 own actual startup, not on a soft reload (same class of caveat this repo
 already has documented for plain `exec` lines not re-running on reload --
@@ -2745,7 +2745,7 @@ the only wofi/dmenu-adjacent Bluetooth picker that exists at all is a 3-year-sta
 rofi-specific AUR package, not worth the dependency over ~180 lines. Verified
 every `bluetoothctl` subcommand against this machine's real bluez (5.87) before
 writing anything against it -- caught that `paired-devices` isn't a valid command
-in this version (`devices Paired` is), and confirmed `--timeout <n> scan on`
+in this version (`devices Paired` is), and confirmed `--timeout &lt;n&gt; scan on`
 works non-interactively. Menu: power toggle, bounded 8s scan (relaunches itself
 after, same self-relaunch pattern upstream networkmanager_dmenu uses for its own
 rescan), Bluetooth Manager shortcut, paired devices (click connects/disconnects),
@@ -2760,7 +2760,7 @@ limitation (falls back to suggesting Bluetooth Manager) rather than silently
 dropped. waybar's `bluetooth` on-click now points here; deleted the now-fully-
 superseded `nwg-bar/bluetooth.json`.
 
-**Connected-entry border**: Pango `<span>` markup has no border attribute at all
+**Connected-entry border**: Pango `&lt;span&gt;` markup has no border attribute at all
 (checked: foreground/background/underline/strikethrough/weight/style/size exist,
 border does not) -- a literal CSS-style border around the connected entry isn't
 achievable through this rendering path. Closest honest approximation, applied to
@@ -2926,7 +2926,7 @@ cluster.
   plus charging -- the normal "healthy, running on battery" state (`Discharging`,
   confirmed via `cat /sys/class/power_supply/BAT1/status`) fell through to plain
   silver. Added `#battery.discharging` (Green) and `#battery.full` (Teal, topped
-  off and plugged in) using the `#battery.<status>` classes waybar derives from the
+  off and plugged in) using the `#battery.&lt;status&gt;` classes waybar derives from the
   kernel's power_supply status file (`waybar-battery(5)`) -- now every real charge
   state has its own color: Green healthy, Yellow charging, Teal full, Peach warning,
   Red critical. Placed before the existing warning/critical/charging rules in the
@@ -3479,7 +3479,7 @@ unexpectedly "shut off." Audited each:
   wired to `-D "systemctl suspend"`. Verified the fix two ways, not just assumed: ran
   the corrected command line directly first (confirmed it starts and finds the battery
   instead of erroring instantly), then after converting to a systemd service, inspected
-  `/proc/<pid>/cmdline` (NUL-separated, unlike `ps`) to confirm systemd's unit-file
+  `/proc/&lt;pid&gt;/cmdline` (NUL-separated, unlike `ps`) to confirm systemd's unit-file
   quoting actually kept `"systemctl suspend"` as one argument to `-D` rather than
   splitting it into two.
 
@@ -3676,7 +3676,7 @@ too, which is what "keep it alive" actually means here.
 
 Tried a raw `pkill`/`setsid ... & disown` version first and hit a real, reproducible
 hang — the backgrounded `swayidle` process ended up stuck as a direct child of the
-toggle script's own bash process (confirmed via `pstree` and `/proc/<pid>/wchan`
+toggle script's own bash process (confirmed via `pstree` and `/proc/&lt;pid&gt;/wchan`
 showing `do_wait`), which doesn't happen with well-behaved job control but did happen
 here reliably enough to not trust it. The systemd version has no such fragility: no
 job-control edge cases, and `Restart=on-failure` for free.
