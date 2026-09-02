@@ -175,9 +175,11 @@ package and is gitignored (`?*.local` in `.gitignore` — note the `?*`, not `*`
 what `scripts/.local/bin/` needs to exist as).
 
 Example already in use: `zsh/.zshrc` ends with
+
 ```sh
 [ -f ~/.zshrc.local ] && source ~/.zshrc.local
 ```
+
 and `~/.zshrc.local` (not in the repo) holds `export GEMINI_API_KEY=...`. Follow the
 same pattern for anything else that needs a real secret.
 
@@ -598,11 +600,13 @@ rather than assuming) -- a clean, standard setup, not a security-loose
 workaround.
 
 **Not yet installed on the live machine** -- needs:
+
 ```bash
 sudo pacman -S ydotool
 sudo udevadm control --reload-rules && sudo udevadm trigger
 systemctl --user enable --now ydotool.service
 ```
+
 `keylock-toggle.sh` checks for both `ydotool` being installed and
 `ydotool.service` being active before attempting anything, and
 `notify-send`s the exact fix (which of the two commands above is

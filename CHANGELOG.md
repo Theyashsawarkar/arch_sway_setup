@@ -3221,9 +3221,11 @@ the wofi-based `power-menu.sh` and `power-style.css` entirely.
 
 **Not yet verified visually** -- `nwg-bar` isn't installed on this machine and
 installing it needs `sudo`, which this session doesn't have:
+
 ```bash
 sudo pacman -S nwg-bar
 ```
+
 Waybar's power button already points at it (`"on-click": "nwg-bar"`); it just won't
 do anything until the package above is installed.
 
@@ -3578,10 +3580,12 @@ bare TTY before `install.sh` even runs (see the README's Quick Start), it just
 shouldn't run as a background service once NetworkManager takes over.
 
 **Not fixed on the live machine** — needs `sudo`, which this session doesn't have:
+
 ```bash
 sudo systemctl disable --now iwd.service
 sudo systemctl disable --now systemd-networkd-wait-online.service systemd-networkd.service
 ```
+
 Expected result: next boot should land somewhere around 25-30 seconds instead of 2min 26s.
 
 ## 2026-08-23 (removed a duplicate wallpaper system, window margins)
