@@ -5,6 +5,111 @@ along the way. Newest first. Version markers (`## vX.Y.Z`) mark release
 boundaries on top of the dated entries -- see `docs/VERSIONING.md` for the
 full branch/release process.
 
+## 2026-09-02 (site polish: keybindings page, real bugs found and fixed, hero redesign)
+
+A batch of direct site feedback: fix the CHANGELOG page's real bugs, add a
+proper keybindings page with its own header entry, fix a pixelated thumbnail
+in the music player, add copy buttons to code blocks, redesign the hero with
+multiple screenshots in a scroll-driven rotating wheel, cut the tagline down
+to one line, redesign the header (no bottom border) and the feature grid.
+
+**docs/KEYBINDINGS.md**: new page, every Sway and Tmux keybinding, generated
+from the same live parsing `scripts/.local/bin/keybind-search.py` already
+does (real config lines + their own comments) rather than hand-typed
+separately. Wired into the header nav and homepage doc-card grid on both
+`index.html` and the shared `_layouts/docs.html`.
+
+**music-search.py**: thumbnail pixelation fixed -- `mqdefault.jpg` (320x180)
+swapped for `hqdefault.jpg` (480x360), confirmed reliably available the same
+fixed-URL way the original was verified, a real (measured, not assumed)
+quality-vs-latency tradeoff documented in the code.
+
+**Hero redesign**: tagline cut from three sentences to one line, per direct
+feedback ("small to the point and sweet"). Two new screenshots (wofi
+launcher, power menu -- both safe to capture directly, no window content
+exposed) join the existing desktop shot in a real CSS 3D "wheel"
+(`assets/carousel.js`) that rotates with scroll position, pure scroll-read,
+never scroll-jacks. Header switched to a floating pill nav with no hard
+border-bottom (same rounded-module language `waybar` already uses on the
+real desktop). Feature grid got a corner-glow accent, hover lift, and a
+small icon badge per card instead of a plain left-border stripe.
+
+**Copy-to-clipboard button** (`assets/copy.js`) on every code block
+site-wide -- one script, works on the homepage's install snippets and every
+doc page's real fenced code blocks alike.
+
+**The CHANGELOG page's "real bugs" turned out to be much bigger than they
+first looked**, and took several genuine wrong turns to fully resolve --
+worth recording in full since each one taught something different about how
+kramdown actually behaves, not just what the fix was:
+
+1. A duplicate h1 heading (the layout rendered its own `page.title` *and* the
+   content's own `# Title` line rendered a second one) -- straightforward,
+   fixed by removing the layout's synthetic heading.
+2. Fenced bash code blocks rendering as literal backtick text --
+   `markdown: kramdown` / `kramdown: {input: GFM}` added to `_config.yml`
+   (never explicitly set once the built-in Jekyll theme, which used to
+   provide this implicitly, was replaced by the custom layout).
+3. That config fix wasn't sufficient alone -- kramdown also requires blank-
+   line separation between a fence and surrounding paragraph text to
+   recognize it as a block at all (GitHub's own renderer is more lenient,
+   which is why this was invisible reading the docs natively on GitHub).
+   Fixed with a script that inserts blank lines around every fence --
+   a first, buggier version of that script didn't track fence open/close
+   state and inserted blank lines *inside* fences instead; caught via
+   spot-check before it shipped, reverted, redone correctly.
+4. Still 8 fences broken after that -- 3 more existed, indented 2 spaces as
+   continuation content inside bullet list items, which the "starts with
+   backticks" detection never matched (required column 0). Dedented all
+   three to top-level fences rather than fight kramdown's exact nested-
+   list-continuation indentation rules.
+5. **The actual root cause of the page-wide cascading failure**, found only
+   after all of the above still left entire sections rendering as
+   completely raw, unprocessed markdown (not just fences -- bold, inline
+   code, and headings too): a literal angle-bracket-wrapped placeholder
+   inside backticks (`on-notify=exec paplay` followed by the word "file"
+   wrapped in angle brackets), a notation this repo's prose uses
+   throughout for "fill in your own value" (the words name, pid, id,
+   etc., each the same way). Backticks do **not** protect against this
+   the way they protect against Liquid tags -- kramdown's HTML-tag
+   detection appears to run before code-span parsing fully isolates the
+   content, sees the opening angle bracket as what looks like the start
+   of a real tag, finds no matching closing tag anywhere in the rest of
+   the document, and stops treating anything after that point as
+   markdown at all. Confirmed by binary-searching the actual built HTML
+   for the exact transition point between correctly-rendered and literal
+   output, not guessed.
+6. Fixed by removing the angle brackets from every genuine placeholder
+   (just the bare word "file" instead of wrapping it) rather than entity-
+   encoding them -- tried HTML entities first, which avoided the cascade
+   but produced a *new*, different cosmetic bug: kramdown's code-span
+   rendering correctly escapes its own content, including a literal
+   ampersand, so the entity code itself became visible literal text in
+   the browser instead of rendering back to a bracket character.
+7. A handful of these weren't generic placeholders at all -- a real Rust
+   generic type reference (`Property`'s song-typed variant) and rmpc's
+   own angle-bracket RON keybind notation for its Escape and Ctrl-C
+   entries (documented directly from its config.ron) lost real meaning
+   when flattened the same way. Tried backslash-escaping the brackets
+   next, which avoided the cascade but hit a third cosmetic bug:
+   CommonMark spec says backslash escapes aren't processed inside code
+   spans, so the literal backslash character itself showed up in the
+   rendered page. Settled on plain English instead ("its Esc key entry",
+   "the Song-typed Property::as_string variant") -- no bracket notation
+   left to fight kramdown's parsing order over at all.
+8. Also caught, separately: the earlier fix's regex only ever matched
+   opening-tag-shaped patterns, so a quoted example of a real built page's
+   title tag (opening and closing) had its opening half stripped while
+   the closing half was left dangling, unmatched, in the text -- the
+   exact same class of problem as the original bug, just self-inflicted
+   this time. Reworded rather than re-escaped.
+
+Every one of these eight was verified against the real, live-built HTML
+after each fix -- not the source markdown, not assumed correct from the
+config -- specifically because step 5's whole discovery only happened by
+checking real output and finding it silently wrong days after step 2-4's
+fixes had already shipped and looked fine from a cursory glance.
+
 ## v1.2.4 -- 2026-09-01
 
 Direct feedback pointed at the live Architecture page: "optimize this ui and

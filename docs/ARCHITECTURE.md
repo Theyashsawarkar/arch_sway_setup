@@ -3498,3 +3498,68 @@ written in the source), all 20 package cards accounted for, and the
 markdown-inside-`details` processing working correctly by finding real
 `code`/`em` tags in the built page rather than literal markdown
 characters.
+
+## docs/KEYBINDINGS.md, a hero redesign, and the real lesson from a much deeper kramdown bug
+
+Direct feedback, several parts at once: fix real bugs on the CHANGELOG page,
+add a keybindings page with its own nav entry, fix a pixelated music-player
+thumbnail, add copy buttons, redesign the hero (multiple screenshots, a
+scroll-driven rotation, a much shorter tagline), and clean up the header and
+feature grid.
+
+**docs/KEYBINDINGS.md** is generated from the same real parsing
+`scripts/.local/bin/keybind-search.py` already does live (real `bindsym`/
+`bind` lines from `sway/config`/`tmux.conf`, paired with their own
+comments/`-N` notes) -- not a hand-maintained list kept separately from the
+configs that actually define the bindings, which would inevitably drift.
+Scoped to Sway's full 94 bindings plus Tmux's ~22 *custom* ones (not all
+~260 including stock defaults -- those are generic tmux knowledge, not
+anything specific to this setup).
+
+**music-search.py's thumbnail pixelation**: `mqdefault.jpg` (320x180) to
+`hqdefault.jpg` (480x360) -- confirmed the larger tier is reliably available
+at the same fixed, unsigned URL shape before switching (curl'd it directly),
+and measured the real cost (10 concurrent fetches: ~0.4s to ~0.5s) rather
+than asserting "still fast" unchecked.
+
+**The real lesson from this session's deepest kramdown investigation**:
+fixing the CHANGELOG page's broken rendering took eight separate, genuine
+wrong turns before landing on the actual fix (full blow-by-blow in
+`CHANGELOG.md`'s own entry for this date) -- worth pulling out the single
+reusable lesson here, since it'll matter again the next time a code fence or
+inline code span looks broken on this site: **kramdown's HTML-tag detection
+appears to run before backtick code-span content is fully isolated from the
+rest of the document.** A word wrapped in angle brackets, anywhere in the
+raw source -- even inside backticks, even describing something totally
+unrelated to HTML (a placeholder such as the word file wrapped that way, a
+Rust generic type parameter, a keybind notation like rmpc's own Escape-key
+entry syntax) -- gets provisionally treated as a possible opening HTML tag.
+If no matching closing tag exists anywhere later in the document, kramdown
+appears to stop processing markdown syntax entirely from that point to
+end-of-file, rather than failing loudly or falling back gracefully
+per-paragraph. GitHub's own CommonMark-based renderer doesn't have this
+problem at all, which is exactly why a page can read perfectly on GitHub
+natively while being silently, catastrophically broken on the Jekyll-built
+site -- the two renderers are not just "mostly the same, kramdown is
+stricter," they disagree on a genuinely load-bearing point.
+
+**Practical rule going forward, for any future prose in a file this site
+builds** (`CHANGELOG.md`, `docs/*.md` under a `defaults:` scope, *not*
+`README.md`, which isn't Jekyll-built at all): never wrap a bare word in
+angle brackets, backticks or not, unless it's genuine, real,
+matched-open-and-closed HTML within the same short span (like this site's
+own package-card markup, or a self-contained Pango markup example showing
+a sized icon span with its own matching close right there -- confirmed safe
+specifically *because*
+the close tag is right there in the same span, not because backticks
+protected it). For a real placeholder, just don't decorate it with brackets
+at all (`file`, `name`, `pid` reads fine on its own, especially already
+inside backtick code styling). For something that specifically needs to
+*show* a literal angle bracket as part of real syntax being quoted (a
+generic type, a keybind notation, literal HTML being described), reword
+around it in plain English rather than reach for entity-encoding or
+backslash-escaping -- both were tried here and both produced their own new,
+different, real cosmetic bugs (entities get double-escaped by a working
+code-span's own auto-escaping; backslash escapes aren't processed inside
+code spans per the CommonMark spec at all, so the backslash itself stays
+visible).
