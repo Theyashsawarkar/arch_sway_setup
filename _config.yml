@@ -12,6 +12,18 @@
 # confirmed live once already for README.md and reverted). `defaults:`
 # below assigns the custom `docs` layout to each of them by path
 # instead, with zero change to the source files themselves.
+#
+# Explicit, not left to whatever profile GitHub Pages' build defaults to
+# without a `theme:` key set -- found live, not assumed: fenced ```bash
+# code blocks in CHANGELOG.md were rendering as literal backtick text
+# instead of real <pre><code> blocks once `theme:` was removed in favor
+# of the custom `docs` layout. `input: GFM` is what actually enables
+# triple-backtick fence parsing in kramdown.
+markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+
 title: Vayu
 description: >-
   A minimal, keyboard-driven Arch Linux desktop built around Wayland, Sway,
@@ -35,6 +47,11 @@ defaults:
     values:
       layout: "docs"
       title: "Changelog"
+  - scope:
+      path: "docs/KEYBINDINGS.md"
+    values:
+      layout: "docs"
+      title: "Keybindings"
 
 # Everything below is real config/dotfile content, not documentation --
 # excluded so the Jekyll build only ever processes the actual docs

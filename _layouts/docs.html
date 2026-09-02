@@ -8,16 +8,19 @@
 <link rel="stylesheet" href="{{ '/assets/docs.css' | relative_url }}">
 </head>
 <body class="docs-body">
+<div class="topnav-wrap">
 <nav class="topnav">
   <a class="brand" href="{{ '/' | relative_url }}">🌬️ Vayu</a>
   <div class="navlinks">
     <a href="{{ '/' | relative_url }}#features">Features</a>
     <a href="{{ '/' | relative_url }}#install">Install</a>
     <a href="{{ '/docs/ARCHITECTURE.html' | relative_url }}">Architecture</a>
+    <a href="{{ '/docs/KEYBINDINGS.html' | relative_url }}">Keybindings</a>
     <a href="{{ '/CHANGELOG.html' | relative_url }}">Changelog</a>
     <a href="https://github.com/Theyashsawarkar/vayu">GitHub</a>
   </div>
 </nav>
+</div>
 
 <div class="docs-layout">
   <aside class="docs-sidebar" id="docs-toc">
@@ -25,7 +28,6 @@
     <nav id="toc-list"><!-- built by docs.js from the real h2s below --></nav>
   </aside>
   <main class="docs-content">
-    <h1 class="docs-title">{{ page.title }}</h1>
     <article id="docs-article">
       {{ content }}
     </article>
@@ -37,5 +39,6 @@
 </footer>
 
 <script src="{{ '/assets/docs.js' | relative_url }}"></script>
+<script src="{{ '/assets/copy.js' | relative_url }}"></script>
 </body>
 </html>

@@ -44,29 +44,46 @@ code {
 }
 
 /* --- Top nav --- */
+/* Floating pill nav, no hard border-bottom -- same rounded-module,
+   no-hairline language waybar already uses on the real desktop
+   (waybar/style.css's own #workspaces/module pills), so the site's
+   header reads like it belongs to what it documents instead of a
+   generic docs-site topbar. Separation from the page comes from its
+   own shadow + a touch of vertical air, not a line. */
+.topnav-wrap {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding: 1rem 1.5rem 0;
+  background: linear-gradient(to bottom, var(--crust) 60%, transparent);
+}
 .topnav {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.25rem 2.5rem;
-  border-bottom: 1px solid var(--surface0);
-  position: sticky;
-  top: 0;
-  background: rgba(17, 17, 27, 0.92);
-  backdrop-filter: blur(8px);
-  z-index: 10;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0.65rem 1.25rem;
+  border-radius: 999px;
+  background: rgba(24, 24, 37, 0.85);
+  border: 1px solid rgba(203, 166, 247, 0.14);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 }
 .topnav .brand {
-  font-size: 1.2rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: var(--text);
 }
 .topnav .navlinks a {
-  margin-left: 1.75rem;
+  margin-left: 0.35rem;
   color: var(--subtext);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  transition: background 0.15s ease, color 0.15s ease;
 }
-.topnav .navlinks a:hover { color: var(--mauve); }
+.topnav .navlinks a:hover { color: var(--mauve); background: var(--mantle); text-decoration: none; }
 
 /* --- Hero: left = name/headline, right = image --- */
 .hero {
@@ -79,12 +96,40 @@ code {
 }
 .hero-text { flex: 1 1 480px; min-width: 320px; }
 .hero-image { flex: 1 1 480px; min-width: 320px; }
-.hero-image img {
+
+/* Rotating "wheel" of screenshots -- three images arranged in a 3D
+   circle (rotateY 0/120/240deg, each pushed out along Z), one whole
+   unit rotated by scroll position (assets/carousel.js) so a different
+   screenshot faces forward as the page scrolls. `perspective` on the
+   outer scene, `preserve-3d` on the inner wheel -- without both, the
+   Y-rotated images would flatten instead of arranging in real 3D space. */
+.wheel-scene {
   width: 100%;
-  height: auto;
+  aspect-ratio: 16 / 10;
+  perspective: 1600px;
+}
+.wheel {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.1s linear;
+}
+.wheel-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   border-radius: 12px;
   border: 1px solid var(--surface0);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  backface-visibility: hidden;
+  /* translateZ pushes each image out to the rim of the circle at its
+     own base rotation (--ry, set per-image inline) -- 260px matches
+     roughly half the rendered width at typical hero sizes, keeping
+     the three faces from clipping into each other. */
+  transform: rotateY(var(--ry)) translateZ(260px);
 }
 
 .eyebrow {
@@ -140,6 +185,33 @@ code {
   font-size: 0.88rem;
 }
 
+/* Copy-to-clipboard button, added by assets/copy.js to every <pre> --
+   pre needs position:relative (set inline by the script) for this
+   absolute positioning to anchor to the code block itself, not the
+   page. Hidden until hover/focus on the block, avoiding a permanent
+   floating button on every single code snippet on a page. */
+pre { position: relative; }
+.copy-btn {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  background: var(--surface0);
+  color: var(--subtext);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 0.3rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+pre:hover .copy-btn, pre:focus-within .copy-btn, .copy-btn:focus {
+  opacity: 1;
+}
+.copy-btn:hover { background: var(--mauve); color: var(--crust); }
+.copy-btn.copied { background: var(--green); color: var(--crust); opacity: 1; }
+
 /* --- Feature grid --- */
 main { max-width: 1180px; margin: 0 auto; padding: 0 2.5rem; }
 section h2 {
@@ -153,14 +225,49 @@ section h2 {
   gap: 1.25rem;
 }
 .feature-card {
+  position: relative;
   background: var(--mantle);
   border: 1px solid var(--surface0);
-  border-left: 3px solid var(--accent, var(--mauve));
-  border-radius: 8px;
-  padding: 1.4rem 1.5rem;
+  border-radius: 12px;
+  padding: 1.6rem 1.6rem 1.5rem;
+  overflow: hidden;
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
 }
-.feature-card h3 { margin: 0 0 0.5rem; color: var(--accent, var(--mauve)); font-size: 1.05rem; }
-.feature-card p { margin: 0; color: var(--subtext); font-size: 0.92rem; }
+/* Soft accent glow in the corner instead of a hard left stripe --
+   each card still reads as "its own color" at a glance, just as a
+   quiet wash rather than a ruled line. */
+.feature-card::before {
+  content: "";
+  position: absolute;
+  top: -40%;
+  right: -30%;
+  width: 140px;
+  height: 140px;
+  background: var(--accent, var(--mauve));
+  opacity: 0.12;
+  border-radius: 50%;
+  filter: blur(10px);
+  pointer-events: none;
+}
+.feature-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent, var(--mauve));
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+}
+.feature-card .feature-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--accent, var(--mauve)) 16%, transparent);
+  color: var(--accent, var(--mauve));
+  font-size: 1.15rem;
+  margin-bottom: 0.9rem;
+}
+.feature-card h3 { margin: 0 0 0.5rem; color: var(--text); font-size: 1.05rem; position: relative; }
+.feature-card p { margin: 0; color: var(--subtext); font-size: 0.92rem; position: relative; }
 
 /* --- Install section (below hero, full walkthrough pointer) --- */
 .install p { color: var(--subtext); max-width: 68ch; }
@@ -195,6 +302,8 @@ footer {
 @media (max-width: 860px) {
   .hero { flex-direction: column; padding-top: 3rem; }
   .hero-text h1 { font-size: 2.6rem; }
-  .topnav { flex-direction: column; gap: 0.75rem; align-items: flex-start; }
-  .topnav .navlinks a { margin-left: 0; margin-right: 1.25rem; }
+  .topnav { flex-direction: column; gap: 0.6rem; align-items: flex-start; border-radius: 20px; }
+  .topnav .navlinks { display: flex; flex-wrap: wrap; }
+  .topnav .navlinks a { margin-left: 0; margin-right: 0.25rem; }
+  .wheel-img { transform: rotateY(var(--ry)) translateZ(150px); }
 }

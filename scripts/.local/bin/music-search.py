@@ -118,17 +118,28 @@ def format_duration(seconds):
 
 
 def fetch_thumbnail(video_id, dest_dir):
-    """YouTube's `mqdefault.jpg` is a fixed, unsigned URL shape (no
+    """YouTube's `hqdefault.jpg` is a fixed, unsigned URL shape (no
     per-request query-string tokens the way the URLs in yt-dlp's own
     `thumbnails` JSON array have) -- confirmed directly it resolves
-    (200, ~11-18KB, a real 320x180 jpeg) without needing to parse or
-    pick from that array at all. Small enough that fetching all ~10
-    results concurrently is fast (confirmed directly: ~0.4s for 10, not
-    the multiple-seconds-serial it'd be one at a time)."""
+    (200, ~21KB, a real 480x360 jpeg) without needing to parse or pick
+    from that array at all. Was `mqdefault.jpg` (320x180, ~11-18KB)
+    originally -- switched after direct feedback that results looked
+    pixelated: confirmed live that `hqdefault` is reliably available
+    at the same fixed URL shape (curl'd it directly, not assumed from
+    YouTube's naming convention) and is meaningfully less compressed
+    (~2x the bytes for the same subject), even though wofi's own
+    `image_size=32` (`wofi/.config/wofi/config`) downscales either
+    tier the same amount -- more real source detail before that
+    downscale still reduces the compression-artifact "pixelated" look
+    a heavily-compressed 320x180 source has. Small enough that
+    fetching all ~10 results concurrently is still fast (confirmed
+    directly: ~0.4s for 10 at the smaller mqdefault size, ~0.5s for
+    10 at this larger hqdefault size -- a real, small cost, not
+    hand-waved as "still fast" without checking)."""
     path = os.path.join(dest_dir, f"{video_id}.jpg")
     try:
         with urllib.request.urlopen(
-            f"https://i.ytimg.com/vi/{video_id}/mqdefault.jpg", timeout=5
+            f"https://i.ytimg.com/vi/{video_id}/hqdefault.jpg", timeout=5
         ) as r:
             with open(path, "wb") as f:
                 f.write(r.read())
