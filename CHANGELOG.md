@@ -3444,9 +3444,11 @@ that's what was actually asked for ("very aesthetic... floating... modal").
   blindly.
 - Added `wlogout` to `packages/aur.txt`. **Not yet installed on this machine** -- AUR
   package installation needs `sudo`, which this session doesn't have:
-  ```bash
-  yay -S wlogout
-  ```
+
+```bash
+yay -S wlogout
+```
+
   The waybar button and config are ready; the button will just do nothing until the
   package above is installed.
 

@@ -3248,10 +3248,12 @@ fix or silently skipping them:
   no longer lists `greetd`, `greetd-tuigreet`, or `ly` (pruned so a *fresh* install
   won't carry them forward), but they're still actually installed on this machine.
   To remove them here too:
-  ```bash
-  sudo systemctl disable greetd ly 2>/dev/null
-  sudo pacman -R greetd greetd-tuigreet ly
-  ```
+
+```bash
+sudo systemctl disable greetd ly 2>/dev/null
+sudo pacman -R greetd greetd-tuigreet ly
+```
+
 - **`systemd-networkd-wait-online.service` was eating ~2 minutes of every boot**,
   waiting for `wlan0` to become "routable" through `systemd-networkd` — which can
   never happen, because `NetworkManager` already owns that interface. Separately,
@@ -3259,10 +3261,12 @@ fix or silently skipping them:
   `wpa_supplicant`). Fixed in `install.sh` (no longer enables `iwd` as a service — the
   package stays, for `iwctl`'s use bootstrapping Wi-Fi from a bare TTY). **Not yet
   fixed on the live machine** — needs `sudo`:
-  ```bash
-  sudo systemctl disable --now iwd.service
-  sudo systemctl disable --now systemd-networkd-wait-online.service systemd-networkd.service
-  ```
+
+```bash
+sudo systemctl disable --now iwd.service
+sudo systemctl disable --now systemd-networkd-wait-online.service systemd-networkd.service
+```
+
   `systemd-resolved` is genuinely in use (confirmed via `resolvectl status`) and
   should stay enabled — don't touch it while cleaning this up.
 - **Docker can bypass UFW.** Docker manipulates `iptables` directly for published
