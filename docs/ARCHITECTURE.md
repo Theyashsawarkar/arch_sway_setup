@@ -3472,12 +3472,12 @@ never "make these files build at all".
 
 Considered, then discarded, a more complex alternative first: thin wrapper
 pages (`pages/architecture.md` etc.) with real front matter, transcluding
-the actual file's content via `{% include_relative %}` + the `markdownify`
-filter. Built and even started testing this before realizing `defaults:`
-solved the exact same problem with no new files, no transclusion
-indirection, and no risk of the included copy ever silently drifting from
-what `{% include_relative %}` actually reads — deleted it once `defaults:`
-was confirmed working live.
+the actual file's content via Liquid's `include_relative` tag piped
+through the `markdownify` filter. Built and even started testing this
+before realizing `defaults:` solved the exact same problem with no new
+files, no transclusion indirection, and no risk of the included copy
+ever silently drifting from what the real source file actually says —
+deleted it once `defaults:` was confirmed working live.
 
 Verified all of this the same way as everything else on this site: pushed
 straight to `main` specifically to get a real Pages build to test against
