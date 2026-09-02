@@ -237,7 +237,7 @@ Search table rows are now colored per column throughout, not only in
 the header. And found a real, unfixable-via-config limit for the
 browser tabs (Directories/Artists/Album Artists/Albums): their song
 rows go through a different, style-blind render path
-(`Property\<SongProperty\>::as_string` discards `style` entirely,
+(the Song-typed `Property::as_string` variant discards `style` entirely,
 confirmed in the function body) -- only the one-character type marker
 per row is a real color lever there; left the inert per-field theme
 values in place with a comment explaining why rather than deleting
@@ -345,7 +345,8 @@ live with a real synthetic Escape keypress (`ydotool key 1:1 1:0`) after
 opening each through its real keybinding.
 
 rmpc's floating window was the actual gap -- tested the same way and it
-stayed open. rmpc's own `config.ron` binds `"\<Esc\>": Close` already, but
+stayed open. rmpc's own `config.ron` already binds its Esc key entry to
+`Close`, but
 that's an internal rmpc action (closes a modal *inside* rmpc), not
 anything that knows about sway's scratchpad, so Escape was a no-op with
 no internal modal open.
@@ -361,7 +362,7 @@ process and mpd.service both still alive throughout, then toggled back
 open once more to confirm the existing show-path still works.
 
 Known tradeoff, not a real loss: rmpc's own internal `Close` action is
-also bound to `\<C-c\>` already, so it still has a working key, just
+also bound to its C-c key entry already, so it still has a working key, just
 Ctrl+C instead of Escape for this window from now on.
 
 ## 2026-08-31 (rmpc: real compositor blur, not opacity tricks, plus a bigger window)

@@ -1136,7 +1136,7 @@ assuming which ones needed fixing:
 - **rmpc's floating window** -- tested the same way, and this one really
   was broken: focused the window, sent the same synthetic Escape, and
   it stayed open. Root cause: rmpc's own `config.ron` already binds
-  `"\<Esc\>": Close` under `keybinds.navigation`, but that's rmpc's own
+  its Esc key entry to `Close` under `keybinds.navigation`, but that's rmpc's own
   internal action for closing a modal *inside* rmpc (a save-playlist
   prompt, etc.) -- it has no idea sway's scratchpad exists, so with no
   internal modal open, Escape was a no-op as far as the window's
@@ -1168,7 +1168,7 @@ toggled it back open once more to confirm the existing show-path
 **Known, deliberate tradeoff**: this makes rmpc's own internal
 `Close` action unreachable via Escape specifically for this window
 (kitty eats the key before rmpc ever sees it). Not a real loss, though
--- `"\<C-c\>": Close` is bound to the exact same action in `config.ron`
+-- its C-c key entry is bound to the exact same `Close` action in `config.ron`
 already, so closing an internal rmpc modal still has a working key,
 just Ctrl+C instead of Escape from now on.
 
@@ -1348,7 +1348,7 @@ instead of only Album ever having had an (redundant) explicit color.
 **A real, unfixable-via-config limit found for the browser tabs**
 (Directories/Artists/Album Artists/Albums): the *other* render path
 songs take there (`dirstack/mod.rs`'s `to_list_item`) calls
-`Property\<SongProperty\>::as_string`, which discards `style` completely
+the Song-typed `Property::as_string` variant, which discards `style` completely
 -- confirmed directly in the function body, not inferred. This means
 `browser_song_format`'s per-field colors (set in the very first
 theming pass, earlier the same evening) were already genuinely inert
@@ -3491,8 +3491,8 @@ Verified all of this the same way as everything else on this site: pushed
 straight to `main` specifically to get a real Pages build to test against
 (this was itself the verification step, not a separate "trust the config"
 pass), polled for `"status":"built"`, then pulled the real built HTML for
-all three doc pages and grepped it directly — confirmed `\<title\>Architecture
-| Vayu\</title\>` etc. (the per-file `defaults:` title actually applied),
+all three doc pages and grepped it directly — confirmed each page's real
+`title` tag correctly read "Architecture | Vayu" etc. (the per-file `defaults:` title actually applied),
 `docs-layout`/`docs-sidebar`/`pkg-card` present in the real output (not just
 written in the source), all 20 package cards accounted for, and the
 markdown-inside-`details` processing working correctly by finding real
