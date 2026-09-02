@@ -5,6 +5,19 @@ along the way. Newest first. Version markers (`## vX.Y.Z`) mark release
 boundaries on top of the dated entries -- see `docs/VERSIONING.md` for the
 full branch/release process.
 
+## v1.3.0 -- 2026-09-02
+
+A new Keybindings page (generated from the same live config parsing the
+desktop's own keybind-search tool uses), a real thumbnail-quality fix in
+music-search.py, a hero redesign (multi-screenshot scroll-driven rotation,
+a much shorter tagline, cleaner header and feature grid), copy-to-clipboard
+buttons site-wide, and a deep, multi-round fix for the CHANGELOG/
+Architecture pages' rendering -- what looked like one bug turned out to be
+several, ending in a genuinely reusable lesson about how kramdown handles
+angle-bracket text differently from GitHub's own renderer. MINOR bump: real
+new capability (the keybindings page, the hero redesign, copy buttons) plus
+real, previously-invisible rendering bugs fixed.
+
 ## 2026-09-02 (site polish: keybindings page, real bugs found and fixed, hero redesign)
 
 A batch of direct site feedback: fix the CHANGELOG page's real bugs, add a
