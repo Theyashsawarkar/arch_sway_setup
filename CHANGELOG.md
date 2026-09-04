@@ -5,6 +5,20 @@ along the way. Newest first. Version markers (`## vX.Y.Z`) mark release
 boundaries on top of the dated entries -- see `docs/VERSIONING.md` for the
 full branch/release process.
 
+## v1.5.0 -- 2026-09-04
+
+Four direct fixes/additions: the screenshot carousel felt rushed (slower
+dwell, gentler transition curve); clicking "Features" in the nav scrolled
+past the section's own title, hidden under the sticky nav (fixed with
+`scroll-margin-top`, applies to any future anchor-linked section too); a
+live version badge next to the hero title, fetched from GitHub's tags API
+at page load rather than hand-typed (real semver comparison, not just
+trusting API array order); and the wind-emoji brand icon dropped for a
+text-only wordmark (echoing the H1's own serif+gradient treatment), with a
+real bug fixed along the way -- it was inheriting the site-wide link-hover
+underline. MINOR bump: the version badge is genuine new capability, not
+just a fix.
+
 ## v1.4.0 -- 2026-09-04
 
 A full glassmorphism redesign of the hero, matching a shared reference
