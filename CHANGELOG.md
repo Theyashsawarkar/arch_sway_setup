@@ -5,6 +5,73 @@ along the way. Newest first. Version markers (`## vX.Y.Z`) mark release
 boundaries on top of the dated entries -- see `docs/VERSIONING.md` for the
 full branch/release process.
 
+## v1.3.1 -- 2026-09-04
+
+Fixed two real bugs in the hero (copy button drifting on horizontal code
+scroll, the page visibly scrolling while images changed underneath it) and
+redesigned the layout to match direct feedback -- a real scroll-pin
+carousel instead of a 3D wheel, eyebrow repositioned, install snippet
+de-duplicated, two more screenshots. PATCH bump: fixes to real, reported
+UX bugs plus refinement of an existing feature, not a new capability.
+
+## 2026-09-04 (hero redesign: scroll-pinned slide carousel, real layout fixes)
+
+Direct feedback on the hero: the copy button drifted toward the middle on
+horizontal code-block scroll, the 3D image wheel made the page visibly
+scroll down while images changed underneath it ("bad UX... the page should
+stay put"), images crowded the text column, the eyebrow line competed with
+the title for top billing, and the install snippet was redundant with the
+one already in the #install section below.
+
+**Copy button fix**: it's an absolutely-positioned child of `<pre>`, and a
+scrolling `<pre>` (`overflow-x: auto`) drags its own absolutely-positioned
+children along with the scrolled content. Moved `overflow-x` to the inner
+`<code>` element instead, in both `assets/style.css` and `assets/docs.css`
+-- `<pre>` itself stays static now, so the button never moves regardless of
+how far the code scrolls.
+
+**Real scroll-pin, not scroll-jacking**: `.hero-zone` (350vh) wraps the
+actual hero, which is `position: sticky` -- while the user scrolls through
+that extra height, the hero visually stays in place, and
+`assets/carousel.js` (rewritten) maps scroll progress *within* the zone to
+slide+fade transitions between the 5 screenshots via CSS class changes only
+(`.active`/`.prev`). Never calls `scrollTo`/`preventDefault` -- the page
+keeps scrolling completely normally the whole time, this only ever reads
+`scrollY`. Once scrolled past the zone, the sticky pin releases on its own
+(plain CSS behavior, no JS needed for that part) and the page continues
+into Features. Disabled entirely below 860px -- mobile viewport height
+isn't stable enough (address-bar collapse changes `100vh` mid-scroll on
+most mobile browsers) for a pin effect to be reliable; falls back to plain
+static flow showing just the first screenshot, via the same
+`scrollableRange<=0` guard already in the carousel math rather than a
+separate mobile code path.
+
+**Layout**: eyebrow moved from above the title to below the tagline (no
+longer fighting the title for attention), the hero's own install-snippet
+code block removed entirely (kept only in #install below, no duplication),
+CTA row pinned to the bottom of the text column via `margin-top: auto`.
+Structure top-to-bottom now matches what was asked for directly: title
+(bigger) -> tagline -> eyebrow -> CTA row, images on the right.
+Hero-text/hero-image gap increased (3.5rem -> 5.5rem) and the image
+column's flex-basis reduced (480px -> 400px) for real breathing room.
+
+**Two more screenshots** (keybind-search's live fuzzy list, the emoji
+picker) join the existing three for a 5-image gallery, each with its own
+slide-dot indicator. Tried `notification-history.py` first but it was
+empty on this machine (nothing to show) -- swapped for keybind-search
+since it's guaranteed non-empty, real, colorful content instead of an
+empty list.
+
+Verified live the way every other site change this session has been:
+pushed, waited for a real build, then pulled the actual served HTML/CSS
+and confirmed the DOM structure (image order, eyebrow's new position
+relative to the tagline and CTA row, the install-snippet's removal from
+the hero, all 5 images and the fixed copy-button CSS deployed correctly).
+The visual feel of the scroll-pin itself isn't something `curl` can verify
+-- confirmed everything the tooling here can check (structure, CSS, JS
+syntax, live deployment), but the actual in-browser scroll experience is
+worth checking directly.
+
 ## v1.3.0 -- 2026-09-02
 
 A new Keybindings page (generated from the same live config parsing the
