@@ -5,6 +5,22 @@ along the way. Newest first. Version markers (`## vX.Y.Z`) mark release
 boundaries on top of the dated entries -- see `docs/VERSIONING.md` for the
 full branch/release process.
 
+## v1.4.0 -- 2026-09-04
+
+A full glassmorphism redesign of the hero, matching a shared reference
+mockup's style (confirmed as a Gemini-generated AI image first, and
+deliberately skipped the parts of its description that read as AI-mockup
+filler unrelated to an actual website -- a fake OS status bar, a made-up
+app name, gold/brass bars -- rather than implementing every literal
+detail). Page-wide dark charcoal-to-amethyst gradient background with a
+subtle grain texture; hero content now lives inside a real glass card
+(background blur, inner highlight, deep shadow, ambient glow); wordmark
+switched to a serif font with a purple-to-silver gradient; buttons got
+real glow and a genuine frosted-glass ghost button; the screenshot gallery
+rebuilt as an actual layered 3D card-deck instead of a flat single-image
+swap. MINOR bump: a real new visual capability (the glass card system,
+the card-deck carousel), not just a bug fix.
+
 ## v1.3.2 -- 2026-09-04
 
 Direct follow-up: the scroll-pin from v1.3.1 felt sluggish, and tying page
