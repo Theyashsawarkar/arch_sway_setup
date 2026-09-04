@@ -86,42 +86,52 @@ code {
 .topnav .navlinks a:hover { color: var(--mauve); background: var(--mantle); text-decoration: none; }
 
 /* --- Hero: left = name/headline, right = image ---
-   Pinned via a tall outer zone + `position: sticky` on the actual
-   visible hero -- while the user scrolls through that extra height,
-   the hero itself stays put (direct feedback: "the page should stay
-   put") and assets/carousel.js reads scroll progress within the zone
-   to slide/fade between screenshots, purely additive CSS class
-   changes, never touching scroll position itself. Once the user
-   scrolls past the zone's own height, the sticky pin releases on its
-   own and the page continues normally into Features -- no JS needed
-   for that part, it's what `sticky` already does. */
-.hero-zone {
-  /* 5 images, roughly 0.7 viewport-heights of scroll dwell each --
-     long enough to feel deliberate, short enough that reaching
-     Features doesn't take forever. */
-  height: 350vh;
-  position: relative;
-}
+   Direct follow-up feedback: the scroll-pin from the previous pass felt
+   sluggish, and tying page scroll to the screenshot gallery at all was
+   the wrong call -- "let the scroll behave normally... if a user want
+   to see the screenshots then he can just do something there" (their
+   own words). Page scroll is now completely untouched by any of this
+   -- .hero is a normal, static-flow section, nothing pinned, nothing
+   reading scrollY. The screenshot gallery (assets/carousel.js) is
+   fully self-contained instead: autoplay on a timer, pauses on hover,
+   and the dots (already built for the old version) are real click
+   targets to jump straight to a screenshot -- the "do something there"
+   the feedback asked for. */
 .hero {
-  position: sticky;
-  top: 0;
-  height: 100vh;
+  position: relative;
   display: flex;
   align-items: center;
   gap: 5.5rem;
   max-width: 1180px;
+  min-height: 82vh;
   margin: 0 auto;
-  padding: 0 2.5rem;
+  padding: 4rem 2.5rem;
   overflow: hidden;
 }
+/* Soft ambient glow behind the hero content -- two large, low-opacity
+   blurred color blobs (Mauve/Sky, the same two accents the wordmark's
+   own gradient already uses), fixed behind everything else via
+   z-index. Purely decorative depth, the kind of touch that reads as
+   "a real designed page" rather than "plain text on a background" --
+   direct ask was to make this section feel grand. */
+.hero-glow {
+  position: absolute;
+  inset: -10% -10% auto -10%;
+  height: 140%;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(203, 166, 247, 0.16), transparent 45%),
+    radial-gradient(circle at 85% 60%, rgba(137, 220, 235, 0.12), transparent 45%);
+}
+.hero-text, .hero-image { position: relative; z-index: 1; }
 .hero-text {
   flex: 1 1 440px;
   min-width: 300px;
-  height: 68vh;
-  max-height: 560px;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  animation: hero-rise 0.7s ease both;
 }
 .hero-image {
   flex: 0 1 400px;
@@ -129,6 +139,14 @@ code {
   display: flex;
   flex-direction: column;
   align-items: center;
+  animation: hero-rise 0.7s 0.15s ease both;
+}
+@keyframes hero-rise {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-text, .hero-image { animation: none; }
 }
 
 .slide-stack {
@@ -157,13 +175,21 @@ code {
 .slide-img.prev { opacity: 0; transform: translateX(-48px); }
 
 .slide-dots { display: flex; gap: 0.5rem; justify-content: center; margin-top: 1.25rem; }
+/* Real <button> elements now (assets/carousel.js), not decorative
+   spans -- click jumps straight to that screenshot. Reset the default
+   button chrome, keep only the dot's own look. */
 .slide-dot {
-  width: 7px;
-  height: 7px;
+  appearance: none;
+  border: none;
+  padding: 0;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: var(--surface0);
+  cursor: pointer;
   transition: background 0.2s ease, transform 0.2s ease;
 }
+.slide-dot:hover { background: var(--subtext); }
 .slide-dot.active { background: var(--mauve); transform: scale(1.4); }
 
 .hero-text h1 {
@@ -192,7 +218,7 @@ code {
   font-weight: 600;
 }
 
-.cta-row { display: flex; gap: 1rem; margin-top: auto; flex-wrap: wrap; }
+.cta-row { display: flex; gap: 1rem; margin-top: 0.5rem; flex-wrap: wrap; }
 .btn {
   display: inline-block;
   padding: 0.7rem 1.4rem;
@@ -344,24 +370,12 @@ footer {
 }
 
 @media (max-width: 860px) {
-  /* The scroll-pin mechanic (sticky + a tall scroll zone) depends on
-     stable, generous viewport height -- exactly what small/mobile
-     screens don't reliably have (address-bar collapse alone changes
-     100vh mid-scroll on most mobile browsers). Rather than ship a
-     janky pin on the one class of device least suited to it, drop back
-     to plain static flow: the zone's real height collapses to content
-     height, the hero stops being sticky, and only the first screenshot
-     ever shows (assets/carousel.js's own scrollableRange<=0 guard
-     already handles this -- no separate mobile branch needed there). */
-  .hero-zone { height: auto; }
   .hero {
-    position: static;
-    height: auto;
     flex-direction: column;
+    min-height: 0;
     padding: 3rem 1.5rem;
     gap: 2.5rem;
   }
-  .hero-text { height: auto; max-height: none; }
   .hero-text h1 { font-size: 2.8rem; }
   .hero-image { flex: none; width: 100%; }
   .topnav { flex-direction: column; gap: 0.6rem; align-items: flex-start; border-radius: 20px; }
