@@ -5,6 +5,20 @@ along the way. Newest first. Version markers (`## vX.Y.Z`) mark release
 boundaries on top of the dated entries -- see `docs/VERSIONING.md` for the
 full branch/release process.
 
+## v1.5.1 -- 2026-09-04
+
+Fixed two real flash bugs, each with a specific, identified cause rather
+than a general polish pass: `background-attachment: fixed` was forcing a
+full repaint of the body's (expensive, multi-gradient + noise-textured)
+background on every scroll position change, visible as a white flash on
+the Features anchor jump; and the carousel's transition animated `filter`
+alongside `transform`/`opacity`, and unlike those two, `filter` isn't
+compositor-only, so it forced a real repaint every frame. Also added
+`scroll-behavior: smooth` for anchor links, `img.decode()` gating before
+carousel autoplay starts, and the Cross-Document View Transitions API for
+genuine cross-page navigation fades. PATCH bump: fixing real, reported
+rendering bugs, not new capability.
+
 ## v1.5.0 -- 2026-09-04
 
 Four direct fixes/additions: the screenshot carousel felt rushed (slower
