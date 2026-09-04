@@ -22,27 +22,29 @@
 </nav>
 </div>
 
+<div class="hero-zone" id="hero-zone">
 <header class="hero">
   <div class="hero-text">
-    <p class="eyebrow">Arch Linux · Wayland · Sway</p>
     <h1>Vayu</h1>
     <p class="tagline">A minimal, keyboard-driven desktop, with aesthetics.</p>
+    <p class="eyebrow">Arch Linux · Wayland · Sway</p>
     <div class="cta-row">
       <a class="btn btn-primary" href="#install">Get started</a>
       <a class="btn btn-ghost" href="https://github.com/Theyashsawarkar/vayu">View on GitHub</a>
     </div>
-    <pre class="install-snippet"><code>bash &lt;(curl -fsSL https://raw.githubusercontent.com/Theyashsawarkar/vayu/main/install.sh)</code></pre>
   </div>
   <div class="hero-image">
-    <div class="wheel-scene" id="wheel-scene">
-      <div class="wheel" id="wheel">
-        <img class="wheel-img" style="--ry:0deg" src="assets/desktop.jpg" alt="rmpc, the music player, Catppuccin-Mocha themed with real compositor glass, over a live wallpaper.">
-        <img class="wheel-img" style="--ry:120deg" src="assets/wofi.jpg" alt="Wofi application launcher, a fast keyboard-driven app grid.">
-        <img class="wheel-img" style="--ry:240deg" src="assets/powermenu.jpg" alt="The power menu -- lock, logout, suspend, reboot, shutdown.">
-      </div>
+    <div class="slide-stack" id="slide-stack">
+      <img class="slide-img" src="assets/desktop.jpg" alt="rmpc, the music player, Catppuccin-Mocha themed with real compositor glass, over a live wallpaper.">
+      <img class="slide-img" src="assets/wofi.jpg" alt="Wofi application launcher, a fast keyboard-driven app grid.">
+      <img class="slide-img" src="assets/keybindsearch.jpg" alt="Fuzzy keybinding search, generated live from the real Sway and Tmux configs.">
+      <img class="slide-img" src="assets/emoji.jpg" alt="Emoji picker, keyboard-driven via wofi.">
+      <img class="slide-img" src="assets/powermenu.jpg" alt="The power menu -- lock, logout, suspend, reboot, shutdown.">
     </div>
+    <div class="slide-dots" id="slide-dots"></div>
   </div>
 </header>
+</div>
 
 <main>
   <section id="features" class="features">

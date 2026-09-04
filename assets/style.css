@@ -85,37 +85,58 @@ code {
 }
 .topnav .navlinks a:hover { color: var(--mauve); background: var(--mantle); text-decoration: none; }
 
-/* --- Hero: left = name/headline, right = image --- */
+/* --- Hero: left = name/headline, right = image ---
+   Pinned via a tall outer zone + `position: sticky` on the actual
+   visible hero -- while the user scrolls through that extra height,
+   the hero itself stays put (direct feedback: "the page should stay
+   put") and assets/carousel.js reads scroll progress within the zone
+   to slide/fade between screenshots, purely additive CSS class
+   changes, never touching scroll position itself. Once the user
+   scrolls past the zone's own height, the sticky pin releases on its
+   own and the page continues normally into Features -- no JS needed
+   for that part, it's what `sticky` already does. */
+.hero-zone {
+  /* 5 images, roughly 0.7 viewport-heights of scroll dwell each --
+     long enough to feel deliberate, short enough that reaching
+     Features doesn't take forever. */
+  height: 350vh;
+  position: relative;
+}
 .hero {
+  position: sticky;
+  top: 0;
+  height: 100vh;
   display: flex;
   align-items: center;
-  gap: 3.5rem;
+  gap: 5.5rem;
   max-width: 1180px;
   margin: 0 auto;
-  padding: 5rem 2.5rem 4rem;
+  padding: 0 2.5rem;
+  overflow: hidden;
 }
-.hero-text { flex: 1 1 480px; min-width: 320px; }
-.hero-image { flex: 1 1 480px; min-width: 320px; }
+.hero-text {
+  flex: 1 1 440px;
+  min-width: 300px;
+  height: 68vh;
+  max-height: 560px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.hero-image {
+  flex: 0 1 400px;
+  min-width: 260px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
-/* Rotating "wheel" of screenshots -- three images arranged in a 3D
-   circle (rotateY 0/120/240deg, each pushed out along Z), one whole
-   unit rotated by scroll position (assets/carousel.js) so a different
-   screenshot faces forward as the page scrolls. `perspective` on the
-   outer scene, `preserve-3d` on the inner wheel -- without both, the
-   Y-rotated images would flatten instead of arranging in real 3D space. */
-.wheel-scene {
-  width: 100%;
-  aspect-ratio: 16 / 10;
-  perspective: 1600px;
-}
-.wheel {
+.slide-stack {
   position: relative;
   width: 100%;
-  height: 100%;
-  transform-style: preserve-3d;
-  transition: transform 0.1s linear;
+  aspect-ratio: 16 / 10;
 }
-.wheel-img {
+.slide-img {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -124,39 +145,54 @@ code {
   border-radius: 12px;
   border: 1px solid var(--surface0);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  backface-visibility: hidden;
-  /* translateZ pushes each image out to the rim of the circle at its
-     own base rotation (--ry, set per-image inline) -- 260px matches
-     roughly half the rendered width at typical hero sizes, keeping
-     the three faces from clipping into each other. */
-  transform: rotateY(var(--ry)) translateZ(260px);
+  opacity: 0;
+  transform: translateX(48px);
+  transition: opacity 0.45s ease, transform 0.45s ease;
 }
+/* CSS-only fallback so the first screenshot is visible even before
+   assets/carousel.js has run (or if it fails) -- JS takes over from
+   here via the same .active class once it initializes. */
+.slide-img:first-child { opacity: 1; transform: translateX(0); }
+.slide-img.active { opacity: 1; transform: translateX(0); }
+.slide-img.prev { opacity: 0; transform: translateX(-48px); }
 
-.eyebrow {
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-size: 0.8rem;
-  color: var(--sky);
-  margin: 0 0 0.75rem;
-  font-weight: 600;
+.slide-dots { display: flex; gap: 0.5rem; justify-content: center; margin-top: 1.25rem; }
+.slide-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--surface0);
+  transition: background 0.2s ease, transform 0.2s ease;
 }
+.slide-dot.active { background: var(--mauve); transform: scale(1.4); }
+
 .hero-text h1 {
-  font-size: 3.5rem;
-  margin: 0 0 1rem;
+  font-size: 5.5rem;
+  line-height: 1;
+  margin: 0 0 1.25rem;
   background: linear-gradient(135deg, var(--mauve), var(--lavender));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 .hero-text .tagline {
-  font-size: 1.05rem;
+  font-size: 1.2rem;
   color: var(--subtext);
-  margin: 0 0 2rem;
-  max-width: 46ch;
+  margin: 0 0 1rem;
+  max-width: 40ch;
 }
 .hero-text .tagline strong { color: var(--text); }
 
-.cta-row { display: flex; gap: 1rem; margin-bottom: 1.75rem; flex-wrap: wrap; }
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.78rem;
+  color: var(--sky);
+  margin: 0 0 2rem;
+  font-weight: 600;
+}
+
+.cta-row { display: flex; gap: 1rem; margin-top: auto; flex-wrap: wrap; }
 .btn {
   display: inline-block;
   padding: 0.7rem 1.4rem;
@@ -175,10 +211,18 @@ code {
   border: 1px solid var(--surface0);
   border-radius: 8px;
   padding: 1rem 1.25rem;
-  overflow-x: auto;
   margin: 0;
 }
+/* overflow-x lives on the code element, not the pre itself -- the copy
+   button (assets/copy.js) is an absolutely-positioned child of <pre>,
+   and a scrolling *pre* drags its own absolutely-positioned children
+   along with the scrolled content (confirmed live: the button visibly
+   slid toward the middle on horizontal scroll). Scrolling only the
+   inner code element keeps <pre> itself static, so the button --
+   positioned relative to <pre>, not <code> -- never moves. */
 .install-snippet code {
+  display: block;
+  overflow-x: auto;
   background: none;
   padding: 0;
   color: var(--green);
@@ -300,10 +344,27 @@ footer {
 }
 
 @media (max-width: 860px) {
-  .hero { flex-direction: column; padding-top: 3rem; }
-  .hero-text h1 { font-size: 2.6rem; }
+  /* The scroll-pin mechanic (sticky + a tall scroll zone) depends on
+     stable, generous viewport height -- exactly what small/mobile
+     screens don't reliably have (address-bar collapse alone changes
+     100vh mid-scroll on most mobile browsers). Rather than ship a
+     janky pin on the one class of device least suited to it, drop back
+     to plain static flow: the zone's real height collapses to content
+     height, the hero stops being sticky, and only the first screenshot
+     ever shows (assets/carousel.js's own scrollableRange<=0 guard
+     already handles this -- no separate mobile branch needed there). */
+  .hero-zone { height: auto; }
+  .hero {
+    position: static;
+    height: auto;
+    flex-direction: column;
+    padding: 3rem 1.5rem;
+    gap: 2.5rem;
+  }
+  .hero-text { height: auto; max-height: none; }
+  .hero-text h1 { font-size: 2.8rem; }
+  .hero-image { flex: none; width: 100%; }
   .topnav { flex-direction: column; gap: 0.6rem; align-items: flex-start; border-radius: 20px; }
   .topnav .navlinks { display: flex; flex-wrap: wrap; }
   .topnav .navlinks a { margin-left: 0; margin-right: 0.25rem; }
-  .wheel-img { transform: rotateY(var(--ry)) translateZ(150px); }
 }
