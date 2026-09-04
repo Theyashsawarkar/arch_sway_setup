@@ -64,7 +64,21 @@
   }
 
   show(0);
-  start();
+
+  // Direct feedback: a visible flash on the image changes. One real
+  // cause -- img.decode() actually finishes decoding a downloaded
+  // image (not just "the bytes arrived", which is all `.complete`
+  // guarantees) before it's ever asked to animate in at full opacity,
+  // instead of decoding-and-painting on the same frame the transition
+  // starts, which is what shows up as a flash/pop. Per-image .catch so
+  // one slow/failed decode can't block the others; a 2s cap either way
+  // so a genuinely stuck decode doesn't delay autoplay starting
+  // forever.
+  const ready = Promise.race([
+    Promise.all(images.map((img) => (img.decode ? img.decode().catch(() => {}) : Promise.resolve()))),
+    new Promise((resolve) => window.setTimeout(resolve, 2000)),
+  ]);
+  ready.then(start);
 
   stack.addEventListener("mouseenter", stop);
   stack.addEventListener("mouseleave", start);

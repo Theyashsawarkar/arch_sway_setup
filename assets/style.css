@@ -34,6 +34,10 @@ html, body {
    (no external image request, no font/asset dependency, consistent
    with the rest of this site's "no external loading" approach), kept
    subtle (2% opacity) so it reads as texture, not visible static. */
+/* scroll-behavior: smooth -- direct feedback: anchor-link jumps (nav
+   -> #features etc.) should transition, not snap instantly. Applies
+   site-wide, to every same-page hash link. */
+html { scroll-behavior: smooth; }
 body {
   background-color: var(--crust);
   background-image:
@@ -41,7 +45,26 @@ body {
     radial-gradient(ellipse 70% 50% at 100% 20%, rgba(137, 220, 235, 0.06), transparent 55%),
     linear-gradient(180deg, #14121c 0%, var(--crust) 45%, #17111f 100%),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
-  background-attachment: fixed;
+  /* Deliberately NOT background-attachment: fixed -- direct bug
+     report: a visible white flash when jumping to #features. A fixed
+     background forces the browser to repaint this whole (expensive:
+     three gradients + a tiled SVG noise filter) background on every
+     scroll position change instead of letting it composite/scroll
+     with the page like normal content -- exactly the kind of thing
+     that flashes/stutters during a large, fast scroll jump. The
+     visual difference from a scrolling background is imperceptible
+     here (one continuous gradient, not an obviously "moving" pattern)
+     so there's no real tradeoff, just a real fix. */
+}
+/* Real smooth cross-page transitions (nav -> Architecture/Keybindings/
+   Changelog etc., actual different HTML documents, not same-page
+   anchors) -- the Cross-Document View Transitions API. One CSS
+   at-rule, no JS: browsers that support it (recent Chrome/Edge) cross-
+   fade between pages instead of an instant hard-cut; everywhere else
+   this is simply ignored and navigation works exactly as it already
+   did, zero risk of a broken experience on unsupported browsers. */
+@view-transition {
+  navigation: auto;
 }
 
 a { color: var(--mauve); text-decoration: none; }
@@ -201,6 +224,7 @@ code {
 }
 @media (prefers-reduced-motion: reduce) {
   .hero-card { animation: none; }
+  html { scroll-behavior: auto; }
 }
 
 .slide-stack {
@@ -215,6 +239,11 @@ code {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  /* Hints the browser to promote these to their own compositor layers
+     ahead of time, not at the moment the first transition starts --
+     the usual cause of a visible stutter/flash on a *first* animation
+     specifically, since layer promotion itself has a one-time cost. */
+  will-change: transform, opacity;
   border-radius: 16px;
   border: 1px solid rgba(203, 166, 247, 0.22);
   box-shadow: 0 25px 70px rgba(0, 0, 0, 0.6);
@@ -222,23 +251,30 @@ code {
      feedback that the previous 0.5s snap felt rushed. A longer
      duration paired with an eased-out-both-ends curve (rather than
      the sharper deceleration curve before) reads as a smooth,
-     deliberate glide instead of a UI element "jumping" into place. */
-  transition: transform 0.85s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.85s ease, filter 0.85s ease;
+     deliberate glide instead of a UI element "jumping" into place.
+     Only transform + opacity -- both composite-only properties every
+     browser can animate on the GPU without repainting. `filter`
+     (brightness, used here before for the "dimmer further back" look)
+     is NOT compositor-only -- animating it forces a real repaint on
+     every frame, which is exactly the kind of thing that shows up as
+     a visible flash/stutter, a real direct bug report. Dropped it
+     entirely and leaned on lower opacity alone for the same "further
+     back reads as dimmer" cue instead. */
+  transition: transform 0.85s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.85s ease;
 }
 /* Real layered card-deck depth via a data-offset attribute
    (assets/carousel.js) -- 0 is the active/front card at full size;
-   1 and 2 peek out progressively smaller, dimmer, and rotated behind
-   it and to the side (the "edges and glimpses of stacked panels"
-   look); anything further back is invisible rather than cluttering
-   the stack with all 5 at once. */
-.slide-img[data-offset="0"] { transform: translate(0, 0) scale(1) rotate(0deg); z-index: 5; opacity: 1; filter: brightness(1); }
-.slide-img[data-offset="1"] { transform: translate(34px, -22px) scale(0.92) rotate(3deg); z-index: 4; opacity: 0.55; filter: brightness(0.6); }
-.slide-img[data-offset="2"] { transform: translate(58px, -38px) scale(0.85) rotate(5deg); z-index: 3; opacity: 0.28; filter: brightness(0.45); }
+   1 and 2 peek out progressively smaller and rotated behind it and to
+   the side (the "edges and glimpses of stacked panels" look), dimmed
+   via opacity alone now, not filter; anything further back is
+   invisible rather than cluttering the stack with all 5 at once. */
+.slide-img[data-offset="0"] { transform: translate(0, 0) scale(1) rotate(0deg); z-index: 5; opacity: 1; }
+.slide-img[data-offset="1"] { transform: translate(34px, -22px) scale(0.92) rotate(3deg); z-index: 4; opacity: 0.45; }
+.slide-img[data-offset="2"] { transform: translate(58px, -38px) scale(0.85) rotate(5deg); z-index: 3; opacity: 0.2; }
 .slide-img[data-offset="3"], .slide-img[data-offset="4"] {
   transform: translate(70px, -46px) scale(0.8) rotate(6deg);
   z-index: 2;
   opacity: 0;
-  filter: brightness(0.4);
   pointer-events: none;
 }
 
