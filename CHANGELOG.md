@@ -5,6 +5,20 @@ along the way. Newest first. Version markers (`## vX.Y.Z`) mark release
 boundaries on top of the dated entries -- see `docs/VERSIONING.md` for the
 full branch/release process.
 
+## v1.3.2 -- 2026-09-04
+
+Direct follow-up: the scroll-pin from v1.3.1 felt sluggish, and tying page
+scroll to the screenshot gallery was the wrong idea in the first place --
+"let the scroll behave normally... if a user want to see the screenshots
+then he can just do something there." Removed `.hero-zone`/`position:
+sticky` entirely; page scroll is now completely untouched by the hero.
+`assets/carousel.js` rewritten as a fully self-contained autoplay carousel
+(3.2s timer, pauses on hover, real clickable dots) with no scroll listener
+at all. Added a soft ambient gradient glow behind the hero content and a
+subtle fade+rise entrance animation for a grander first impression, per
+direct request. PATCH bump: fixing a UX regression just shipped, not new
+capability.
+
 ## v1.3.1 -- 2026-09-04
 
 Fixed two real bugs in the hero (copy button drifting on horizontal code
