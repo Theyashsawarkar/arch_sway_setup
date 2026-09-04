@@ -83,11 +83,23 @@ code {
   backdrop-filter: blur(10px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 }
+/* Text-only wordmark, no icon -- direct feedback against the emoji
+   ("put some good logo... or just drop that logo and lets use the
+   text only"). Echoes the hero H1's own serif + gradient treatment at
+   nav scale instead of plain bold sans, so it still reads as a real
+   mark rather than just another nav link. text-decoration explicitly
+   reset -- it was inheriting the site-wide `a:hover { underline }`
+   rule, a real reported bug, not wanted on a wordmark. */
 .topnav .brand {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--text);
+  font-family: Georgia, "Iowan Old Style", "Palatino Linotype", "Times New Roman", serif;
+  font-size: 1.3rem;
+  font-weight: 500;
+  background: linear-gradient(135deg, var(--mauve), var(--text));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
+.topnav .brand:hover { text-decoration: none; }
 .topnav .navlinks a {
   margin-left: 0.35rem;
   color: var(--subtext);
@@ -206,7 +218,12 @@ code {
   border-radius: 16px;
   border: 1px solid rgba(203, 166, 247, 0.22);
   box-shadow: 0 25px 70px rgba(0, 0, 0, 0.6);
-  transition: transform 0.5s cubic-bezier(0.22, 0.9, 0.32, 1), opacity 0.5s ease, filter 0.5s ease;
+  /* Slower, gentler than a typical UI transition on purpose -- direct
+     feedback that the previous 0.5s snap felt rushed. A longer
+     duration paired with an eased-out-both-ends curve (rather than
+     the sharper deceleration curve before) reads as a smooth,
+     deliberate glide instead of a UI element "jumping" into place. */
+  transition: transform 0.85s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.85s ease, filter 0.85s ease;
 }
 /* Real layered card-deck depth via a data-offset attribute
    (assets/carousel.js) -- 0 is the active/front card at full size;
@@ -259,6 +276,32 @@ code {
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+}
+/* Latest released version, filled in live by assets/version.js (a real
+   GitHub API fetch, not hand-typed -- never goes stale after a
+   release). A small pill, not gradient/serif text like the title
+   itself -- it's metadata sitting next to the wordmark, not part of
+   it, and needs its own solid (non-transparent) color since it lives
+   outside the h1's background-clip. Sits empty (zero visual weight)
+   until the fetch resolves, rather than a "vX.Y.Z" placeholder that
+   might briefly show something wrong. */
+.version-badge {
+  display: inline-block;
+  /* h1 has line-height: 1 and a huge font-size -- "middle" would sink
+     the badge to the visual center of the whole glyph height, "text-
+     bottom" keeps it sitting near the baseline instead, closer to
+     where a small superscript-like tag actually reads well next to
+     giant text. */
+  vertical-align: text-bottom;
+  margin-left: 0.75rem;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid rgba(203, 166, 247, 0.28);
+  background: rgba(203, 166, 247, 0.08);
+  font-family: -apple-system, "Segoe UI", Roboto, "Inter", sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--mauve);
 }
 .hero-text .tagline {
   font-size: 1.2rem;
@@ -357,6 +400,12 @@ pre:hover .copy-btn, pre:focus-within .copy-btn, .copy-btn:focus {
 
 /* --- Feature grid --- */
 main { max-width: 1180px; margin: 0 auto; padding: 0 2.5rem; }
+/* Direct bug report: clicking "Features" in the nav scrolled past the
+   section's own title, since the sticky .topnav-wrap sits on top of
+   whatever the browser's native anchor-jump lands on. scroll-margin-top
+   tells that jump to leave real space above the target instead --
+   applies to any future id'd section too, not just these two. */
+main section[id] { scroll-margin-top: 6rem; }
 section h2 {
   font-size: 1.6rem;
   margin: 4rem 0 1.75rem;

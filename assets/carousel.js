@@ -11,7 +11,11 @@
   const images = Array.from(stack.querySelectorAll(".slide-img"));
   if (images.length === 0) return;
 
-  const INTERVAL_MS = 3200;
+  // Direct feedback: the previous 3.2s dwell + 0.5s transition felt
+  // rushed. Slower dwell, and the transition itself (assets/style.css's
+  // .slide-img rule) got a longer duration + gentler easing curve to
+  // match -- feels like a deliberate, polished move now, not a snap.
+  const INTERVAL_MS = 5000;
   let currentIndex = 0;
   let timer = null;
 
