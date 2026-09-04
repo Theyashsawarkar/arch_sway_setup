@@ -25,10 +25,23 @@
 html, body {
   margin: 0;
   padding: 0;
-  background: var(--crust);
   color: var(--text);
   font-family: -apple-system, "Segoe UI", Roboto, "Inter", sans-serif;
   line-height: 1.6;
+}
+/* Deep charcoal-to-amethyst page background, plus a very faint grain --
+   a single tiled SVG feTurbulence noise filter baked in as a data URI
+   (no external image request, no font/asset dependency, consistent
+   with the rest of this site's "no external loading" approach), kept
+   subtle (2% opacity) so it reads as texture, not visible static. */
+body {
+  background-color: var(--crust);
+  background-image:
+    radial-gradient(ellipse 80% 60% at 20% -10%, rgba(203, 166, 247, 0.10), transparent 60%),
+    radial-gradient(ellipse 70% 50% at 100% 20%, rgba(137, 220, 235, 0.06), transparent 55%),
+    linear-gradient(180deg, #14121c 0%, var(--crust) 45%, #17111f 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  background-attachment: fixed;
 }
 
 a { color: var(--mauve); text-decoration: none; }
@@ -99,60 +112,90 @@ code {
    the feedback asked for. */
 .hero {
   position: relative;
-  display: flex;
-  align-items: center;
-  gap: 5.5rem;
-  max-width: 1180px;
-  min-height: 82vh;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 4rem 2.5rem;
-  overflow: hidden;
+  padding: 3rem 2rem 5rem;
 }
-/* Soft ambient glow behind the hero content -- two large, low-opacity
-   blurred color blobs (Mauve/Sky, the same two accents the wordmark's
-   own gradient already uses), fixed behind everything else via
-   z-index. Purely decorative depth, the kind of touch that reads as
-   "a real designed page" rather than "plain text on a background" --
-   direct ask was to make this section feel grand. */
+/* Ambient glow behind the whole card -- two large, low-opacity blurred
+   color blobs (Mauve/Sky), sitting behind the card via z-index. */
 .hero-glow {
   position: absolute;
-  inset: -10% -10% auto -10%;
-  height: 140%;
+  inset: -12% -8% auto -8%;
+  height: 130%;
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(circle at 15% 20%, rgba(203, 166, 247, 0.16), transparent 45%),
-    radial-gradient(circle at 85% 60%, rgba(137, 220, 235, 0.12), transparent 45%);
+    radial-gradient(circle at 20% 25%, rgba(203, 166, 247, 0.20), transparent 50%),
+    radial-gradient(circle at 88% 55%, rgba(137, 220, 235, 0.13), transparent 50%);
+  filter: blur(10px);
 }
-.hero-text, .hero-image { position: relative; z-index: 1; }
+
+/* The main glassmorphism card -- everything (nav-adjacent brand feel
+   aside) lives inside one large frosted panel floating on the page's
+   own dark gradient background, per direct request for a "premium
+   Glassmorphism-style" homepage: real background blur, a soft inner
+   highlight, a deep outer shadow, and the whole thing sitting on the
+   ambient glow above so light appears to spill out from behind it. */
+.hero-card {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 4rem;
+  min-height: 72vh;
+  padding: 3.5rem;
+  border-radius: 28px;
+  background: linear-gradient(155deg, rgba(203, 166, 247, 0.09), rgba(24, 24, 37, 0.6) 45%);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 1px solid rgba(203, 166, 247, 0.18);
+  box-shadow:
+    0 40px 100px rgba(0, 0, 0, 0.55),
+    0 0 120px rgba(203, 166, 247, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  animation: hero-rise 0.7s ease both;
+}
 .hero-text {
   flex: 1 1 440px;
   min-width: 300px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  animation: hero-rise 0.7s ease both;
 }
 .hero-image {
-  flex: 0 1 400px;
+  position: relative;
+  flex: 0 1 420px;
   min-width: 260px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  animation: hero-rise 0.7s 0.15s ease both;
+  perspective: 1400px;
+}
+/* Extra, tighter glow specifically behind the image stack -- "intense,
+   diffused backlighting spilling from behind the layered stack",
+   distinct from the card's own broader ambient glow above. */
+.hero-image::before {
+  content: "";
+  position: absolute;
+  inset: -15%;
+  z-index: 0;
+  background: radial-gradient(circle at 60% 45%, rgba(203, 166, 247, 0.4), transparent 62%);
+  filter: blur(30px);
+  pointer-events: none;
 }
 @keyframes hero-rise {
   from { opacity: 0; transform: translateY(18px); }
   to { opacity: 1; transform: translateY(0); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .hero-text, .hero-image { animation: none; }
+  .hero-card { animation: none; }
 }
 
 .slide-stack {
   position: relative;
+  z-index: 1;
   width: 100%;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 4 / 3;
 }
 .slide-img {
   position: absolute;
@@ -160,24 +203,32 @@ code {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 12px;
-  border: 1px solid var(--surface0);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  opacity: 0;
-  transform: translateX(48px);
-  transition: opacity 0.45s ease, transform 0.45s ease;
+  border-radius: 16px;
+  border: 1px solid rgba(203, 166, 247, 0.22);
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.6);
+  transition: transform 0.5s cubic-bezier(0.22, 0.9, 0.32, 1), opacity 0.5s ease, filter 0.5s ease;
 }
-/* CSS-only fallback so the first screenshot is visible even before
-   assets/carousel.js has run (or if it fails) -- JS takes over from
-   here via the same .active class once it initializes. */
-.slide-img:first-child { opacity: 1; transform: translateX(0); }
-.slide-img.active { opacity: 1; transform: translateX(0); }
-.slide-img.prev { opacity: 0; transform: translateX(-48px); }
+/* Real layered card-deck depth via a data-offset attribute
+   (assets/carousel.js) -- 0 is the active/front card at full size;
+   1 and 2 peek out progressively smaller, dimmer, and rotated behind
+   it and to the side (the "edges and glimpses of stacked panels"
+   look); anything further back is invisible rather than cluttering
+   the stack with all 5 at once. */
+.slide-img[data-offset="0"] { transform: translate(0, 0) scale(1) rotate(0deg); z-index: 5; opacity: 1; filter: brightness(1); }
+.slide-img[data-offset="1"] { transform: translate(34px, -22px) scale(0.92) rotate(3deg); z-index: 4; opacity: 0.55; filter: brightness(0.6); }
+.slide-img[data-offset="2"] { transform: translate(58px, -38px) scale(0.85) rotate(5deg); z-index: 3; opacity: 0.28; filter: brightness(0.45); }
+.slide-img[data-offset="3"], .slide-img[data-offset="4"] {
+  transform: translate(70px, -46px) scale(0.8) rotate(6deg);
+  z-index: 2;
+  opacity: 0;
+  filter: brightness(0.4);
+  pointer-events: none;
+}
 
-.slide-dots { display: flex; gap: 0.5rem; justify-content: center; margin-top: 1.25rem; }
-/* Real <button> elements now (assets/carousel.js), not decorative
-   spans -- click jumps straight to that screenshot. Reset the default
-   button chrome, keep only the dot's own look. */
+.slide-dots { position: relative; z-index: 1; display: flex; gap: 0.5rem; justify-content: center; margin-top: 1.5rem; }
+/* Real <button> elements (assets/carousel.js), not decorative spans --
+   click jumps straight to that screenshot. Reset the default button
+   chrome, keep only the dot's own look. */
 .slide-dot {
   appearance: none;
   border: none;
@@ -192,11 +243,19 @@ code {
 .slide-dot:hover { background: var(--subtext); }
 .slide-dot.active { background: var(--mauve); transform: scale(1.4); }
 
+/* Elegant serif for the wordmark specifically (body text stays sans) --
+   no external font request, a cross-platform serif stack instead, kept
+   in the same "no extra asset loading" spirit as the rest of this
+   site. Gradient goes purple-to-silver (Mauve -> the same Clean Silver
+   #cdd6f4 used as this whole theme's base text color), not purple-to-
+   lavender as before -- closer to an actual brushed-metal/silver look. */
 .hero-text h1 {
+  font-family: Georgia, "Iowan Old Style", "Palatino Linotype", "Times New Roman", serif;
+  font-weight: 500;
   font-size: 5.5rem;
   line-height: 1;
   margin: 0 0 1.25rem;
-  background: linear-gradient(135deg, var(--mauve), var(--lavender));
+  background: linear-gradient(135deg, var(--mauve), var(--text));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -211,9 +270,9 @@ code {
 
 .eyebrow {
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   font-size: 0.78rem;
-  color: var(--sky);
+  color: var(--subtext);
   margin: 0 0 2rem;
   font-weight: 600;
 }
@@ -222,15 +281,29 @@ code {
 .btn {
   display: inline-block;
   padding: 0.7rem 1.4rem;
-  border-radius: 8px;
+  border-radius: 10px;
   font-weight: 600;
   font-size: 0.95rem;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 }
 .btn:hover { text-decoration: none; }
-.btn-primary { background: var(--mauve); color: var(--crust); }
-.btn-primary:hover { background: var(--lavender); }
-.btn-ghost { background: transparent; color: var(--text); border: 1px solid var(--surface0); }
-.btn-ghost:hover { border-color: var(--mauve); color: var(--mauve); }
+.btn-primary {
+  background: var(--mauve);
+  color: var(--crust);
+  box-shadow: 0 8px 24px rgba(203, 166, 247, 0.35);
+}
+.btn-primary:hover { background: var(--lavender); box-shadow: 0 10px 30px rgba(180, 190, 254, 0.45); }
+/* Ghost button gets its own frosted-glass treatment (a real
+   backdrop-filter blur, not just a transparent background) so it
+   reads as another glass surface, not a plain outlined link. */
+.btn-ghost {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: var(--text);
+  border: 1px solid rgba(203, 166, 247, 0.25);
+}
+.btn-ghost:hover { border-color: var(--mauve); color: var(--mauve); background: rgba(203, 166, 247, 0.08); }
 
 .install-snippet {
   background: var(--mantle);
@@ -370,11 +443,13 @@ footer {
 }
 
 @media (max-width: 860px) {
-  .hero {
+  .hero { padding: 1.5rem 1rem 3rem; }
+  .hero-card {
     flex-direction: column;
     min-height: 0;
-    padding: 3rem 1.5rem;
+    padding: 2rem 1.5rem;
     gap: 2.5rem;
+    border-radius: 20px;
   }
   .hero-text h1 { font-size: 2.8rem; }
   .hero-image { flex: none; width: 100%; }

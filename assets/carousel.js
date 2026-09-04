@@ -1,12 +1,8 @@
-// Hero screenshot carousel -- fully self-contained, no page-scroll
-// involvement at all. Direct feedback on the previous (scroll-pinned)
-// version: it felt sluggish, and tying page scroll to the gallery was the
-// wrong idea in the first place -- "let the scroll behave normally...
-// if a user want to see the screenshots then he can just do something
-// there." This version autoplays on its own timer, pauses while the
-// pointer is over it (so it doesn't yank a screenshot away mid-look), and
-// the dots are real click targets to jump straight to one -- that's the
-// "do something there" the feedback asked for.
+// Hero screenshot carousel -- a real layered card-deck (assets/style.css's
+// .slide-img[data-offset] rules), self-contained, no page-scroll
+// involvement at all. Autoplays on its own timer, pauses while the
+// pointer is over it, and the dots are real click targets to jump
+// straight to a screenshot.
 (function () {
   const stack = document.getElementById("slide-stack");
   const dotsWrap = document.getElementById("slide-dots");
@@ -30,10 +26,13 @@
   });
 
   function show(index) {
+    // Each image's "offset" is its distance from the active one, going
+    // forward through the deck (wrapping around) -- 0 is the front/active
+    // card, 1 and 2 are the next ones peeking out behind it (styled in
+    // CSS), anything further back is hidden until its turn comes up.
     images.forEach((img, i) => {
-      img.classList.remove("active", "prev");
-      if (i < index) img.classList.add("prev");
-      else if (i === index) img.classList.add("active");
+      const delta = (i - index + images.length) % images.length;
+      img.setAttribute("data-offset", String(delta));
     });
     dots.forEach((d, i) => d.classList.toggle("active", i === index));
     currentIndex = index;
